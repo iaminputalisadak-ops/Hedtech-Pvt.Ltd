@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { Autoplay, Navigation, Pagination } from 'swiper/modules'
@@ -7,6 +7,7 @@ import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
 import LazyYouTube from '../components/LazyYouTube'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { Link } from 'react-router-dom'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -37,13 +38,10 @@ export default function Testimonials() {
   const reduce = useReducedMotion()
   const autoplayEnabled = (settings?.reviews_autoscroll ?? '1') === '1' && !reduce
   const isDesktop = useMediaQuery(DESKTOP_GRID)
-  const [desktopExpanded, setDesktopExpanded] = useState(false)
-  const [mobileListView, setMobileListView] = useState(false)
 
   const n = testimonials?.length ?? 0
   const loopEnabled = n >= 4
   const rewindEnabled = !loopEnabled && n > 1
-  const desktopExtra = n > 4 ? n - 4 : 0
 
   const breakpoints = useMemo(() => {
     const count = Math.max(1, n)
@@ -56,8 +54,8 @@ export default function Testimonials() {
 
   if (!n) return null
 
-  const desktopItems = desktopExpanded || n <= 4 ? testimonials : testimonials.slice(0, 4)
-  const desktopCols = Math.min(4, desktopItems.length || 1)
+  const desktopItems = testimonials.slice(0, 4)
+  const showViewAll = n > 4
 
   return (
     <SectionContainer id="reviews" className="reviews-section">
@@ -72,90 +70,72 @@ export default function Testimonials() {
       >
         {isDesktop ? (
           <div className="reviews-desktop">
-            <div className="reviews-desktop-grid" style={{ gridTemplateColumns: `repeat(${desktopCols}, minmax(0, 1fr))` }}>
+            <div className="reviews-desktop-grid">
               {desktopItems.map((t) => (
                 <ReviewCard key={t.id} t={t} />
               ))}
             </div>
-            {desktopExtra > 0 ? (
+            {showViewAll ? (
               <div className="reviews-see-more-wrap">
-                <button
-                  type="button"
-                  className="reviews-see-more-btn"
-                  onClick={() => setDesktopExpanded((v) => !v)}
-                  aria-expanded={desktopExpanded}
-                >
-                  {desktopExpanded ? 'Show less' : 'View all testimonials'}
-                </button>
+                <Link to="/reviews" className="reviews-see-more-btn">
+                  View all
+                </Link>
               </div>
             ) : null}
           </div>
         ) : (
           <div className="reviews-mobile">
-            {!mobileListView ? (
-              <div className="reviews-carousel-wrap">
-                <Swiper
-                  className="reviews-swiper"
-                  modules={[Autoplay, Navigation, Pagination]}
-                  loop={loopEnabled}
-                  rewind={rewindEnabled}
-                  speed={650}
-                  grabCursor
-                  slidesPerView={1}
-                  spaceBetween={16}
-                  breakpoints={breakpoints}
-                  autoplay={
-                    autoplayEnabled
-                      ? {
-                          delay: 4200,
-                          disableOnInteraction: false,
-                          pauseOnMouseEnter: true,
-                        }
-                      : false
-                  }
-                  pagination={{
-                    clickable: true,
-                    dynamicBullets: n > 6,
-                  }}
-                  navigation={{
-                    prevEl: '.reviews-carousel-wrap .reviews-prev',
-                    nextEl: '.reviews-carousel-wrap .reviews-next',
-                  }}
-                >
-                  {testimonials.map((t) => (
-                    <SwiperSlide key={t.id}>
-                      <ReviewCard t={t} />
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-
-                <div className="reviews-nav" aria-label="Carousel controls">
-                  <button type="button" className="reviews-nav-btn reviews-prev" aria-label="Previous reviews">
-                    <ChevronLeft size={22} />
-                  </button>
-                  <button type="button" className="reviews-nav-btn reviews-next" aria-label="Next reviews">
-                    <ChevronRight size={22} />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="reviews-mobile-stack" aria-label="All client stories">
+            <div className="reviews-carousel-wrap">
+              <Swiper
+                className="reviews-swiper"
+                modules={[Autoplay, Navigation, Pagination]}
+                loop={loopEnabled}
+                rewind={rewindEnabled}
+                speed={650}
+                grabCursor
+                slidesPerView={1}
+                spaceBetween={16}
+                breakpoints={breakpoints}
+                autoplay={
+                  autoplayEnabled
+                    ? {
+                        delay: 4200,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true,
+                      }
+                    : false
+                }
+                pagination={{
+                  clickable: true,
+                  dynamicBullets: n > 6,
+                }}
+                navigation={{
+                  prevEl: '.reviews-carousel-wrap .reviews-prev',
+                  nextEl: '.reviews-carousel-wrap .reviews-next',
+                }}
+              >
                 {testimonials.map((t) => (
-                  <ReviewCard key={t.id} t={t} />
+                  <SwiperSlide key={t.id}>
+                    <ReviewCard t={t} />
+                  </SwiperSlide>
                 ))}
-              </div>
-            )}
+              </Swiper>
 
-            {n > 4 ? (
-              <div className="reviews-see-more-wrap reviews-see-more-wrap--mobile">
-                <button
-                  type="button"
-                  className="reviews-see-more-btn"
-                  onClick={() => setMobileListView((v) => !v)}
-                  aria-expanded={mobileListView}
-                >
-                  {mobileListView ? 'Back to carousel' : 'See all testimonials'}
+              <div className="reviews-nav" aria-label="Carousel controls">
+                <button type="button" className="reviews-nav-btn reviews-prev" aria-label="Previous reviews">
+                  <ChevronLeft size={22} />
                 </button>
+                <button type="button" className="reviews-nav-btn reviews-next" aria-label="Next reviews">
+                  <ChevronRight size={22} />
+                </button>
+              </div>
+            </div>
+
+            {showViewAll ? (
+              <div className="reviews-see-more-wrap reviews-see-more-wrap--mobile">
+                <Link to="/reviews" className="reviews-see-more-btn">
+                  View all
+                </Link>
               </div>
             ) : null}
           </div>

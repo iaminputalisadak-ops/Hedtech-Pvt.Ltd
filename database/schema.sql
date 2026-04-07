@@ -143,4 +143,12 @@ INSERT INTO trusted_companies (name, logo_url, sort_order) VALUES
 
 INSERT INTO testimonials (name, role, video_url, rating, quote, sort_order, published) VALUES
 ('Alex Rivera', 'CEO, Northwind', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Hedztech shipped on time and raised our conversion rate measurably.', 1, 1),
-('Jordan Lee', 'Marketing Lead', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Clear communication and exceptional craft throughout.', 2, 1);
+('Jordan Lee', 'Marketing Lead', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Clear communication and exceptional craft throughout.', 2, 1),
+('Priya Nair', 'Founder, BrightWave', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Fast delivery, great communication, and the site feels premium.', 3, 1),
+('Marcus Chen', 'Product Manager, Vertex Labs', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'They improved our performance metrics immediately.', 4, 1),
+('Aisha Khan', 'Operations Lead, Northwind', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Every milestone was clear and on schedule.', 5, 1),
+('Diego Silva', 'Growth, Kite Systems', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Our leads improved after the launch and SEO cleanup.', 6, 1),
+('Elena Petrova', 'CMO, BluePeak', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Beautiful design system and consistent execution.', 7, 1),
+('Samir Patel', 'CTO, Aurora Health', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Solid engineering and thoughtful accessibility improvements.', 8, 1),
+('Nora Johnson', 'Founder, Studio Nine', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'A partner we can rely on for new launches.', 9, 1),
+('Rahul Verma', 'Marketing, Pulse Analytics', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5, 'Clean UI/UX and the admin tools make updates easy.', 10, 1);

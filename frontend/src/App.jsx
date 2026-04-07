@@ -13,6 +13,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsPage from './pages/TermsPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import Reviews from './pages/Reviews'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
                 <Route path="/work/:slug" element={<ProjectDetail />} />
                 <Route path="/blog" element={<BlogList />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/reviews" element={<Reviews />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsPage />} />
