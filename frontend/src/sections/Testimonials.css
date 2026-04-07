@@ -1,6 +1,62 @@
-/* Client reviews — Swiper carousel + lazy YouTube */
+/* Client reviews — desktop grid (4 cols) + mobile carousel / list */
 .reviews-section {
   --reviews-card-radius: 16px;
+}
+
+.reviews-desktop {
+  padding: 0 0 0.5rem;
+}
+
+.reviews-desktop-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.reviews-see-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.35rem;
+}
+
+.reviews-see-more-wrap--mobile {
+  margin-top: 1rem;
+}
+
+.reviews-see-more-btn {
+  appearance: none;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  padding: 0.55rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--bg-elevated) 88%, var(--accent) 6%);
+  color: var(--accent);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.reviews-see-more-btn:hover {
+  background: color-mix(in srgb, var(--bg-elevated) 78%, var(--accent) 14%);
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
+  transform: translateY(-1px);
+}
+
+.reviews-see-more-btn:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--accent));
+  outline-offset: 3px;
+}
+
+.reviews-mobile-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .reviews-carousel-wrap {
