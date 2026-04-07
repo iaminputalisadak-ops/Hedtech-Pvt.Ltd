@@ -350,6 +350,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
   const [editing, setEditing] = useState(null)
   const [localError, setLocalError] = useState(null)
   const [saving, setSaving] = useState(false)
+  const hasSortOrder = fields.some((f) => f.key === 'sort_order')
 
   function fk(id, key) {
     return `${id}__${key}`
@@ -438,6 +439,26 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
     }
   }
 
+  async function moveRow(row, dir) {
+    if (!hasSortOrder) return
+    const idx = items.findIndex((x) => x.id === row.id)
+    const other = items[idx + dir]
+    if (!other) return
+    setLocalError(null)
+    setSaving(true)
+    try {
+      const a = Number(row.sort_order ?? 0)
+      const b = Number(other.sort_order ?? 0)
+      await adminUpdate(resource, row.id, { sort_order: b })
+      await adminUpdate(resource, other.id, { sort_order: a })
+      await onRefresh()
+    } catch (err) {
+      setLocalError(err.message || 'Reorder failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div>
       {error ? (
@@ -476,6 +497,28 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
             <div className="admin-row-head">
               <RecordPreview resource={resource} row={row} />
               <div className="admin-row-actions">
+                {hasSortOrder ? (
+                  <>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--ghost"
+                      disabled={saving || items[0]?.id === row.id}
+                      onClick={() => moveRow(row, -1)}
+                      title="Move up"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--ghost"
+                      disabled={saving || items[items.length - 1]?.id === row.id}
+                      onClick={() => moveRow(row, +1)}
+                      title="Move down"
+                    >
+                      ↓
+                    </button>
+                  </>
+                ) : null}
                 <button type="button" className="admin-btn admin-btn--ghost" onClick={() => openEdit(row)}>
                   {editing === row.id ? 'Close' : 'Edit'}
                 </button>
