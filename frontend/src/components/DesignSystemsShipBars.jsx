@@ -1,0 +1,78 @@
+import { useEffect, useRef, useState } from 'react'
+import { animate, motion, useInView, useReducedMotion } from 'framer-motion'
+
+/** Matches seeded post slug in database */
+export const DESIGN_SYSTEMS_SHIP_SLUG = 'design-systems-that-ship'
+
+const SKILLS = [
+  { name: 'React & Modern JS', level: 95 },
+  { name: 'PHP & APIs', level: 90 },
+  { name: 'UI Systems & Design', level: 92 },
+  { name: 'SEO & Analytics', level: 88 },
+  { name: 'Cloud & DevOps', level: 82 },
+]
+
+const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
+
+function SkillRow({ name, level, index, reduce }) {
+  const rowRef = useRef(null)
+  const inView = useInView(rowRef, { once: true, amount: 0.45 })
+  const [pct, setPct] = useState(reduce ? level : 0)
+
+  useEffect(() => {
+    if (!inView) return
+    if (reduce) {
+      setPct(level)
+      return
+    }
+    const controls = animate(0, level, {
+      duration: 1.05,
+      ease: [0.22, 1, 0.36, 1],
+      delay: index * 0.09,
+      onUpdate: (v) => setPct(v),
+    })
+    return () => controls.stop()
+  }, [inView, level, reduce, index])
+
+  const shown = Math.round(pct)
+
+  return (
+    <motion.div
+      ref={rowRef}
+      className="ds-ship-row"
+      initial={fadeIn(reduce)}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35, delay: index * 0.04 }}
+    >
+      <div className="ds-ship-row-head">
+        <span className="ds-ship-name">{name}</span>
+        <span className="ds-ship-pct" aria-live="polite">
+          {shown}
+          <span className="ds-ship-pct-suffix">%</span>
+        </span>
+      </div>
+      <div
+        className="ds-ship-track"
+        role="progressbar"
+        aria-valuenow={shown}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={name}
+      >
+        <div className="ds-ship-fill" style={{ width: `${pct}%` }} />
+      </div>
+    </motion.div>
+  )
+}
+
+export default function DesignSystemsShipBars() {
+  const reduce = useReducedMotion()
+
+  return (
+    <div className="ds-ship-bars" aria-label="Capability levels">
+      {SKILLS.map((sk, i) => (
+        <SkillRow key={sk.name} name={sk.name} level={sk.level} index={i} reduce={reduce} />
+      ))}
+    </div>
+  )
+}

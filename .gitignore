@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build
+dist/
+dist-ssr/
+build/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.sw?
