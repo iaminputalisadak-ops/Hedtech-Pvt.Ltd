@@ -450,13 +450,15 @@ export default function Footer() {
 
         .modern-ft-bottom {
           padding: 1rem 0 max(1rem, env(safe-area-inset-bottom, 0px));
-          background: color-mix(in srgb, var(--bg-elevated) 55%, var(--text) 45%);
-          border-top: 1px solid var(--border);
+          /* Match footer main surface in dark mode */
+          background: #020617;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         html[data-theme='light'] .modern-ft-bottom {
-          background: #020617;
-          border-top-color: rgba(255, 255, 255, 0.06);
+          /* In light mode, keep a subtle separation without looking like a dark bar */
+          background: color-mix(in srgb, var(--bg-elevated) 92%, var(--bg) 8%);
+          border-top-color: var(--border);
         }
 
         .modern-ft-bottom-inner {
