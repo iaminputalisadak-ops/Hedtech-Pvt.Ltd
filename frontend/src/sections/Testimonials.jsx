@@ -57,6 +57,7 @@ export default function Testimonials() {
   if (!n) return null
 
   const desktopItems = desktopExpanded || n <= 4 ? testimonials : testimonials.slice(0, 4)
+  const desktopCols = Math.min(4, desktopItems.length || 1)
 
   return (
     <SectionContainer id="reviews" className="reviews-section">
@@ -71,7 +72,7 @@ export default function Testimonials() {
       >
         {isDesktop ? (
           <div className="reviews-desktop">
-            <div className="reviews-desktop-grid">
+            <div className="reviews-desktop-grid" style={{ gridTemplateColumns: `repeat(${desktopCols}, minmax(0, 1fr))` }}>
               {desktopItems.map((t) => (
                 <ReviewCard key={t.id} t={t} />
               ))}
@@ -84,7 +85,7 @@ export default function Testimonials() {
                   onClick={() => setDesktopExpanded((v) => !v)}
                   aria-expanded={desktopExpanded}
                 >
-                  {desktopExpanded ? 'Show less' : `See more (${desktopExtra} more)`}
+                  {desktopExpanded ? 'Show less' : 'View all testimonials'}
                 </button>
               </div>
             ) : null}
