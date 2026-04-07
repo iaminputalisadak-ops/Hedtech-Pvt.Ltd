@@ -12,6 +12,7 @@ import {
   apiFetch,
 } from '../../api/client'
 import AdminShell from './AdminShell'
+import { useSite } from '../../context/SiteContext'
 
 const SETTINGS_GROUPS = [
   {
@@ -137,6 +138,7 @@ const TAB_TITLES = {
 }
 
 export default function AdminDashboard() {
+  const { refresh: refreshSite } = useSite()
   const [authed, setAuthed] = useState(null)
   const [tab, setTab] = useState('settings')
   const [items, setItems] = useState([])
@@ -209,6 +211,7 @@ export default function AdminDashboard() {
     setNote(null)
     try {
       await adminPatchSettings(settingsForm)
+      refreshSite()
       setNote({ ok: true, text: 'Saved.' })
     } catch (ex) {
       setNote({ ok: false, text: ex.message })

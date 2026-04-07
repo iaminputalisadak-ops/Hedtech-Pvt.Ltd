@@ -5,10 +5,22 @@ import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
 
+function normalizeMapsEmbed(input) {
+  const raw = (input ?? '').toString().trim()
+  if (!raw) return ''
+
+  // Allow pasting either a plain URL or the full <iframe ...> embed snippet.
+  if (raw.includes('<iframe')) {
+    const m = raw.match(/\s+src=(?:"([^"]+)"|'([^']+)')/i)
+    return (m?.[1] || m?.[2] || '').trim()
+  }
+  return raw
+}
+
 export default function MapSection() {
   const { settings } = useSite()
   const reduce = useReducedMotion()
-  const embed = settings.map_embed_url
+  const embed = normalizeMapsEmbed(settings.map_embed_url)
 
   return (
     <SectionContainer id="location">
