@@ -1,22 +1,24 @@
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { ThemeProvider } from './context/ThemeContext'
 import { SiteProvider } from './context/SiteContext'
 import PageLayout from './components/PageLayout'
 import Home from './pages/Home'
-import Work from './pages/Work'
-import ProjectDetail from './pages/ProjectDetail'
-import BlogList from './pages/BlogList'
-import BlogPost from './pages/BlogPost'
-import ContactPage from './pages/ContactPage'
-import PrivacyPolicy from './pages/PrivacyPolicy'
-import TermsPage from './pages/TermsPage'
-import AdminLogin from './pages/admin/AdminLogin'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import Reviews from './pages/Reviews'
-import WebDevelopment from './pages/services/WebDevelopment'
-import SeoServices from './pages/services/SeoServices'
-import UiUx from './pages/services/UiUx'
+
+const Work = lazy(() => import('./pages/Work'))
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'))
+const BlogList = lazy(() => import('./pages/BlogList'))
+const BlogPost = lazy(() => import('./pages/BlogPost'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
+const TermsPage = lazy(() => import('./pages/TermsPage'))
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const Reviews = lazy(() => import('./pages/Reviews'))
+const WebDevelopment = lazy(() => import('./pages/services/WebDevelopment'))
+const SeoServices = lazy(() => import('./pages/services/SeoServices'))
+const UiUx = lazy(() => import('./pages/services/UiUx'))
 
 export default function App() {
   return (
@@ -24,24 +26,26 @@ export default function App() {
       <BrowserRouter>
         <ThemeProvider>
           <SiteProvider>
-            <Routes>
-              <Route element={<PageLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/work" element={<Work />} />
-                <Route path="/work/:slug" element={<ProjectDetail />} />
-                <Route path="/blog" element={<BlogList />} />
-                <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="/services/web-development" element={<WebDevelopment />} />
-                <Route path="/services/seo" element={<SeoServices />} />
-                <Route path="/services/ui-ux" element={<UiUx />} />
-                <Route path="/reviews" element={<Reviews />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsPage />} />
-              </Route>
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-            </Routes>
+            <Suspense fallback={<div className="page-state page-state--center" aria-live="polite" />}>
+              <Routes>
+                <Route element={<PageLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/work" element={<Work />} />
+                  <Route path="/work/:slug" element={<ProjectDetail />} />
+                  <Route path="/blog" element={<BlogList />} />
+                  <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/services/web-development" element={<WebDevelopment />} />
+                  <Route path="/services/seo" element={<SeoServices />} />
+                  <Route path="/services/ui-ux" element={<UiUx />} />
+                  <Route path="/reviews" element={<Reviews />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                </Route>
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+              </Routes>
+            </Suspense>
           </SiteProvider>
         </ThemeProvider>
       </BrowserRouter>

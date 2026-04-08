@@ -61,7 +61,15 @@ export default function ProjectDetail() {
         </p>
         <h1 className="article-title">{item.title}</h1>
         <p className="project-category">{item.category}</p>
-        {item.image_url ? <img src={item.image_url} alt={`${item.title} preview`} className="project-hero-img" /> : null}
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt={`${item.title} preview`}
+            className="project-hero-img"
+            loading="lazy"
+            decoding="async"
+          />
+        ) : null}
         <div className="section-actions project-detail-actions">
           {item.live_url ? (
             <a href={item.live_url} className="btn btn-primary" target="_blank" rel="noreferrer">
