@@ -43,11 +43,14 @@ const SETTINGS_GROUPS = [
       ['hero_headline', 'Main headline'],
       ['hero_tagline', 'Subtext under headline'],
       ['brand_logo_url', 'Brand logo URL (optional)'],
+      ['brand_logo_upload', 'Upload website logo', 'upload', { kind: 'brand-logo', setKey: 'brand_logo_url', modeKey: null }],
       ['brand_mark_url', 'Brand mark/icon URL (optional)'],
+      ['brand_mark_upload', 'Upload brand mark / icon', 'upload', { kind: 'brand-mark', setKey: 'brand_mark_url', modeKey: null }],
       ['brand_favicon_url', 'Favicon URL (optional)'],
+      ['brand_favicon_upload', 'Upload favicon (.ico/.png/.svg)', 'upload', { kind: 'brand-favicon', setKey: 'brand_favicon_url', modeKey: null, accept: 'image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico' }],
       ['hero_bg_mode', 'Hero background type', 'select', HERO_BG_MODES],
       ['hero_wallpaper_url', 'Hero wallpaper image URL (optional)'],
-      ['hero_wallpaper_upload', 'Upload hero wallpaper (recommended)', 'upload'],
+      ['hero_wallpaper_upload', 'Upload hero wallpaper (recommended)', 'upload', { kind: 'hero-wallpaper', setKey: 'hero_wallpaper_url', modeKey: 'hero_bg_mode', modeValue: 'image' }],
       ['hero_wallpaper_opacity', 'Hero wallpaper opacity (0–1, optional)'],
       ['hero_gradient_css', 'Hero gradient CSS (linear-gradient / radial-gradient)', 'text'],
       ['about_intro', 'About paragraph'],
@@ -335,12 +338,19 @@ export default function AdminDashboard() {
                     }
 
                     if (kind === 'upload') {
+                      const cfg = extra && typeof extra === 'object' ? extra : {}
+                      const setKey = String(cfg.setKey || '').trim()
+                      const kindTag = String(cfg.kind || 'asset').trim()
+                      const modeKey = cfg.modeKey ? String(cfg.modeKey) : null
+                      const modeValue = cfg.modeValue ? String(cfg.modeValue) : null
+                      const accept = String(cfg.accept || 'image/*,.svg,.ico')
+                      const currentUrl = setKey ? (settingsForm[setKey] ?? '') : ''
                       return (
                         <div key={key} className="admin-field">
                           <div className="admin-label">{label}</div>
                           <input
                             type="file"
-                            accept="image/*,.svg"
+                            accept={accept}
                             className="admin-input"
                             onChange={async (e) => {
                               const file = e.target.files?.[0]
@@ -348,16 +358,15 @@ export default function AdminDashboard() {
                               setBusy(true)
                               setNote(null)
                               try {
-                                const r = await adminUpload(file, { kind: 'hero-wallpaper' })
+                                const r = await adminUpload(file, { kind: kindTag })
                                 const url = r?.url ? String(r.url) : ''
                                 if (url) {
-                                  setSettingsForm((s) => ({
-                                    ...s,
-                                    hero_wallpaper_url: url,
-                                    hero_bg_mode: 'image',
-                                  }))
+                                  const patch = {}
+                                  if (setKey) patch[setKey] = url
+                                  if (modeKey && modeValue) patch[modeKey] = modeValue
+                                  setSettingsForm((s) => ({ ...s, ...patch }))
                                   // Save immediately so the homepage updates right away.
-                                  await adminPatchSettings({ hero_wallpaper_url: url, hero_bg_mode: 'image' })
+                                  await adminPatchSettings(patch)
                                   refreshSite()
                                   setNote({ ok: true, text: 'Uploaded and applied.' })
                                 } else {
@@ -372,11 +381,11 @@ export default function AdminDashboard() {
                               }
                             }}
                           />
-                          {settingsForm.hero_wallpaper_url ? (
+                          {currentUrl ? (
                             <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
                               <img
-                                src={String(settingsForm.hero_wallpaper_url)}
-                                alt="Hero wallpaper preview"
+                                src={String(currentUrl)}
+                                alt="Uploaded preview"
                                 style={{ width: 88, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)' }}
                                 loading="lazy"
                                 decoding="async"
@@ -385,13 +394,26 @@ export default function AdminDashboard() {
                                 type="button"
                                 className="admin-btn admin-btn--ghost"
                                 disabled={busy}
-                                onClick={() =>
-                                  setSettingsForm((s) => ({
-                                    ...s,
-                                    hero_wallpaper_url: '',
-                                    hero_bg_mode: 'animated',
-                                  }))
-                                }
+                                onClick={async () => {
+                                  if (!setKey) return
+                                  setBusy(true)
+                                  setNote(null)
+                                  try {
+                                    const patch = { [setKey]: '' }
+                                    if (modeKey && modeValue) {
+                                      // Revert to animated when removing hero wallpaper
+                                      patch[modeKey] = modeKey === 'hero_bg_mode' ? 'animated' : ''
+                                    }
+                                    setSettingsForm((s) => ({ ...s, ...patch }))
+                                    await adminPatchSettings(patch)
+                                    refreshSite()
+                                    setNote({ ok: true, text: 'Removed.' })
+                                  } catch (ex) {
+                                    setNote({ ok: false, text: ex.message || 'Remove failed' })
+                                  } finally {
+                                    setBusy(false)
+                                  }
+                                }}
                               >
                                 Remove
                               </button>
