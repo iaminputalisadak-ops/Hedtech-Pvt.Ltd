@@ -8,7 +8,9 @@ marked.setOptions({
 })
 
 export function renderMarkdown(markdownText = '') {
-  const raw = marked.parse(String(markdownText ?? ''))
+  const input = String(markdownText ?? '')
+  // If content already contains HTML (e.g. CKEditor output), don't re-markdown it.
+  const raw = /<\/[a-z][\s\S]*>/i.test(input) ? input : marked.parse(input)
   return DOMPurify.sanitize(raw, {
     USE_PROFILES: { html: true },
     // Restrict potentially dangerous elements.

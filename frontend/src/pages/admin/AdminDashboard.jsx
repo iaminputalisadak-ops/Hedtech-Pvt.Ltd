@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
+import { CKEditor } from '@ckeditor/ckeditor5-react'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 import {
   adminContactMessages,
   adminCreate,
@@ -576,6 +578,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
 function FieldInput({ f, prefix, draft, setDraft }) {
   const dk = prefix ? `${prefix}__${f.key}` : f.key
   const val = draft[dk]
+  const editorId = useMemo(() => `ck-${prefix || 'n'}-${f.key}`, [prefix, f.key])
 
   if (f.boolean) {
     const raw = draft[dk]
@@ -590,6 +593,68 @@ function FieldInput({ f, prefix, draft, setDraft }) {
           {f.label}
         </span>
       </label>
+    )
+  }
+
+  if (f.key === 'body' && f.multiline) {
+    return (
+      <div className="admin-field">
+        <label className="admin-label" htmlFor={editorId}>
+          {f.label}
+        </label>
+        <div className="admin-ckeditor">
+          <CKEditor
+            editor={ClassicEditor}
+            data={val ?? ''}
+            config={{
+              toolbar: [
+                'heading',
+                '|',
+                'bold',
+                'italic',
+                'underline',
+                'link',
+                '|',
+                'bulletedList',
+                'numberedList',
+                '|',
+                'fontColor',
+                'fontBackgroundColor',
+                '|',
+                'blockQuote',
+                'insertTable',
+                'undo',
+                'redo',
+              ],
+              heading: {
+                // Keep SEO-friendly structure: H1 is the title field, editor starts at H2/H3.
+                options: [
+                  { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                  { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                  { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                ],
+              },
+              link: {
+                addTargetToExternalLinks: true,
+                decorators: {
+                  openInNewTab: {
+                    mode: 'automatic',
+                    callback: (url) => /^https?:\/\//i.test(url),
+                    attributes: {
+                      target: '_blank',
+                      rel: 'noopener noreferrer',
+                    },
+                  },
+                },
+              },
+            }}
+            onChange={(_, editor) => {
+              const data = editor.getData()
+              setDraft((d) => ({ ...d, [dk]: data }))
+            }}
+          />
+        </div>
+      </div>
     )
   }
 

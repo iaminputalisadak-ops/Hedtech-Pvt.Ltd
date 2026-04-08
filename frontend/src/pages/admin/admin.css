@@ -356,6 +356,28 @@ html[data-theme='light'] .admin-btn--primary {
   min-height: 3.5rem;
 }
 
+.admin-ckeditor .ck.ck-editor__main > .ck-editor__editable {
+  min-height: 260px;
+}
+
+.admin-ckeditor .ck.ck-toolbar {
+  border-radius: 10px 10px 0 0;
+}
+
+.admin-ckeditor .ck.ck-editor__main > .ck-editor__editable {
+  border-radius: 0 0 10px 10px;
+}
+
+/* Keep CKEditor readable in dark UI */
+html[data-theme='dark'] .admin-ckeditor .ck.ck-content {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-theme='dark'] .admin-ckeditor .ck.ck-toolbar {
+  background: var(--surface-strong);
+}
+
 .admin-alert {
   padding: 0.65rem 0.85rem;
   border-radius: 10px;
