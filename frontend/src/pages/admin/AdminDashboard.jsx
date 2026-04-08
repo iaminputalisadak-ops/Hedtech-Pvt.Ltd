@@ -471,9 +471,16 @@ export default function AdminDashboard() {
               </section>
             ))
           )}
-          <button type="submit" className="admin-btn admin-btn--primary" disabled={busy || settingsLoading} style={{ marginTop: '0.5rem' }}>
-            {busy ? 'Saving…' : 'Save'}
-          </button>
+          <div className="admin-form-actions">
+            <div className="admin-form-actions-inner">
+              <div className="admin-form-actions-meta">
+                <span className="admin-form-actions-hint">{busy ? 'Saving changes…' : 'Ready to save changes'}</span>
+              </div>
+              <button type="submit" className="admin-btn admin-btn--primary admin-save-btn" disabled={busy || settingsLoading}>
+                {busy ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
         </form>
       ) : null}
 
