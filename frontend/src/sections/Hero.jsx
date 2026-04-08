@@ -62,7 +62,18 @@ function Orbs() {
   )
 }
 
-function HeroWallpaper({ url, opacity = 0.28 }) {
+function safeWallpaperFit(input) {
+  const raw = (input ?? '').toString().trim().toLowerCase()
+  return raw === 'contain' ? 'contain' : 'cover'
+}
+
+function safeWallpaperPosition(input) {
+  const raw = (input ?? '').toString().trim().toLowerCase()
+  const allowed = new Set(['center', 'center top', 'center bottom', 'left center', 'right center'])
+  return allowed.has(raw) ? raw : 'center'
+}
+
+function HeroWallpaper({ url, opacity = 0.28, fit = 'cover', position = 'center' }) {
   const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.28
   if (!url) return null
   return (
@@ -73,8 +84,9 @@ function HeroWallpaper({ url, opacity = 0.28 }) {
         inset: 0,
         pointerEvents: 'none',
         backgroundImage: `url(${url})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: safeWallpaperFit(fit),
+        backgroundPosition: safeWallpaperPosition(position),
+        backgroundRepeat: 'no-repeat',
         opacity: safeOpacity,
         filter: 'saturate(1.05) contrast(1.02)',
         mixBlendMode: 'screen',
@@ -129,6 +141,8 @@ export default function Hero() {
   const wallpaperUrl = (settings.hero_wallpaper_url || '').trim()
   const wallpaperOpacityRaw = (settings.hero_wallpaper_opacity || '').trim()
   const wallpaperOpacity = wallpaperOpacityRaw === '' ? 0.28 : Number(wallpaperOpacityRaw)
+  const wallpaperFit = (settings.hero_wallpaper_fit || '').toString().trim()
+  const wallpaperPosition = (settings.hero_wallpaper_position || '').toString().trim()
   const bgMode = (settings.hero_bg_mode || '').toString().trim() || (wallpaperUrl ? 'image' : 'animated')
   const gradientCss = (settings.hero_gradient_css || '').toString().trim()
 
@@ -174,7 +188,9 @@ export default function Hero() {
       ) : null}
       <div className="container hero-container">
         <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          {bgMode === 'image' ? <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} /> : null}
+          {bgMode === 'image' ? (
+            <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} fit={wallpaperFit} position={wallpaperPosition} />
+          ) : null}
           {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} /> : null}
           {!reduce && bgMode === 'animated' ? <Orbs /> : null}
         </div>

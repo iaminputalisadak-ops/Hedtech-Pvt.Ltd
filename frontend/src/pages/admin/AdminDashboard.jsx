@@ -23,6 +23,19 @@ const HERO_BG_MODES = [
   { value: 'gradient', label: 'CSS gradient' },
 ]
 
+const HERO_WALLPAPER_FIT = [
+  { value: 'cover', label: 'Cover (fills, may crop)' },
+  { value: 'contain', label: 'Contain (no crop)' },
+]
+
+const HERO_WALLPAPER_POS = [
+  { value: 'center', label: 'Center' },
+  { value: 'center top', label: 'Top' },
+  { value: 'center bottom', label: 'Bottom' },
+  { value: 'left center', label: 'Left' },
+  { value: 'right center', label: 'Right' },
+]
+
 const SETTINGS_GROUPS = [
   {
     title: 'SEO',
@@ -52,6 +65,8 @@ const SETTINGS_GROUPS = [
       ['hero_wallpaper_url', 'Hero wallpaper image URL (optional)'],
       ['hero_wallpaper_upload', 'Upload hero wallpaper (recommended)', 'upload', { kind: 'hero-wallpaper', setKey: 'hero_wallpaper_url', modeKey: 'hero_bg_mode', modeValue: 'image' }],
       ['hero_wallpaper_opacity', 'Hero wallpaper opacity (0–1, optional)'],
+      ['hero_wallpaper_fit', 'Hero wallpaper fit', 'select', HERO_WALLPAPER_FIT],
+      ['hero_wallpaper_position', 'Hero wallpaper position', 'select', HERO_WALLPAPER_POS],
       ['hero_gradient_css', 'Hero gradient CSS (linear-gradient / radial-gradient)', 'text'],
       ['about_intro', 'About paragraph'],
       ['mission', 'Mission'],

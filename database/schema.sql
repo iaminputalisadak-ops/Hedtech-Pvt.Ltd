@@ -102,6 +102,8 @@ INSERT INTO settings (`key`, `value`) VALUES
 ('brand_mark_url', ''),
 ('brand_favicon_url', ''),
 ('hero_bg_mode', 'animated'),
+('hero_wallpaper_fit', 'cover'),
+('hero_wallpaper_position', 'center'),
 ('about_intro', 'Hedztech partners with ambitious teams to design and ship high-performance websites, products, and campaigns.'),
 ('mission', 'Deliver reliable, beautiful technology that moves your business forward.'),
 ('vision', 'To be the studio teams trust for craft, communication, and outcomes.'),
