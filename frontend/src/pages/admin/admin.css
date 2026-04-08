@@ -378,6 +378,43 @@ html[data-theme='dark'] .admin-ckeditor .ck.ck-toolbar {
   background: var(--surface-strong);
 }
 
+html[data-theme='dark'] .admin-ckeditor {
+  /* CKEditor theme variables (improve contrast in dark mode) */
+  --ck-color-text: var(--text);
+  --ck-color-base-text: var(--text);
+  --ck-color-toolbar-background: var(--surface-strong);
+  --ck-color-base-background: var(--surface);
+  --ck-color-base-border: var(--border);
+  --ck-color-button-default-hover-background: color-mix(in srgb, var(--surface-strong) 70%, var(--accent) 10%);
+  --ck-color-button-default-active-background: color-mix(in srgb, var(--surface-strong) 60%, var(--accent) 16%);
+  --ck-color-button-default-active-shadow: none;
+  --ck-color-focus-border: var(--accent);
+  --ck-focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+html[data-theme='dark'] .admin-ckeditor .ck.ck-toolbar,
+html[data-theme='dark'] .admin-ckeditor .ck.ck-toolbar * {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .admin-ckeditor .ck.ck-button .ck-button__icon,
+html[data-theme='dark'] .admin-ckeditor .ck.ck-dropdown .ck-dropdown__button .ck-button__icon {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .admin-ckeditor .ck.ck-dropdown__panel {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+html[data-theme='dark'] .admin-ckeditor .ck.ck-list__item .ck-button {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .admin-ckeditor .ck.ck-list__item .ck-button:hover {
+  background: color-mix(in srgb, var(--surface-strong) 70%, var(--accent) 10%);
+}
+
 .admin-alert {
   padding: 0.65rem 0.85rem;
   border-radius: 10px;
