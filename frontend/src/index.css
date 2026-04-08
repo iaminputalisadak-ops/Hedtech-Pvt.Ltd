@@ -238,9 +238,30 @@ html[data-theme='light'] .theme-toggle:hover {
 }
 
 .site-brand-mark--img {
-  padding: 6px;
-  background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
-  border: 1px solid var(--border);
+  width: 42px;
+  height: 42px;
+  padding: 7px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-elevated) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.18),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+.site-brand-mark--img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.28));
+}
+
+html[data-theme='light'] .site-brand-mark--img {
+  background: color-mix(in srgb, var(--bg-elevated) 92%, #fff 8%);
+  box-shadow:
+    0 12px 28px rgba(2, 6, 23, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.55) inset;
 }
 
 .site-brand-text {
