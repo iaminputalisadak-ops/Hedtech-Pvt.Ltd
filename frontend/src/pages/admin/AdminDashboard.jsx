@@ -33,6 +33,8 @@ const SETTINGS_GROUPS = [
       ['project_count', 'Number shown on homepage'],
       ['hero_headline', 'Main headline'],
       ['hero_tagline', 'Subtext under headline'],
+      ['hero_wallpaper_url', 'Hero wallpaper image URL (optional)'],
+      ['hero_wallpaper_opacity', 'Hero wallpaper opacity (0–1, optional)'],
       ['about_intro', 'About paragraph'],
       ['mission', 'Mission'],
       ['vision', 'Vision'],

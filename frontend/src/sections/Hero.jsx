@@ -62,6 +62,27 @@ function Orbs() {
   )
 }
 
+function HeroWallpaper({ url, opacity = 0.28 }) {
+  const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.28
+  if (!url) return null
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        backgroundImage: `url(${url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        opacity: safeOpacity,
+        filter: 'saturate(1.05) contrast(1.02)',
+        mixBlendMode: 'screen',
+      }}
+    />
+  )
+}
+
 export default function Hero() {
   const { settings, projects } = useSite()
   const { theme } = useTheme()
@@ -74,6 +95,10 @@ export default function Hero() {
   const tagline =
     settings.hero_tagline ||
     'Strategy, design, and engineering for teams that care about quality, speed, and measurable outcomes.'
+
+  const wallpaperUrl = (settings.hero_wallpaper_url || '').trim()
+  const wallpaperOpacityRaw = (settings.hero_wallpaper_opacity || '').trim()
+  const wallpaperOpacity = wallpaperOpacityRaw === '' ? 0.28 : Number(wallpaperOpacityRaw)
 
   useLayoutEffect(() => {
     if (reduce) return
@@ -116,7 +141,10 @@ export default function Hero() {
         <canvas ref={canvasRef} id="showcase-movement" aria-hidden className="hero-canvas" />
       ) : null}
       <div className="container hero-container">
-        {!reduce ? <Orbs /> : null}
+        <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+          <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} />
+          {!reduce && !wallpaperUrl ? <Orbs /> : null}
+        </div>
         <div className="content-panel section-panel section-panel--hero hero-panel">
           <motion.p
             className="hero-eyebrow"
