@@ -237,6 +237,12 @@ html[data-theme='light'] .theme-toggle:hover {
   color: var(--on-accent);
 }
 
+.site-brand-mark--img {
+  padding: 6px;
+  background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
+  border: 1px solid var(--border);
+}
+
 .site-brand-text {
   overflow: hidden;
   text-overflow: ellipsis;

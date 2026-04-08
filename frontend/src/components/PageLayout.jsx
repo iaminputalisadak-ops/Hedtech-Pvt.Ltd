@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Footer from './Footer'
 import Header from './Header'
 import StructuredData from './StructuredData'
+import BrandingHead from './BrandingHead'
 
 export default function PageLayout() {
   const { pathname } = useLocation()
@@ -10,6 +11,7 @@ export default function PageLayout() {
   return (
     <div className={`page-shell ${isHome ? 'page-shell--home' : ''}`.trim()}>
       <StructuredData />
+      <BrandingHead />
       <div className="gradient-mesh" aria-hidden />
       <div className="grid-noise" aria-hidden />
       <a
