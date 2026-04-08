@@ -98,6 +98,9 @@ const blogFields = [
   { key: 'body', label: 'Article text', multiline: true },
   { key: 'category', label: 'Category' },
   { key: 'tags', label: 'Tags' },
+  { key: 'meta_title', label: 'SEO title (optional)' },
+  { key: 'meta_description', label: 'SEO description (optional)', multiline: true },
+  { key: 'og_image', label: 'OG image URL (optional)' },
   { key: 'published', label: 'Published', boolean: true },
 ]
 

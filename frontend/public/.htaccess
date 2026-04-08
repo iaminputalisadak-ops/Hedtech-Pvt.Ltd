@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # If the request targets an existing file/folder, serve it directly.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Don't rewrite API requests (PHP backend).
+  RewriteCond %{REQUEST_URI} ^/api/ [OR]
+  RewriteCond %{REQUEST_URI} ^/api$
+  RewriteRule ^ - [L]
+
+  # SPA fallback for React Router routes.
+  RewriteRule ^ index.html [L]
+</IfModule>
+

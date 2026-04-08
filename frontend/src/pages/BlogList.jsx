@@ -6,14 +6,17 @@ import Seo from '../components/Seo'
 import { getBlogList } from '../api/client'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
+const PAGE_SIZE = 12
 
 export default function BlogList() {
   const [searchParams, setSearchParams] = useSearchParams()
   const q = searchParams.get('q') || ''
   const category = searchParams.get('category') || ''
+  const page = Math.max(1, Number(searchParams.get('page') || '1') || 1)
   const [items, setItems] = useState([])
   const [allCategories, setAllCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
   const reduce = useReducedMotion()
 
   useEffect(() => {
@@ -42,10 +45,18 @@ export default function BlogList() {
         const res = await getBlogList({
           ...(q ? { q } : {}),
           ...(category ? { category } : {}),
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
         })
-        if (!cancelled) setItems(res.items || [])
+        if (!cancelled) {
+          setItems(res.items || [])
+          setTotal(Number(res.total) || 0)
+        }
       } catch {
-        if (!cancelled) setItems([])
+        if (!cancelled) {
+          setItems([])
+          setTotal(0)
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -53,9 +64,10 @@ export default function BlogList() {
     return () => {
       cancelled = true
     }
-  }, [q, category])
+  }, [q, category, page])
 
   const hasFilters = Boolean(q || category)
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE) || 1)
 
   return (
     <>
@@ -79,6 +91,7 @@ export default function BlogList() {
             const cat = String(fd.get('category') || '').trim()
             if (nq) next.set('q', nq)
             if (cat) next.set('category', cat)
+            next.set('page', '1')
             setSearchParams(next)
           }}
         >
@@ -128,6 +141,37 @@ export default function BlogList() {
           ))}
         </div>
         {!loading && items.length === 0 ? <p className="page-state-text">No posts match your filters.</p> : null}
+        {!loading && totalPages > 1 ? (
+          <div className="section-actions" style={{ justifyContent: 'space-between' }}>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={page <= 1}
+              onClick={() => {
+                const next = new URLSearchParams(searchParams)
+                next.set('page', String(Math.max(1, page - 1)))
+                setSearchParams(next)
+              }}
+            >
+              ← Newer
+            </button>
+            <p className="page-state-text" style={{ margin: 0 }}>
+              Page {page} of {totalPages}
+            </p>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={page >= totalPages}
+              onClick={() => {
+                const next = new URLSearchParams(searchParams)
+                next.set('page', String(Math.min(totalPages, page + 1)))
+                setSearchParams(next)
+              }}
+            >
+              Older →
+            </button>
+          </div>
+        ) : null}
         <div className="section-actions">
           <Link to="/contact" className="btn btn-primary">
             Work with us

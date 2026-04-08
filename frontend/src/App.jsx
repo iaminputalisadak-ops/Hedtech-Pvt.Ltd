@@ -14,6 +14,9 @@ import TermsPage from './pages/TermsPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import Reviews from './pages/Reviews'
+import WebDevelopment from './pages/services/WebDevelopment'
+import SeoServices from './pages/services/SeoServices'
+import UiUx from './pages/services/UiUx'
 
 export default function App() {
   return (
@@ -28,6 +31,9 @@ export default function App() {
                 <Route path="/work/:slug" element={<ProjectDetail />} />
                 <Route path="/blog" element={<BlogList />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/services/web-development" element={<WebDevelopment />} />
+                <Route path="/services/seo" element={<SeoServices />} />
+                <Route path="/services/ui-ux" element={<UiUx />} />
                 <Route path="/reviews" element={<Reviews />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />

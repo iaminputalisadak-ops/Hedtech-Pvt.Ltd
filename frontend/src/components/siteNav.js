@@ -8,6 +8,7 @@ export const homeSections = [
 export const pathNav = [
   { to: '/work', label: 'Work' },
   { to: '/blog', label: 'Blog' },
+  { to: '/services/web-development', label: 'Services' },
 ]
 
 export function navPillStyle(isActive) {

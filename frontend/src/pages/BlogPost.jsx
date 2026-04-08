@@ -3,12 +3,15 @@ import { Link, useParams } from 'react-router-dom'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
 import DesignSystemsShipBars, { DESIGN_SYSTEMS_SHIP_SLUG } from '../components/DesignSystemsShipBars'
-import { getBlogPost } from '../api/client'
+import { getBlogList, getBlogPost } from '../api/client'
+import { renderMarkdown } from '../utils/markdown'
+import ArticleStructuredData from '../components/ArticleStructuredData'
 
 export default function BlogPost() {
   const { slug } = useParams()
   const [item, setItem] = useState(null)
   const [err, setErr] = useState(null)
+  const [related, setRelated] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -24,6 +27,23 @@ export default function BlogPost() {
       cancelled = true
     }
   }, [slug])
+
+  useEffect(() => {
+    if (!item?.category) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await getBlogList({ category: item.category, limit: 6, offset: 0 })
+        const list = (res.items || []).filter((p) => p.slug !== item.slug).slice(0, 3)
+        if (!cancelled) setRelated(list)
+      } catch {
+        if (!cancelled) setRelated([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [item?.category, item?.slug])
 
   if (err) {
     return (
@@ -52,7 +72,13 @@ export default function BlogPost() {
 
   return (
     <>
-      <Seo title={`${item.title} — Hedztech Blog`} description={item.excerpt || ''} path={`/blog/${item.slug}`} />
+      <Seo
+        title={item.meta_title || `${item.title} — Hedztech Blog`}
+        description={item.meta_description || item.excerpt || ''}
+        path={`/blog/${item.slug}`}
+        image={item.og_image || undefined}
+      />
+      <ArticleStructuredData item={item} />
       <SectionContainer as="article" containerClassName="container--narrow">
         <p className="section-back">
           <Link to="/blog" className="text-back-link">
@@ -66,8 +92,27 @@ export default function BlogPost() {
         <div className="glass article-body-panel">
           <p className="article-lead">{item.excerpt}</p>
           {slug === DESIGN_SYSTEMS_SHIP_SLUG ? <DesignSystemsShipBars /> : null}
-          <div className="article-body-text">{item.body}</div>
+          <div className="article-body-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(item.body) }} />
         </div>
+        {related.length ? (
+          <div style={{ marginTop: '1.25rem' }}>
+            <h2 className="section-title" style={{ fontSize: '1.35rem' }}>
+              Related posts
+            </h2>
+            <div className="blog-post-grid">
+              {related.map((p) => (
+                <article key={p.id} className="glass blog-post-card">
+                  <span className="blog-card__category">{p.category}</span>
+                  <h3 style={{ marginTop: 8 }}>{p.title}</h3>
+                  <p className="blog-card__excerpt">{p.excerpt}</p>
+                  <Link to={`/blog/${encodeURIComponent(p.slug)}`} className="btn btn-ghost btn-compact">
+                    Read →
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <div className="section-actions">
           <Link to="/contact" className="btn btn-primary">
             Discuss this topic

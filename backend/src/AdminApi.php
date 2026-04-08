@@ -232,7 +232,8 @@ final class AdminApi
                 $slug = Util::slugify($title);
             }
             $stmt = $pdo->prepare(
-                'INSERT INTO blog_posts (title, slug, excerpt, body, category, tags, published) VALUES (?,?,?,?,?,?,?)'
+                'INSERT INTO blog_posts (title, slug, excerpt, body, category, tags, meta_title, meta_description, og_image, published)
+                 VALUES (?,?,?,?,?,?,?,?,?,?)'
             );
             $stmt->execute([
                 $title,
@@ -241,6 +242,9 @@ final class AdminApi
                 (string) ($b['body'] ?? ''),
                 (string) ($b['category'] ?? 'news'),
                 (string) ($b['tags'] ?? ''),
+                (string) ($b['meta_title'] ?? ''),
+                (string) ($b['meta_description'] ?? ''),
+                (string) ($b['og_image'] ?? ''),
                 !empty($b['published']) ? 1 : 0,
             ]);
             Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
@@ -253,7 +257,9 @@ final class AdminApi
                 $slug = Util::slugify((string) ($b['title'] ?? 'post'));
             }
             $pdo->prepare(
-                'UPDATE blog_posts SET title=?, slug=?, excerpt=?, body=?, category=?, tags=?, published=? WHERE id=?'
+                'UPDATE blog_posts
+                 SET title=?, slug=?, excerpt=?, body=?, category=?, tags=?, meta_title=?, meta_description=?, og_image=?, published=?
+                 WHERE id=?'
             )->execute([
                 (string) ($b['title'] ?? ''),
                 $slug,
@@ -261,6 +267,9 @@ final class AdminApi
                 (string) ($b['body'] ?? ''),
                 (string) ($b['category'] ?? 'news'),
                 (string) ($b['tags'] ?? ''),
+                (string) ($b['meta_title'] ?? ''),
+                (string) ($b['meta_description'] ?? ''),
+                (string) ($b['og_image'] ?? ''),
                 !empty($b['published']) ? 1 : 0,
                 (int) $id,
             ]);

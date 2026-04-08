@@ -83,6 +83,10 @@ final class Router
             PublicApi::testimonials();
             return;
         }
+        if ($method === 'GET' && $path === '/public/sitemap.xml') {
+            PublicApi::sitemapXml();
+            return;
+        }
         if ($method === 'POST' && $path === '/public/contact') {
             PublicApi::contactSubmit();
             return;
