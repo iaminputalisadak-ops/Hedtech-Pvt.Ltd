@@ -109,6 +109,10 @@ final class Router
             AdminApi::patchSettings();
             return;
         }
+        if ($method === 'POST' && $path === '/admin/upload') {
+            AdminApi::upload();
+            return;
+        }
         if (preg_match('#^/admin/services(?:/(\d+))?$#', $path, $mm)) {
             AdminApi::crudServices($method, $mm[1] ?? null);
             return;

@@ -12,10 +12,11 @@ export async function parseJson(res) {
 
 export async function apiFetch(path, options = {}) {
   const { headers, ...rest } = options
+  const isForm = typeof FormData !== 'undefined' && rest?.body instanceof FormData
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      ...(isForm ? {} : { 'Content-Type': 'application/json' }),
       ...headers,
     },
     ...rest,
@@ -65,6 +66,13 @@ export function adminMe() {
 
 export function adminPatchSettings(patch) {
   return apiFetch('/admin/settings', { method: 'PUT', body: JSON.stringify(patch) })
+}
+
+export function adminUpload(file, { kind = 'asset' } = {}) {
+  const fd = new FormData()
+  fd.set('file', file)
+  fd.set('kind', kind)
+  return apiFetch('/admin/upload', { method: 'POST', body: fd })
 }
 
 export function adminList(resource) {

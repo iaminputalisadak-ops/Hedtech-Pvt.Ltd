@@ -7,6 +7,102 @@ use PDO;
 
 final class AdminApi
 {
+    private static function uploadsDir(): string
+    {
+        // backend/src -> backend/public/uploads
+        return dirname(__DIR__) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'uploads';
+    }
+
+    private static function publicUploadUrl(string $filename): string
+    {
+        return '/uploads/' . rawurlencode($filename);
+    }
+
+    private static function extFromMime(string $mime): ?string
+    {
+        $mime = strtolower(trim($mime));
+        return match ($mime) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+            'image/svg+xml' => 'svg',
+            default => null,
+        };
+    }
+
+    public static function upload(): void
+    {
+        Auth::requireAdmin();
+
+        if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
+            Util::sendJson(['error' => 'file is required'], 400);
+            return;
+        }
+
+        $f = $_FILES['file'];
+        $err = (int) ($f['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($err !== UPLOAD_ERR_OK) {
+            Util::sendJson(['error' => 'Upload failed'], 400);
+            return;
+        }
+
+        $size = (int) ($f['size'] ?? 0);
+        if ($size <= 0) {
+            Util::sendJson(['error' => 'Empty upload'], 400);
+            return;
+        }
+        // Keep reasonable limits for cPanel shared hosting.
+        if ($size > 12 * 1024 * 1024) {
+            Util::sendJson(['error' => 'File too large (max 12MB)'], 413);
+            return;
+        }
+
+        $tmp = (string) ($f['tmp_name'] ?? '');
+        if ($tmp === '' || !is_uploaded_file($tmp)) {
+            Util::sendJson(['error' => 'Invalid upload'], 400);
+            return;
+        }
+
+        $mime = (string) ($f['type'] ?? '');
+        // For better accuracy (esp. when browser lies), use finfo when available.
+        if (class_exists('finfo')) {
+            try {
+                $fi = new \finfo(FILEINFO_MIME_TYPE);
+                $m = $fi->file($tmp);
+                if (is_string($m) && $m !== '') {
+                    $mime = $m;
+                }
+            } catch (\Throwable) {
+                // ignore
+            }
+        }
+
+        $ext = self::extFromMime($mime);
+        if ($ext === null) {
+            Util::sendJson(['error' => 'Unsupported file type'], 415);
+            return;
+        }
+
+        $dir = self::uploadsDir();
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) {
+            Util::sendJson(['error' => 'Could not create uploads directory'], 500);
+            return;
+        }
+
+        $prefix = Util::slugify((string) ($_POST['kind'] ?? 'asset'));
+        $rand = bin2hex(random_bytes(6));
+        $name = $prefix . '-' . gmdate('Ymd-His') . '-' . $rand . '.' . $ext;
+        $dest = $dir . DIRECTORY_SEPARATOR . $name;
+
+        if (!move_uploaded_file($tmp, $dest)) {
+            Util::sendJson(['error' => 'Could not save upload'], 500);
+            return;
+        }
+
+        Util::sendJson(['ok' => true, 'url' => self::publicUploadUrl($name), 'mime' => $mime, 'bytes' => $size]);
+    }
+
     public static function login(): void
     {
         $body = Util::jsonInput();

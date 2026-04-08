@@ -83,6 +83,36 @@ function HeroWallpaper({ url, opacity = 0.28 }) {
   )
 }
 
+function safeGradientCss(input) {
+  const raw = (input ?? '').toString().trim()
+  if (!raw) return ''
+  // Allow only gradient functions; keep it simple to avoid arbitrary CSS injection.
+  const okPrefix = raw.startsWith('linear-gradient(') || raw.startsWith('radial-gradient(') || raw.startsWith('conic-gradient(')
+  if (!okPrefix) return ''
+  // Allow common characters used in gradients.
+  if (!/^[a-z0-9\s(),.%#\-+\/]*$/i.test(raw)) return ''
+  return raw
+}
+
+function HeroGradient({ gradient, opacity = 0.6 }) {
+  const safe = safeGradientCss(gradient)
+  if (!safe) return null
+  const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.6
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        backgroundImage: safe,
+        opacity: safeOpacity,
+        mixBlendMode: 'screen',
+      }}
+    />
+  )
+}
+
 export default function Hero() {
   const { settings, projects } = useSite()
   const { theme } = useTheme()
@@ -99,6 +129,8 @@ export default function Hero() {
   const wallpaperUrl = (settings.hero_wallpaper_url || '').trim()
   const wallpaperOpacityRaw = (settings.hero_wallpaper_opacity || '').trim()
   const wallpaperOpacity = wallpaperOpacityRaw === '' ? 0.28 : Number(wallpaperOpacityRaw)
+  const bgMode = (settings.hero_bg_mode || '').toString().trim() || (wallpaperUrl ? 'image' : 'animated')
+  const gradientCss = (settings.hero_gradient_css || '').toString().trim()
 
   useLayoutEffect(() => {
     if (reduce) return
@@ -142,8 +174,9 @@ export default function Hero() {
       ) : null}
       <div className="container hero-container">
         <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} />
-          {!reduce && !wallpaperUrl ? <Orbs /> : null}
+          {bgMode === 'image' ? <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} /> : null}
+          {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} /> : null}
+          {!reduce && bgMode === 'animated' ? <Orbs /> : null}
         </div>
         <div className="content-panel section-panel section-panel--hero hero-panel">
           <motion.p

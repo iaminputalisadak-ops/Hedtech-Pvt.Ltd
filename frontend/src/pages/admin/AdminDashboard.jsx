@@ -11,10 +11,17 @@ import {
   adminMe,
   adminPatchSettings,
   adminUpdate,
+  adminUpload,
   apiFetch,
 } from '../../api/client'
 import AdminShell from './AdminShell'
 import { useSite } from '../../context/SiteContext'
+
+const HERO_BG_MODES = [
+  { value: 'animated', label: 'Animated (default)' },
+  { value: 'image', label: 'Image wallpaper' },
+  { value: 'gradient', label: 'CSS gradient' },
+]
 
 const SETTINGS_GROUPS = [
   {
@@ -38,8 +45,11 @@ const SETTINGS_GROUPS = [
       ['brand_logo_url', 'Brand logo URL (optional)'],
       ['brand_mark_url', 'Brand mark/icon URL (optional)'],
       ['brand_favicon_url', 'Favicon URL (optional)'],
+      ['hero_bg_mode', 'Hero background type', 'select', HERO_BG_MODES],
       ['hero_wallpaper_url', 'Hero wallpaper image URL (optional)'],
+      ['hero_wallpaper_upload', 'Upload hero wallpaper (recommended)', 'upload'],
       ['hero_wallpaper_opacity', 'Hero wallpaper opacity (0–1, optional)'],
+      ['hero_gradient_css', 'Hero gradient CSS (linear-gradient / radial-gradient)', 'text'],
       ['about_intro', 'About paragraph'],
       ['mission', 'Mission'],
       ['vision', 'Vision'],
@@ -283,7 +293,8 @@ export default function AdminDashboard() {
                 <h2>{group.title}</h2>
                 <div className={`admin-settings-grid ${group.cols2 ? 'cols-2' : ''}`}>
                   {group.fields.map((fieldDef) => {
-                    const [key, label, kind] = fieldDef.length === 3 ? fieldDef : [...fieldDef, 'text']
+                    const [key, label, kind, extra] =
+                      fieldDef.length === 4 ? fieldDef : fieldDef.length === 3 ? [...fieldDef, undefined] : [...fieldDef, 'text', undefined]
                     if (kind === 'checkbox') {
                       const on = (settingsForm[key] ?? (key === 'reviews_autoscroll' ? '1' : '0')) === '1'
                       return (
@@ -299,6 +310,97 @@ export default function AdminDashboard() {
                         </label>
                       )
                     }
+
+                    if (kind === 'select') {
+                      const options = Array.isArray(extra) ? extra : []
+                      return (
+                        <div key={key} className="admin-field">
+                          <label className="admin-label" htmlFor={`set-${key}`}>
+                            {label}
+                          </label>
+                          <select
+                            id={`set-${key}`}
+                            className="admin-input"
+                            value={settingsForm[key] ?? options[0]?.value ?? ''}
+                            onChange={(e) => setSettingsForm((s) => ({ ...s, [key]: e.target.value }))}
+                          >
+                            {options.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )
+                    }
+
+                    if (kind === 'upload') {
+                      return (
+                        <div key={key} className="admin-field">
+                          <div className="admin-label">{label}</div>
+                          <input
+                            type="file"
+                            accept="image/*,.svg"
+                            className="admin-input"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              setBusy(true)
+                              setNote(null)
+                              try {
+                                const r = await adminUpload(file, { kind: 'hero-wallpaper' })
+                                const url = r?.url ? String(r.url) : ''
+                                if (url) {
+                                  setSettingsForm((s) => ({
+                                    ...s,
+                                    hero_wallpaper_url: url,
+                                    hero_bg_mode: 'image',
+                                  }))
+                                  // Save immediately so the homepage updates right away.
+                                  await adminPatchSettings({ hero_wallpaper_url: url, hero_bg_mode: 'image' })
+                                  refreshSite()
+                                  setNote({ ok: true, text: 'Uploaded and applied.' })
+                                } else {
+                                  setNote({ ok: false, text: 'Upload succeeded but no URL returned.' })
+                                }
+                              } catch (ex) {
+                                setNote({ ok: false, text: ex.message || 'Upload failed' })
+                              } finally {
+                                setBusy(false)
+                                // Allow picking the same file again
+                                e.target.value = ''
+                              }
+                            }}
+                          />
+                          {settingsForm.hero_wallpaper_url ? (
+                            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <img
+                                src={String(settingsForm.hero_wallpaper_url)}
+                                alt="Hero wallpaper preview"
+                                style={{ width: 88, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)' }}
+                                loading="lazy"
+                                decoding="async"
+                              />
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn--ghost"
+                                disabled={busy}
+                                onClick={() =>
+                                  setSettingsForm((s) => ({
+                                    ...s,
+                                    hero_wallpaper_url: '',
+                                    hero_bg_mode: 'animated',
+                                  }))
+                                }
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      )
+                    }
+
                     const tall = ['about_intro', 'hero_tagline', 'meta_description', 'values', 'map_embed_url'].includes(key)
                     return (
                       <div key={key} className="admin-field">
