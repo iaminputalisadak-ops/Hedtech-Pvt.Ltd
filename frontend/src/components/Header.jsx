@@ -222,12 +222,12 @@ export default function Header() {
           border: none;
           border-radius: 0;
           cursor: pointer;
-          background: rgba(2, 6, 23, 0.55);
+          background: rgba(2, 6, 23, 0.72);
           -webkit-backdrop-filter: blur(10px);
           backdrop-filter: blur(10px);
         }
         html[data-theme='light'] .mobile-nav-backdrop {
-          background: rgba(15, 23, 42, 0.32);
+          background: rgba(15, 23, 42, 0.44);
         }
         .mobile-nav-sheet {
           position: absolute;
@@ -241,6 +241,17 @@ export default function Header() {
           gap: 0.75rem;
           overflow: hidden;
           border-left: 1px solid var(--border);
+          /* Make the sheet opaque so page content doesn't show through */
+          background: color-mix(in srgb, var(--bg-elevated) 96%, #000 4%);
+          box-shadow:
+            -24px 0 80px rgba(0, 0, 0, 0.45),
+            -6px 0 22px rgba(0, 0, 0, 0.22);
+        }
+        html[data-theme='light'] .mobile-nav-sheet {
+          background: color-mix(in srgb, var(--bg-elevated) 96%, #fff 4%);
+          box-shadow:
+            -24px 0 80px rgba(0, 0, 0, 0.18),
+            -6px 0 22px rgba(0, 0, 0, 0.1);
         }
         .mobile-nav-sheet-head {
           display: flex;
