@@ -174,6 +174,10 @@ final class PublicApi
     public static function team(): void
     {
         $pdo = Db::pdo();
+        if (!Db::tableExists('team_members')) {
+            Util::sendJson(['items' => []]);
+            return;
+        }
         $sql = Db::columnExists('team_members', 'published')
             ? 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members WHERE published = 1 ORDER BY sort_order ASC, id ASC'
             : 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members ORDER BY sort_order ASC, id ASC';
@@ -219,11 +223,11 @@ final class PublicApi
                 'SELECT id, title, slug, excerpt, category, image_url, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
             )->fetchAll(),
             'trusted' => $pdo->query('SELECT id, name, logo_url, sort_order FROM trusted_companies ORDER BY sort_order')->fetchAll(),
-            'team' => $pdo->query(
+            'team' => Db::tableExists('team_members') ? $pdo->query(
                 Db::columnExists('team_members', 'published')
                     ? 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members WHERE published = 1 ORDER BY sort_order'
                     : 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members ORDER BY sort_order'
-            )->fetchAll(),
+            )->fetchAll() : [],
             'testimonials' => $pdo->query(
                 Db::columnExists('testimonials', 'published')
                     ? 'SELECT id, name, role, video_url, rating, quote, sort_order FROM testimonials WHERE published = 1 ORDER BY sort_order'

@@ -54,4 +54,20 @@ final class Db
 
         return $cache[$key];
     }
+
+    /** Cached check so public API can work even if a table migration hasn't been run yet. */
+    public static function tableExists(string $table): bool
+    {
+        static $cache = [];
+        if (array_key_exists($table, $cache)) {
+            return $cache[$table];
+        }
+        $stmt = self::pdo()->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
+        );
+        $stmt->execute([$table]);
+        $cache[$table] = (int) $stmt->fetchColumn() > 0;
+        return $cache[$table];
+    }
 }
