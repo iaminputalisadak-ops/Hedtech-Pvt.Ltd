@@ -653,6 +653,7 @@ html[data-theme='dark'] .ds-ship-fill {
   color: var(--muted);
   margin: 0;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .map-placeholder {
@@ -695,6 +696,12 @@ html[data-theme='dark'] .ds-ship-fill {
 .contact-aside a.accent-link {
   color: var(--accent);
   font-weight: 600;
+}
+
+.map-info-card a,
+.contact-aside a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .contact-social-row {
@@ -750,8 +757,14 @@ html[data-theme='dark'] .ds-ship-fill {
 
 .blog-post-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--space-4);
+}
+
+@media (min-width: 520px) {
+  .blog-post-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
 }
 
 .blog-post-card {

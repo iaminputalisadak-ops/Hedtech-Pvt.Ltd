@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
@@ -10,6 +10,8 @@ import { homeSections, navPillStyle, pathNav } from './siteNav'
 export default function Header() {
   const [open, setOpen] = useState(false)
   const [shrunk, setShrunk] = useState(false)
+  const toggleBtnRef = useRef(null)
+  const sheetRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => setShrunk(window.scrollY > 24)
@@ -28,10 +30,53 @@ export default function Header() {
   useEffect(() => {
     if (!open) return
     const onKey = (e) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        setOpen(false)
+        return
+      }
+      if (e.key !== 'Tab') return
+
+      const root = sheetRef.current
+      if (!root) return
+      const focusables = root.querySelectorAll(
+        'a[href],button:not([disabled]),[tabindex]:not([tabindex=\"-1\"])',
+      )
+      const list = Array.from(focusables).filter((el) => el.offsetParent !== null)
+      if (!list.length) return
+
+      const first = list[0]
+      const last = list[list.length - 1]
+      const active = document.activeElement
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (active === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const t = window.setTimeout(() => {
+      const root = sheetRef.current
+      const first =
+        root?.querySelector('a[href],button:not([disabled]),[tabindex]:not([tabindex=\"-1\"])') || root
+      first?.focus?.()
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [open])
+
+  useEffect(() => {
+    if (open) return
+    toggleBtnRef.current?.focus?.()
   }, [open])
 
   return (
@@ -50,15 +95,6 @@ export default function Header() {
       animate={{ height: shrunk ? 64 : 72 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
-      {open ? (
-        <button
-          type="button"
-          className="site-header-backdrop"
-          aria-hidden="true"
-          tabIndex={-1}
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
       <div
         className="container site-header-bar"
         style={{
@@ -119,6 +155,7 @@ export default function Header() {
             aria-expanded={open}
             aria-controls="mobile-menu"
             aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
+            ref={toggleBtnRef}
             onClick={() => setOpen((v) => !v)}
             style={{ padding: '0.55rem', borderRadius: 12, flexShrink: 0 }}
           >
@@ -128,69 +165,119 @@ export default function Header() {
       </div>
 
       {open ? (
-        <motion.div
-          id="mobile-menu"
-          role="navigation"
-          aria-label="Mobile"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className="glass site-header-mobile-nav"
-          style={{
-            margin: '0.5rem max(1rem, var(--site-pad-x)) 1rem',
-            marginBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
-            padding: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem',
-            position: 'relative',
-            zIndex: 2,
-            maxHeight: 'min(70vh, calc(100dvh - 5.5rem))',
-            overflowY: 'auto',
-          }}
-        >
-          {homeSections.map((item) => (
-            <HomeHashLink
-              key={item.id}
-              sectionId={item.id}
-              onClick={() => setOpen(false)}
-              style={{ padding: '0.65rem 0.75rem', borderRadius: 10, fontWeight: 600 }}
-            >
-              {item.label}
-            </HomeHashLink>
-          ))}
-          {pathNav.map((item) => (
-            <Link key={item.to} to={item.to} onClick={() => setOpen(false)} style={{ padding: '0.65rem 0.75rem', borderRadius: 10, fontWeight: 600 }}>
-              {item.label}
-            </Link>
-          ))}
-          <Link to="/contact" onClick={() => setOpen(false)} style={{ padding: '0.65rem 0.75rem', borderRadius: 10, fontWeight: 600 }}>
-            Contact
-          </Link>
-          <Link to="/contact" className="btn btn-primary" style={{ marginTop: '0.5rem' }} onClick={() => setOpen(false)}>
-            Get started
-          </Link>
-        </motion.div>
+        <div className="mobile-nav-layer" aria-hidden={false}>
+          <button type="button" className="mobile-nav-backdrop" aria-label="Close menu" onClick={() => setOpen(false)} />
+          <motion.aside
+            id="mobile-menu"
+            ref={sheetRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation"
+            tabIndex={-1}
+            initial={{ x: 24, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="glass mobile-nav-sheet"
+          >
+            <div className="mobile-nav-sheet-head">
+              <SiteBrand onClick={() => setOpen(false)} />
+              <button type="button" className="btn btn-ghost mobile-nav-close" onClick={() => setOpen(false)} aria-label="Close">
+                <X size={22} aria-hidden />
+              </button>
+            </div>
+            <nav className="mobile-nav-list" aria-label="Menu">
+              {homeSections.map((item) => (
+                <HomeHashLink key={item.id} sectionId={item.id} onClick={() => setOpen(false)} className="mobile-nav-item">
+                  {item.label}
+                </HomeHashLink>
+              ))}
+              {pathNav.map((item) => (
+                <Link key={item.to} to={item.to} onClick={() => setOpen(false)} className="mobile-nav-item">
+                  {item.label}
+                </Link>
+              ))}
+              <Link to="/contact" onClick={() => setOpen(false)} className="mobile-nav-item">
+                Contact
+              </Link>
+              <Link to="/contact" className="btn btn-primary mobile-nav-cta" onClick={() => setOpen(false)}>
+                Get started
+              </Link>
+            </nav>
+          </motion.aside>
+        </div>
       ) : null}
 
       <style>{`
-        .site-header-backdrop {
+        .mobile-nav-layer {
           position: fixed;
           inset: 0;
-          z-index: 1;
+          z-index: 90;
+          pointer-events: auto;
+        }
+        .mobile-nav-backdrop {
+          position: absolute;
+          inset: 0;
           margin: 0;
           padding: 0;
           border: none;
           border-radius: 0;
-          background: color-mix(in srgb, var(--text) 42%, transparent);
           cursor: pointer;
-          -webkit-tap-highlight-color: transparent;
+          background: rgba(2, 6, 23, 0.55);
+          -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
         }
-        .site-header-backdrop:focus {
-          outline: none;
+        html[data-theme='light'] .mobile-nav-backdrop {
+          background: rgba(15, 23, 42, 0.32);
         }
-        html[data-theme='light'] .site-header-backdrop {
-          background: color-mix(in srgb, var(--text) 28%, transparent);
+        .mobile-nav-sheet {
+          position: absolute;
+          top: 0;
+          right: 0;
+          height: 100dvh;
+          width: min(360px, 88vw);
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          overflow: hidden;
+          border-left: 1px solid var(--border);
+        }
+        .mobile-nav-sheet-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          padding-top: env(safe-area-inset-top, 0px);
+        }
+        .mobile-nav-close {
+          padding: 0.55rem;
+          border-radius: 12px;
+        }
+        .mobile-nav-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          overflow: auto;
+          padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+        }
+        .mobile-nav-item {
+          padding: 0.75rem 0.8rem;
+          border-radius: 12px;
+          font-weight: 650;
+          color: var(--text);
+          text-decoration: none;
+        }
+        .mobile-nav-item:hover {
+          background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
+        }
+        .mobile-nav-item:focus-visible {
+          outline: 2px solid var(--focus-ring);
+          outline-offset: 2px;
+        }
+        .mobile-nav-cta {
+          margin-top: 0.5rem;
+          width: 100%;
+          justify-content: center;
         }
         @media (max-width: 960px) {
           .desktop-nav,
@@ -202,7 +289,7 @@ export default function Header() {
           .mobile-toggle {
             display: none !important;
           }
-          .site-header-backdrop {
+          .mobile-nav-layer {
             display: none !important;
           }
         }
