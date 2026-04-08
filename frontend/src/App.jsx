@@ -16,6 +16,7 @@ const TermsPage = lazy(() => import('./pages/TermsPage'))
 const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const Reviews = lazy(() => import('./pages/Reviews'))
+const Team = lazy(() => import('./pages/Team'))
 const WebDevelopment = lazy(() => import('./pages/services/WebDevelopment'))
 const SeoServices = lazy(() => import('./pages/services/SeoServices'))
 const UiUx = lazy(() => import('./pages/services/UiUx'))
@@ -38,6 +39,7 @@ export default function App() {
                   <Route path="/services/seo" element={<SeoServices />} />
                   <Route path="/services/ui-ux" element={<UiUx />} />
                   <Route path="/reviews" element={<Reviews />} />
+                  <Route path="/team" element={<Team />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsPage />} />

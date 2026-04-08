@@ -12,6 +12,7 @@ const NAV = [
   { id: 'blog', label: 'Blog' },
   { id: 'trusted', label: 'Partner logos' },
   { id: 'testimonials', label: 'Client reviews' },
+  { id: 'team', label: 'Team' },
   { id: 'messages', label: 'Messages' },
 ]
 

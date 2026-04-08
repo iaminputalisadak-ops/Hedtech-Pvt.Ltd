@@ -160,6 +160,17 @@ const testimonialFields = [
   { key: 'published', label: 'Visible on site', boolean: true, default: true },
 ]
 
+const teamFields = [
+  { key: 'name', label: 'Name' },
+  { key: 'role', label: 'Role' },
+  { key: 'bio', label: 'Bio', multiline: true },
+  { key: 'photo_url', label: 'Photo URL' },
+  { key: 'photo_upload', label: 'Upload photo', uploadFor: 'photo_url', uploadKind: 'team-photo', accept: 'image/*,.svg' },
+  { key: 'linkedin_url', label: 'LinkedIn URL (optional)' },
+  { key: 'sort_order', label: 'Order', number: true },
+  { key: 'published', label: 'Visible on site', boolean: true, default: true },
+]
+
 const TAB_FIELDS = {
   services: svcFields,
   skills: skillFields,
@@ -167,6 +178,7 @@ const TAB_FIELDS = {
   blog: blogFields,
   trusted: trustedFields,
   testimonials: testimonialFields,
+  team: teamFields,
 }
 
 const TAB_TITLES = {
@@ -177,6 +189,7 @@ const TAB_TITLES = {
   blog: 'Blog',
   trusted: 'Partner logos',
   testimonials: 'Client reviews',
+  team: 'Team',
   messages: 'Messages',
 }
 
@@ -721,6 +734,48 @@ function FieldInput({ f, prefix, draft, setDraft }) {
   const dk = prefix ? `${prefix}__${f.key}` : f.key
   const val = draft[dk]
   const editorId = useMemo(() => `ck-${prefix || 'n'}-${f.key}`, [prefix, f.key])
+
+  if (f.uploadFor) {
+    const targetKey = prefix ? `${prefix}__${f.uploadFor}` : f.uploadFor
+    const currentUrl = draft[targetKey] ?? ''
+    return (
+      <div className="admin-field">
+        <div className="admin-label">{f.label}</div>
+        <input
+          type="file"
+          accept={f.accept || 'image/*'}
+          className="admin-input"
+          onChange={async (e) => {
+            const file = e.target.files?.[0]
+            if (!file) return
+            try {
+              const r = await adminUpload(file, { kind: f.uploadKind || 'asset' })
+              const url = r?.url ? String(r.url) : ''
+              if (url) {
+                setDraft((d) => ({ ...d, [targetKey]: url }))
+              }
+            } finally {
+              e.target.value = ''
+            }
+          }}
+        />
+        {currentUrl ? (
+          <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <img
+              src={String(currentUrl)}
+              alt="Uploaded preview"
+              style={{ width: 88, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)' }}
+              loading="lazy"
+              decoding="async"
+            />
+            <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setDraft((d) => ({ ...d, [targetKey]: '' }))}>
+              Remove
+            </button>
+          </div>
+        ) : null}
+      </div>
+    )
+  }
 
   if (f.boolean) {
     const raw = draft[dk]

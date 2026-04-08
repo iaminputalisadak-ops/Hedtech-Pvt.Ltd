@@ -9,6 +9,7 @@ const empty = {
   skills: [],
   projects: [],
   trusted: [],
+  team: [],
   testimonials: [],
   blog: [],
 }
@@ -29,6 +30,7 @@ export function SiteProvider({ children }) {
         skills: res.skills || [],
         projects: res.projects || [],
         trusted: res.trusted || [],
+        team: res.team || [],
         testimonials: res.testimonials || [],
         blog: res.blog || [],
       })

@@ -514,6 +514,66 @@ final class AdminApi
         Util::sendJson(['error' => 'Method not allowed'], 405);
     }
 
+    public static function crudTeam(string $method, ?string $id): void
+    {
+        Auth::requireAdmin();
+        $pdo = Db::pdo();
+        if ($method === 'GET' && $id === null) {
+            $stmt = $pdo->query('SELECT * FROM team_members ORDER BY sort_order, id');
+            Util::sendJson(['items' => $stmt->fetchAll()]);
+            return;
+        }
+        if ($method === 'POST' && $id === null) {
+            $b = Util::jsonInput();
+            $name = trim((string) ($b['name'] ?? ''));
+            if ($name === '') {
+                Util::sendJson(['error' => 'name required'], 400);
+                return;
+            }
+            $photo = isset($b['photo_url']) ? trim((string) $b['photo_url']) : '';
+            $li = isset($b['linkedin_url']) ? trim((string) $b['linkedin_url']) : '';
+            $stmt = $pdo->prepare(
+                'INSERT INTO team_members (name, role, bio, photo_url, linkedin_url, sort_order, published) VALUES (?,?,?,?,?,?,?)'
+            );
+            $stmt->execute([
+                $name,
+                (string) ($b['role'] ?? ''),
+                (string) ($b['bio'] ?? ''),
+                $photo !== '' ? $photo : null,
+                $li !== '' ? $li : null,
+                (int) ($b['sort_order'] ?? 0),
+                isset($b['published']) && (int) $b['published'] === 0 ? 0 : 1,
+            ]);
+            Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
+            return;
+        }
+        if ($method === 'PUT' && $id !== null) {
+            $b = Util::jsonInput();
+            $photo = isset($b['photo_url']) ? trim((string) $b['photo_url']) : '';
+            $li = isset($b['linkedin_url']) ? trim((string) $b['linkedin_url']) : '';
+            $pdo->prepare(
+                'UPDATE team_members SET name=?, role=?, bio=?, photo_url=?, linkedin_url=?, sort_order=?, published=? WHERE id=?'
+            )->execute([
+                (string) ($b['name'] ?? ''),
+                (string) ($b['role'] ?? ''),
+                (string) ($b['bio'] ?? ''),
+                $photo !== '' ? $photo : null,
+                $li !== '' ? $li : null,
+                (int) ($b['sort_order'] ?? 0),
+                isset($b['published']) && (int) $b['published'] === 0 ? 0 : 1,
+                (int) $id,
+            ]);
+            Util::sendJson(['ok' => true]);
+            return;
+        }
+        if ($method === 'DELETE' && $id !== null) {
+            $pdo->prepare('DELETE FROM team_members WHERE id=?')->execute([(int) $id]);
+            Util::sendJson(['ok' => true]);
+            return;
+        }
+        Util::sendJson(['error' => 'Method not allowed'], 405);
+    }
+
     public static function contactMessages(): void
     {
         Auth::requireAdmin();

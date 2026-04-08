@@ -38,6 +38,7 @@ final class PublicApi
             $base . '/services/seo',
             $base . '/services/ui-ux',
             $base . '/reviews',
+            $base . '/team',
             $base . '/contact',
             $base . '/privacy',
             $base . '/terms',
@@ -170,6 +171,15 @@ final class PublicApi
         Util::sendJson(['items' => $pdo->query($sql)->fetchAll()]);
     }
 
+    public static function team(): void
+    {
+        $pdo = Db::pdo();
+        $sql = Db::columnExists('team_members', 'published')
+            ? 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members WHERE published = 1 ORDER BY sort_order ASC, id ASC'
+            : 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members ORDER BY sort_order ASC, id ASC';
+        Util::sendJson(['items' => $pdo->query($sql)->fetchAll()]);
+    }
+
     public static function contactSubmit(): void
     {
         $b = Util::jsonInput();
@@ -209,6 +219,11 @@ final class PublicApi
                 'SELECT id, title, slug, excerpt, category, image_url, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
             )->fetchAll(),
             'trusted' => $pdo->query('SELECT id, name, logo_url, sort_order FROM trusted_companies ORDER BY sort_order')->fetchAll(),
+            'team' => $pdo->query(
+                Db::columnExists('team_members', 'published')
+                    ? 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members WHERE published = 1 ORDER BY sort_order'
+                    : 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members ORDER BY sort_order'
+            )->fetchAll(),
             'testimonials' => $pdo->query(
                 Db::columnExists('testimonials', 'published')
                     ? 'SELECT id, name, role, video_url, rating, quote, sort_order FROM testimonials WHERE published = 1 ORDER BY sort_order'

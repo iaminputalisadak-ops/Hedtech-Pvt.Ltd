@@ -83,6 +83,18 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS team_members (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(255) DEFAULT '',
+  bio TEXT,
+  photo_url VARCHAR(512) DEFAULT NULL,
+  linkedin_url VARCHAR(512) DEFAULT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  published TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 -- Default admin login: admin / password  (change immediately in production)
 INSERT INTO admins (username, password_hash) VALUES (
   'admin',
