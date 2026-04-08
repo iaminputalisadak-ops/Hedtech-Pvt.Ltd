@@ -111,6 +111,11 @@ INSERT INTO settings (`key`, `value`) VALUES
 ('social_linkedin', 'https://linkedin.com'),
 ('social_twitter', 'https://twitter.com'),
 ('social_github', 'https://github.com'),
+('social_facebook', ''),
+('social_instagram', ''),
+('social_youtube', ''),
+('social_tiktok', ''),
+('social_whatsapp', ''),
 ('reviews_autoscroll', '1')
 ON DUPLICATE KEY UPDATE `key` = VALUES(`key`);
 

@@ -84,6 +84,31 @@ export default function Contact() {
                 GitHub
               </a>
             ) : null}
+            {settings.social_facebook ? (
+              <a className="btn btn-ghost" href={settings.social_facebook} target="_blank" rel="noopener noreferrer">
+                Facebook
+              </a>
+            ) : null}
+            {settings.social_instagram ? (
+              <a className="btn btn-ghost" href={settings.social_instagram} target="_blank" rel="noopener noreferrer">
+                Instagram
+              </a>
+            ) : null}
+            {settings.social_youtube ? (
+              <a className="btn btn-ghost" href={settings.social_youtube} target="_blank" rel="noopener noreferrer">
+                YouTube
+              </a>
+            ) : null}
+            {settings.social_tiktok ? (
+              <a className="btn btn-ghost" href={settings.social_tiktok} target="_blank" rel="noopener noreferrer">
+                TikTok
+              </a>
+            ) : null}
+            {settings.social_whatsapp ? (
+              <a className="btn btn-ghost" href={settings.social_whatsapp} target="_blank" rel="noopener noreferrer">
+                WhatsApp
+              </a>
+            ) : null}
           </div>
         </motion.div>
 
