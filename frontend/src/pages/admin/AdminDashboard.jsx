@@ -526,6 +526,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
   const [editing, setEditing] = useState(null)
   const [localError, setLocalError] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   const hasSortOrder = fields.some((f) => f.key === 'sort_order')
 
   function fk(id, key) {
@@ -570,6 +571,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
       })
       await adminCreate(resource, body)
       setDraft({})
+      setCreateOpen(false)
       await onRefresh()
     } catch (err) {
       setLocalError(err.message || 'Could not add')
@@ -649,15 +651,27 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
       ) : null}
 
       <div className="admin-panel">
-        <h3>Add new</h3>
-        <form onSubmit={createRow} style={{ display: 'grid', gap: '0.65rem' }}>
-          {fields.map((f) => (
-            <FieldInput key={f.key} f={f} prefix="" draft={draft} setDraft={setDraft} />
-          ))}
-          <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
-            {saving ? 'Adding…' : 'Add'}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <h3 style={{ margin: 0 }}>Add new</h3>
+          <button
+            type="button"
+            className="admin-btn admin-btn--ghost"
+            onClick={() => setCreateOpen((v) => !v)}
+            aria-expanded={createOpen}
+          >
+            {createOpen ? 'Close' : 'Add new'}
           </button>
-        </form>
+        </div>
+        {createOpen ? (
+          <form onSubmit={createRow} style={{ display: 'grid', gap: '0.65rem', marginTop: '0.85rem' }}>
+            {fields.map((f) => (
+              <FieldInput key={f.key} f={f} prefix="" draft={draft} setDraft={setDraft} />
+            ))}
+            <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
+              {saving ? 'Adding…' : 'Add'}
+            </button>
+          </form>
+        ) : null}
       </div>
 
       {loading ? (
