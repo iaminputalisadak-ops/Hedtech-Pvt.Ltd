@@ -870,6 +870,12 @@ html[data-theme='dark'] .ds-ship-fill {
   width: 100%;
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-5);
+  /* Prevent screenshot crops on different aspect ratios */
+  max-height: min(520px, 62vh);
+  object-fit: contain;
+  background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
+  border: 1px solid var(--border);
+  display: block;
 }
 
 .project-category {
