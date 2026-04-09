@@ -47,7 +47,13 @@ export default function Portfolio() {
           >
             <div className="portfolio-thumb">
               {p.image_url ? (
-                <img src={p.image_url} alt={`${p.title} — project preview`} loading="lazy" decoding="async" />
+                <img
+                  src={p.image_url}
+                  alt={`${p.title} — project preview`}
+                  loading="lazy"
+                  decoding="async"
+                  className={p.image_fit === 'cover' ? 'portfolio-thumb-img is-cover' : 'portfolio-thumb-img is-contain'}
+                />
               ) : (
                 <div className="portfolio-thumb-placeholder">Preview</div>
               )}

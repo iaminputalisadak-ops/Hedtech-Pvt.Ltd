@@ -260,9 +260,11 @@ final class AdminApi
                 $slug = Util::slugify($title);
             }
             $img = isset($b['image_url']) ? trim((string) $b['image_url']) : '';
+            $fit = strtolower(trim((string) ($b['image_fit'] ?? 'contain')));
+            $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
             $stmt = $pdo->prepare(
-                'INSERT INTO projects (title, slug, excerpt, body, category, image_url, featured, live_url) VALUES (?,?,?,?,?,?,?,?)'
+                'INSERT INTO projects (title, slug, excerpt, body, category, image_url, image_fit, featured, live_url) VALUES (?,?,?,?,?,?,?,?,?)'
             );
             $stmt->execute([
                 $title,
@@ -271,6 +273,7 @@ final class AdminApi
                 (string) ($b['body'] ?? ''),
                 (string) ($b['category'] ?? 'web'),
                 $img !== '' ? $img : null,
+                $fit,
                 !empty($b['featured']) ? 1 : 0,
                 $live !== '' ? $live : null,
             ]);
@@ -284,9 +287,11 @@ final class AdminApi
                 $slug = Util::slugify((string) ($b['title'] ?? 'project'));
             }
             $img = isset($b['image_url']) ? trim((string) $b['image_url']) : '';
+            $fit = strtolower(trim((string) ($b['image_fit'] ?? 'contain')));
+            $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
             $pdo->prepare(
-                'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, featured=?, live_url=? WHERE id=?'
+                'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, image_fit=?, featured=?, live_url=? WHERE id=?'
             )->execute([
                 (string) ($b['title'] ?? ''),
                 $slug,
@@ -294,6 +299,7 @@ final class AdminApi
                 (string) ($b['body'] ?? ''),
                 (string) ($b['category'] ?? 'web'),
                 $img !== '' ? $img : null,
+                $fit,
                 !empty($b['featured']) ? 1 : 0,
                 $live !== '' ? $live : null,
                 (int) $id,

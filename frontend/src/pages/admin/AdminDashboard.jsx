@@ -128,6 +128,7 @@ const projectFields = [
   { key: 'category', label: 'Category' },
   { key: 'image_url', label: 'Image URL' },
   { key: 'image_upload', label: 'Upload image', uploadFor: 'image_url', uploadKind: 'project-image', accept: 'image/*,.svg' },
+  { key: 'image_fit', label: 'Image fit', kind: 'select', options: [{ value: 'contain', label: 'Full fit (no crop)' }, { value: 'cover', label: 'Cover (crop)' }] },
   { key: 'live_url', label: 'Live site URL' },
   { key: 'featured', label: 'Featured on home', boolean: true },
 ]
@@ -742,6 +743,30 @@ function FieldInput({ f, prefix, draft, setDraft }) {
   const dk = prefix ? `${prefix}__${f.key}` : f.key
   const val = draft[dk]
   const editorId = useMemo(() => `ck-${prefix || 'n'}-${f.key}`, [prefix, f.key])
+
+  if (f.kind === 'select' && Array.isArray(f.options)) {
+    const options = f.options
+    const current = (val ?? options[0]?.value ?? '').toString()
+    return (
+      <div className="admin-field">
+        <label className="admin-label" htmlFor={`f-${prefix || 'n'}-${f.key}`}>
+          {f.label}
+        </label>
+        <select
+          id={`f-${prefix || 'n'}-${f.key}`}
+          className="admin-input"
+          value={current}
+          onChange={(e) => setDraft((d) => ({ ...d, [dk]: e.target.value }))}
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    )
+  }
 
   if (f.uploadFor) {
     const targetKey = prefix ? `${prefix}__${f.uploadFor}` : f.uploadFor
