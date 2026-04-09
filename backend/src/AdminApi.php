@@ -263,20 +263,36 @@ final class AdminApi
             $fit = strtolower(trim((string) ($b['image_fit'] ?? 'contain')));
             $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
-            $stmt = $pdo->prepare(
-                'INSERT INTO projects (title, slug, excerpt, body, category, image_url, image_fit, featured, live_url) VALUES (?,?,?,?,?,?,?,?,?)'
-            );
-            $stmt->execute([
-                $title,
-                $slug,
-                (string) ($b['excerpt'] ?? ''),
-                (string) ($b['body'] ?? ''),
-                (string) ($b['category'] ?? 'web'),
-                $img !== '' ? $img : null,
-                $fit,
-                !empty($b['featured']) ? 1 : 0,
-                $live !== '' ? $live : null,
-            ]);
+            if (Db::columnExists('projects', 'image_fit')) {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, image_fit, featured, live_url) VALUES (?,?,?,?,?,?,?,?,?)'
+                );
+                $stmt->execute([
+                    $title,
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    $fit,
+                    !empty($b['featured']) ? 1 : 0,
+                    $live !== '' ? $live : null,
+                ]);
+            } else {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, featured, live_url) VALUES (?,?,?,?,?,?,?,?)'
+                );
+                $stmt->execute([
+                    $title,
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    !empty($b['featured']) ? 1 : 0,
+                    $live !== '' ? $live : null,
+                ]);
+            }
             Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
             return;
         }
@@ -290,20 +306,36 @@ final class AdminApi
             $fit = strtolower(trim((string) ($b['image_fit'] ?? 'contain')));
             $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
-            $pdo->prepare(
-                'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, image_fit=?, featured=?, live_url=? WHERE id=?'
-            )->execute([
-                (string) ($b['title'] ?? ''),
-                $slug,
-                (string) ($b['excerpt'] ?? ''),
-                (string) ($b['body'] ?? ''),
-                (string) ($b['category'] ?? 'web'),
-                $img !== '' ? $img : null,
-                $fit,
-                !empty($b['featured']) ? 1 : 0,
-                $live !== '' ? $live : null,
-                (int) $id,
-            ]);
+            if (Db::columnExists('projects', 'image_fit')) {
+                $pdo->prepare(
+                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, image_fit=?, featured=?, live_url=? WHERE id=?'
+                )->execute([
+                    (string) ($b['title'] ?? ''),
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    $fit,
+                    !empty($b['featured']) ? 1 : 0,
+                    $live !== '' ? $live : null,
+                    (int) $id,
+                ]);
+            } else {
+                $pdo->prepare(
+                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, featured=?, live_url=? WHERE id=?'
+                )->execute([
+                    (string) ($b['title'] ?? ''),
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    !empty($b['featured']) ? 1 : 0,
+                    $live !== '' ? $live : null,
+                    (int) $id,
+                ]);
+            }
             Util::sendJson(['ok' => true]);
             return;
         }

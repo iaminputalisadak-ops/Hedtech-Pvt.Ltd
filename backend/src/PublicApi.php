@@ -85,22 +85,33 @@ final class PublicApi
 
     public static function projects(): void
     {
-        $stmt = Db::pdo()->query(
-            'SELECT id, title, slug, excerpt, category, image_url, image_fit, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
+        $pdo = Db::pdo();
+        $hasFit = Db::columnExists('projects', 'image_fit');
+        $stmt = $pdo->query(
+            $hasFit
+                ? 'SELECT id, title, slug, excerpt, category, image_url, image_fit, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
+                : 'SELECT id, title, slug, excerpt, category, image_url, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
         );
         Util::sendJson(['items' => $stmt->fetchAll()]);
     }
 
     public static function projectBySlug(string $slug): void
     {
-        $stmt = Db::pdo()->prepare(
-            'SELECT id, title, slug, excerpt, body, category, image_url, image_fit, featured, live_url, created_at FROM projects WHERE slug = ? LIMIT 1'
+        $pdo = Db::pdo();
+        $hasFit = Db::columnExists('projects', 'image_fit');
+        $stmt = $pdo->prepare(
+            $hasFit
+                ? 'SELECT id, title, slug, excerpt, body, category, image_url, image_fit, featured, live_url, created_at FROM projects WHERE slug = ? LIMIT 1'
+                : 'SELECT id, title, slug, excerpt, body, category, image_url, featured, live_url, created_at FROM projects WHERE slug = ? LIMIT 1'
         );
         $stmt->execute([$slug]);
         $row = $stmt->fetch();
         if (!$row) {
             Util::sendJson(['error' => 'Not found'], 404);
             return;
+        }
+        if (!$hasFit) {
+            $row['image_fit'] = 'contain';
         }
         Util::sendJson(['item' => $row]);
     }
@@ -220,7 +231,9 @@ final class PublicApi
             'services' => $pdo->query('SELECT id, title, description, icon, sort_order FROM services ORDER BY sort_order')->fetchAll(),
             'skills' => $pdo->query('SELECT id, name, level, sort_order FROM skills ORDER BY sort_order')->fetchAll(),
             'projects' => $pdo->query(
-                'SELECT id, title, slug, excerpt, category, image_url, image_fit, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
+                Db::columnExists('projects', 'image_fit')
+                    ? 'SELECT id, title, slug, excerpt, category, image_url, image_fit, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
+                    : 'SELECT id, title, slug, excerpt, category, image_url, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
             )->fetchAll(),
             'trusted' => $pdo->query('SELECT id, name, logo_url, sort_order FROM trusted_companies ORDER BY sort_order')->fetchAll(),
             'team' => Db::tableExists('team_members') ? $pdo->query(
