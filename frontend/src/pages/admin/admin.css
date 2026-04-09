@@ -432,6 +432,7 @@ html[data-theme='light'] .admin-btn--primary {
   position: sticky;
   bottom: 0;
   margin-top: 0.9rem;
+  z-index: 5;
 }
 
 .admin-edit-actions-inner {
@@ -446,6 +447,7 @@ html[data-theme='light'] .admin-btn--primary {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.12);
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }
 
 html[data-theme='dark'] .admin-edit-actions-inner {
