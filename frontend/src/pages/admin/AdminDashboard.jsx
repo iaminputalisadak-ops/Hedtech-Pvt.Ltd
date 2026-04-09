@@ -651,19 +651,22 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
       ) : null}
 
       <div className="admin-panel">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <h3 style={{ margin: 0 }}>Add new</h3>
+        <div className="admin-add-header">
+          <div style={{ minWidth: 0 }}>
+            <h3 className="admin-add-title">Add new</h3>
+            <p className="admin-add-sub">Create a new item, then edit details below.</p>
+          </div>
           <button
             type="button"
-            className="admin-btn admin-btn--ghost"
+            className={`admin-btn ${createOpen ? 'admin-btn--ghost' : 'admin-btn--primary'}`}
             onClick={() => setCreateOpen((v) => !v)}
             aria-expanded={createOpen}
           >
             {createOpen ? 'Close' : 'Add new'}
           </button>
         </div>
-        {createOpen ? (
-          <form onSubmit={createRow} style={{ display: 'grid', gap: '0.65rem', marginTop: '0.85rem' }}>
+        <div className={`admin-add-body ${createOpen ? 'is-open' : ''}`} aria-hidden={!createOpen}>
+          <form onSubmit={createRow} className="admin-add-form">
             {fields.map((f) => (
               <FieldInput key={f.key} f={f} prefix="" draft={draft} setDraft={setDraft} />
             ))}
@@ -671,7 +674,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
               {saving ? 'Adding…' : 'Add'}
             </button>
           </form>
-        ) : null}
+        </div>
       </div>
 
       {loading ? (

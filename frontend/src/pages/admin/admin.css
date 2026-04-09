@@ -358,6 +358,63 @@ html[data-theme='light'] .admin-btn--primary {
   background: color-mix(in srgb, #ef4444 8%, transparent);
 }
 
+/* ----- CRUD: Add new accordion (professional) ----- */
+.admin-add-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.25rem 0 0.75rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.85rem;
+}
+
+.admin-add-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.admin-add-sub {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.admin-add-body {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    max-height 0.28s ease,
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.admin-add-body.is-open {
+  max-height: 1200px; /* large enough for the form */
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.admin-add-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (max-width: 520px) {
+  .admin-add-header {
+    align-items: stretch;
+  }
+  .admin-add-header .admin-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .admin-btn--icon {
   padding: 0.45rem;
   min-width: 2.25rem;
