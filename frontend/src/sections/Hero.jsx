@@ -186,7 +186,7 @@ export default function Hero() {
       {!reduce ? (
         <canvas ref={canvasRef} id="showcase-movement" aria-hidden className="hero-canvas" />
       ) : null}
-      <div className="container hero-container">
+      <div className="hero-container hero-container--full">
         <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
           {bgMode === 'image' ? (
             <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} fit={wallpaperFit} position={wallpaperPosition} />

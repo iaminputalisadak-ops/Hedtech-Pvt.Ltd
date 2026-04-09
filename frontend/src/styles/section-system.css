@@ -942,6 +942,14 @@ html[data-theme='dark'] .ds-ship-fill {
   z-index: 1;
 }
 
+.hero-container--full {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: var(--site-pad-x);
+  box-sizing: border-box;
+}
+
 .hero-panel {
   position: relative;
   max-width: 100%;
