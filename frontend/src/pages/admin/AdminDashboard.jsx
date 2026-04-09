@@ -744,19 +744,30 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
                     <FieldInput key={f.key} f={f} prefix={String(row.id)} draft={draft} setDraft={setDraft} />
                   ))}
                 </div>
-                <div className="admin-edit-actions">
-                  <div className="admin-edit-actions-inner">
-                    <span className="admin-form-actions-hint">{saving ? 'Saving…' : 'Don’t forget to save your changes'}</span>
-                    <button type="button" className="admin-btn admin-btn--primary" disabled={saving} onClick={() => saveRow(row.id, row)}>
-                      {saving ? 'Saving…' : 'Save'}
-                    </button>
-                  </div>
-                </div>
               </div>
             ) : null}
           </div>
         ))
       )}
+
+      {editing != null ? (
+        <div className="admin-edit-fixed">
+          <div className="admin-edit-fixed-inner">
+            <span className="admin-form-actions-hint">{saving ? 'Saving…' : 'Editing — remember to save changes'}</span>
+            <button
+              type="button"
+              className="admin-btn admin-btn--primary"
+              disabled={saving}
+              onClick={() => {
+                const row = items.find((x) => x.id === editing)
+                if (row) saveRow(editing, row)
+              }}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
