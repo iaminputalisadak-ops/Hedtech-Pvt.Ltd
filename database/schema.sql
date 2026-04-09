@@ -95,6 +95,12 @@ CREATE TABLE IF NOT EXISTS team_members (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+INSERT IGNORE INTO team_members (name, role, bio, photo_url, linkedin_url, sort_order, published) VALUES
+('Karthik Sharma', 'Founder & Delivery Lead', 'Owns strategy, delivery, and client success. Focused on performance-first builds, clear communication, and measurable outcomes.', 'https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?w=640&q=80&auto=format&fit=crop', 'https://linkedin.com', 1, 1),
+('Aarav Singh', 'Full‑Stack Engineer', 'Builds resilient APIs, modern React frontends, and integrations. Passionate about clean architecture and fast load times.', 'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=640&q=80&auto=format&fit=crop', 'https://linkedin.com', 2, 1),
+('Saanvi Joshi', 'UI/UX Designer', 'Designs conversion-friendly interfaces with strong visual systems. Focus on accessibility, motion, and brand consistency.', 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=640&q=80&auto=format&fit=crop', 'https://linkedin.com', 3, 1),
+('Rohan Patel', 'SEO & Growth', 'Handles technical SEO, structured data, analytics, and content strategy. Aligns pages with search intent and Core Web Vitals.', 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=640&q=80&auto=format&fit=crop', 'https://linkedin.com', 4, 1);
+
 -- Default admin login: admin / password  (change immediately in production)
 INSERT INTO admins (username, password_hash) VALUES (
   'admin',
