@@ -952,7 +952,21 @@ html[data-theme='dark'] .ds-ship-fill {
 
 .hero-panel {
   position: relative;
-  max-width: 100%;
+  width: min(1100px, 100%);
+  margin-inline: auto;
+  padding: clamp(1.25rem, 2.2vw, 1.85rem);
+  background: color-mix(in srgb, var(--bg-elevated) 22%, transparent);
+  border-color: color-mix(in srgb, var(--border) 72%, transparent);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.42),
+    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+html[data-theme='light'] .hero-panel {
+  background: color-mix(in srgb, var(--bg-elevated) 86%, transparent);
+  box-shadow:
+    0 20px 70px rgba(2, 6, 23, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.55) inset;
 }
 
 .hero-actions {
