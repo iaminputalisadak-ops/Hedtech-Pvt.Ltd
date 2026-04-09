@@ -127,6 +127,7 @@ const projectFields = [
   { key: 'body', label: 'Full text', multiline: true },
   { key: 'category', label: 'Category' },
   { key: 'image_url', label: 'Image URL' },
+  { key: 'image_upload', label: 'Upload image', uploadFor: 'image_url', uploadKind: 'project-image', accept: 'image/*,.svg' },
   { key: 'live_url', label: 'Live site URL' },
   { key: 'featured', label: 'Featured on home', boolean: true },
 ]
