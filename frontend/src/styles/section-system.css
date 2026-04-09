@@ -944,7 +944,7 @@ html[data-theme='dark'] .ds-ship-fill {
 
 .hero-panel {
   position: relative;
-  max-width: 760px;
+  max-width: 100%;
 }
 
 .hero-actions {
@@ -957,10 +957,12 @@ html[data-theme='dark'] .ds-ship-fill {
 .hero-stats-bar {
   margin-top: var(--space-10);
   padding: var(--space-4) var(--space-5);
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
   gap: var(--space-6);
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .hero-stat-divider {
