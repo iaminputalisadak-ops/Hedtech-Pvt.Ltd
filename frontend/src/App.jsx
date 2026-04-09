@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { ThemeProvider } from './context/ThemeContext'
 import { SiteProvider } from './context/SiteContext'
 import PageLayout from './components/PageLayout'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 
 const Work = lazy(() => import('./pages/Work'))
@@ -25,6 +26,7 @@ export default function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <ThemeProvider>
           <SiteProvider>
             <Suspense fallback={<div className="page-state page-state--center" aria-live="polite" />}>
