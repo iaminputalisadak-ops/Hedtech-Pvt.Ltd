@@ -6,6 +6,57 @@ import CanvasParticles from 'canvasparticles-js'
 import { useTheme } from '../context/ThemeContext'
 import { useSite } from '../context/SiteContext'
 
+const HERO_COPY_DEFAULTS = {
+  headline: 'Build products people trust',
+  tagline:
+    'Strategy, design, and engineering for teams that care about quality, speed, and measurable outcomes.',
+  eyebrow: 'Digital studio · Performance · SEO',
+  ctaPrimaryLabel: 'Start a project',
+  ctaPrimaryHref: '/contact',
+  ctaSecondaryLabel: 'View selected work',
+  ctaSecondaryHref: '/work',
+  statLabel: 'Shipped milestones',
+  statAside: 'Core Web Vitals–minded builds, accessible UI, and SEO that earns the click.',
+}
+
+function trimSetting(v) {
+  return (v ?? '').toString().trim()
+}
+
+function isExternalHref(href) {
+  const h = trimSetting(href)
+  if (!h) return false
+  return /^https?:\/\//i.test(h) || h.startsWith('//') || h.startsWith('mailto:') || h.startsWith('tel:')
+}
+
+function normalizePath(href) {
+  const h = trimSetting(href)
+  if (!h || isExternalHref(h)) return h || '/'
+  return h.startsWith('/') ? h : `/${h}`
+}
+
+function HeroCtaLink({ href, className, children }) {
+  const raw = trimSetting(href)
+  if (isExternalHref(raw)) {
+    const newTab = /^https?:\/\//i.test(raw) || raw.startsWith('//')
+    return (
+      <a
+        href={raw}
+        className={className}
+        {...(newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      >
+        {children}
+      </a>
+    )
+  }
+  const to = normalizePath(raw || '/')
+  return (
+    <Link to={to} className={className}>
+      {children}
+    </Link>
+  )
+}
+
 /**
  * Library destroy() calls canvas.remove(), which breaks React-managed nodes.
  * Unobserve + stop only; leave the <canvas> in the DOM.
@@ -64,21 +115,21 @@ function Orbs({ theme }) {
   )
 }
 
-function safeWallpaperFit(input) {
-  const raw = (input ?? '').toString().trim().toLowerCase()
-  return raw === 'contain' ? 'contain' : 'cover'
-}
-
 function safeWallpaperPosition(input) {
   const raw = (input ?? '').toString().trim().toLowerCase()
   const allowed = new Set(['center', 'center top', 'center bottom', 'left center', 'right center'])
   return allowed.has(raw) ? raw : 'center'
 }
 
-function HeroWallpaper({ url, opacity = 0.28, fit = 'cover', position = 'center', theme }) {
+/**
+ * Hero wallpaper must fill the full viewport band (no letterboxing). Admin "contain"
+ * is useful for previews/logos; on the public hero we always use cover so Earth/graph
+ * backgrounds reach the left and right edges.
+ */
+function HeroWallpaper({ url, opacity = 0.28, position = 'center', theme }) {
   const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.28
   if (!url) return null
-  const objectFit = safeWallpaperFit(fit)
+  const objectFit = 'cover'
   const objectPosition = safeWallpaperPosition(position)
   const isLight = theme === 'light'
   /* screen() lifts dark art on dark bg; on light bg it blows out. normal + slightly higher opacity keeps line art visible. */
@@ -93,7 +144,7 @@ function HeroWallpaper({ url, opacity = 0.28, fit = 'cover', position = 'center'
       loading="eager"
       fetchPriority="high"
       aria-hidden
-      className={`hero-wallpaper-img${objectFit === 'contain' ? ' hero-wallpaper-img--contain' : ''}`}
+      className="hero-wallpaper-img"
       style={{
         opacity: opacityOut,
         objectFit,
@@ -144,15 +195,19 @@ export default function Hero() {
   const particlesRef = useRef(null)
   const count = settings.project_count || String(projects?.length || 0)
 
-  const headline = settings.hero_headline || 'Build products people trust'
-  const tagline =
-    settings.hero_tagline ||
-    'Strategy, design, and engineering for teams that care about quality, speed, and measurable outcomes.'
+  const headline = trimSetting(settings.hero_headline) || HERO_COPY_DEFAULTS.headline
+  const tagline = trimSetting(settings.hero_tagline) || HERO_COPY_DEFAULTS.tagline
+  const eyebrow = trimSetting(settings.hero_eyebrow) || HERO_COPY_DEFAULTS.eyebrow
+  const ctaPrimaryLabel = trimSetting(settings.hero_cta_primary_label) || HERO_COPY_DEFAULTS.ctaPrimaryLabel
+  const ctaPrimaryHref = trimSetting(settings.hero_cta_primary_href) || HERO_COPY_DEFAULTS.ctaPrimaryHref
+  const ctaSecondaryLabel = trimSetting(settings.hero_cta_secondary_label) || HERO_COPY_DEFAULTS.ctaSecondaryLabel
+  const ctaSecondaryHref = trimSetting(settings.hero_cta_secondary_href) || HERO_COPY_DEFAULTS.ctaSecondaryHref
+  const statLabel = trimSetting(settings.hero_stat_label) || HERO_COPY_DEFAULTS.statLabel
+  const statAside = trimSetting(settings.hero_stat_aside) || HERO_COPY_DEFAULTS.statAside
 
   const wallpaperUrl = (settings.hero_wallpaper_url || '').trim()
   const wallpaperOpacityRaw = (settings.hero_wallpaper_opacity || '').trim()
   const wallpaperOpacity = wallpaperOpacityRaw === '' ? 0.28 : Number(wallpaperOpacityRaw)
-  const wallpaperFit = (settings.hero_wallpaper_fit || '').toString().trim() || 'cover'
   const wallpaperPosition = (settings.hero_wallpaper_position || '').toString().trim()
   const bgMode = (settings.hero_bg_mode || '').toString().trim() || (wallpaperUrl ? 'image' : 'animated')
   const gradientCss = (settings.hero_gradient_css || '').toString().trim()
@@ -202,7 +257,6 @@ export default function Hero() {
           <HeroWallpaper
             url={wallpaperUrl}
             opacity={wallpaperOpacity}
-            fit={wallpaperFit}
             position={wallpaperPosition}
             theme={theme}
           />
@@ -222,7 +276,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
             >
-              Digital studio · Performance · SEO
+              {eyebrow}
             </motion.p>
             <motion.h1
               className="hero-title"
@@ -246,12 +300,12 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.2 }}
             >
-              <Link to="/contact" className="btn btn-primary">
-                Start a project <ArrowRight size={18} />
-              </Link>
-              <Link to="/work" className="btn btn-ghost">
-                <PlayCircle size={18} aria-hidden /> View selected work
-              </Link>
+              <HeroCtaLink href={ctaPrimaryHref} className="btn btn-primary">
+                {ctaPrimaryLabel} <ArrowRight size={18} aria-hidden />
+              </HeroCtaLink>
+              <HeroCtaLink href={ctaSecondaryHref} className="btn btn-ghost">
+                <PlayCircle size={18} aria-hidden /> {ctaSecondaryLabel}
+              </HeroCtaLink>
             </motion.div>
           </div>
           <motion.div
@@ -263,11 +317,9 @@ export default function Hero() {
             <div className="hero-stats-bar-inner">
               <div className="hero-stat-primary">
                 <div className="hero-stat-value">{count}+</div>
-                <div className="hero-stat-label">Shipped milestones</div>
+                <div className="hero-stat-label">{statLabel}</div>
               </div>
-              <p className="hero-stat-aside">
-                Core Web Vitals–minded builds, accessible UI, and SEO that earns the click.
-              </p>
+              <p className="hero-stat-aside">{statAside}</p>
             </div>
           </motion.div>
         </div>

@@ -82,6 +82,15 @@
   letter-spacing: -0.01em;
 }
 
+/* Mission / vision cards + value chips: centered (matches stat row + section head) */
+#about .nested-card {
+  text-align: center;
+}
+
+#about .value-chips {
+  justify-content: center;
+}
+
 /* --- Services: top “media” band + read more (image-forward agency cards) --- */
 .service-card.service-card--pro {
   padding: 0;

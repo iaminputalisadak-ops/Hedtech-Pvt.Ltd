@@ -54,7 +54,7 @@ export default function Home() {
       <Seo path="/" />
       <Hero />
       <About />
-      <Services />
+      <Services previewCount={5} />
       <Suspense fallback={null}>
         <Expertise />
       </Suspense>

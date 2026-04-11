@@ -51,14 +51,22 @@ const SETTINGS_GROUPS = [
     ],
   },
   {
-    title: 'Homepage — headline & stats',
+    title: 'Homepage — hero copy & CTAs',
     cols2: true,
-    description: 'Main hero copy and the number shown next to “Shipped milestones”.',
+    description:
+      'Everything in the hero band: eyebrow, headline, lead, stat line, buttons, and their links. Use paths like /contact or full https URLs.',
     fields: [
       ['site_name', 'Company name'],
-      ['project_count', 'Number shown in the hero (e.g. 150+)'],
-      ['hero_headline', 'Main headline'],
+      ['project_count', 'Number before “+” in the hero stat (e.g. 150)'],
+      ['hero_eyebrow', 'Eyebrow line (small text above headline)'],
+      ['hero_headline', 'Main headline (H1)'],
       ['hero_tagline', 'Subtext under headline'],
+      ['hero_stat_label', 'Label under the stat number'],
+      ['hero_stat_aside', 'Right-hand sentence in the hero stats row'],
+      ['hero_cta_primary_label', 'Primary button label'],
+      ['hero_cta_primary_href', 'Primary button link (e.g. /contact)'],
+      ['hero_cta_secondary_label', 'Secondary button label'],
+      ['hero_cta_secondary_href', 'Secondary button link (e.g. /work)'],
     ],
   },
   {
@@ -527,6 +535,7 @@ export default function AdminDashboard() {
     const tall = [
       'about_intro',
       'hero_tagline',
+      'hero_stat_aside',
       'meta_description',
       'values',
       'map_embed_url',

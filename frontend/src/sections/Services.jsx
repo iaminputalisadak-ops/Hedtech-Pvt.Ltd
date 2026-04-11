@@ -7,9 +7,14 @@ import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
 
-export default function Services({ showHeader = true }) {
+export default function Services({ showHeader = true, previewCount }) {
   const { services } = useSite()
   const reduce = useReducedMotion()
+
+  const list = Array.isArray(services) ? services : []
+  const limit = typeof previewCount === 'number' && previewCount > 0 ? Math.floor(previewCount) : 0
+  const displayed = limit > 0 ? list.slice(0, limit) : list
+  const extra = limit > 0 ? Math.max(0, list.length - limit) : 0
 
   return (
     <SectionContainer id="services">
@@ -23,7 +28,7 @@ export default function Services({ showHeader = true }) {
         </div>
       ) : null}
       <div className="layout-grid-cards layout-grid-cards--wide">
-        {services.map((s, i) => (
+        {displayed.map((s, i) => (
           <Motion.article
             key={s.id}
             className="glass service-card service-card--pro"
@@ -49,6 +54,18 @@ export default function Services({ showHeader = true }) {
           </Motion.article>
         ))}
       </div>
+      {extra > 0 ? (
+        <div className="services-see-all">
+          <Link
+            to="/services"
+            className="services-see-all-link"
+            aria-label={`See all services, ${extra} not shown in this preview`}
+          >
+            See all services
+            <ChevronRight size={18} aria-hidden />
+          </Link>
+        </div>
+      ) : null}
     </SectionContainer>
   )
 }

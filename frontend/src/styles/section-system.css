@@ -168,6 +168,39 @@ html[data-theme='light'] .page-shell--home .hero-panel.content-panel--hero {
   }
 }
 
+/* Homepage services preview: CTA to full listing */
+.services-see-all {
+  margin-top: var(--space-8);
+  display: flex;
+  justify-content: center;
+}
+
+.services-see-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem 1.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.services-see-all-link:hover {
+  color: var(--accent-hover);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  transform: translateY(-1px);
+}
+
 .filter-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -549,6 +582,18 @@ a.service-card--link:hover {
 
 .container--reading {
   max-width: 800px;
+}
+
+/*
+ * Homepage sections (About, Services, etc.): full-width band between site gutters —
+ * same idea as the hero wallpaper row. .page-state keeps the default narrow column.
+ */
+.page-shell--home .section:not(.hero-section):not(.page-state) > .container:not(.container--narrow):not(.container--reading) {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: var(--site-pad-x);
+  box-sizing: border-box;
 }
 
 /* Section header: title block + actions (e.g. “View all”) */
