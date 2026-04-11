@@ -10,6 +10,9 @@ final class Db
 {
     private static ?PDO $pdo = null;
 
+    /** @var array<string, bool> */
+    private static array $tableExistsCache = [];
+
     public static function pdo(): PDO
     {
         if (self::$pdo instanceof PDO) {
@@ -58,16 +61,53 @@ final class Db
     /** Cached check so public API can work even if a table migration hasn't been run yet. */
     public static function tableExists(string $table): bool
     {
-        static $cache = [];
-        if (array_key_exists($table, $cache)) {
-            return $cache[$table];
+        if (array_key_exists($table, self::$tableExistsCache)) {
+            return self::$tableExistsCache[$table];
         }
         $stmt = self::pdo()->prepare(
             'SELECT COUNT(*) FROM information_schema.TABLES
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
         );
         $stmt->execute([$table]);
-        $cache[$table] = (int) $stmt->fetchColumn() > 0;
-        return $cache[$table];
+        self::$tableExistsCache[$table] = (int) $stmt->fetchColumn() > 0;
+
+        return self::$tableExistsCache[$table];
+    }
+
+    public static function forgetTableExistsCache(string $table): void
+    {
+        unset(self::$tableExistsCache[$table]);
+    }
+
+    /**
+     * Create team_members if missing (same DDL as database/migrations/008_team_members.sql).
+     * Keeps admin + public team APIs working when an older DB was never migrated.
+     */
+    public static function ensureTeamMembersTable(): bool
+    {
+        if (self::tableExists('team_members')) {
+            return true;
+        }
+        $ddl = <<<'SQL'
+CREATE TABLE IF NOT EXISTS team_members (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(255) DEFAULT '',
+  bio TEXT,
+  photo_url VARCHAR(512) DEFAULT NULL,
+  linkedin_url VARCHAR(512) DEFAULT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  published TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+SQL;
+        try {
+            self::pdo()->exec($ddl);
+        } catch (PDOException) {
+            return false;
+        }
+        self::forgetTableExistsCache('team_members');
+
+        return self::tableExists('team_members');
     }
 }

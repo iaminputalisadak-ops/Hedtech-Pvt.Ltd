@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
-import HomeHashLink from './HomeHashLink'
 import SiteBrand from './SiteBrand'
 import ThemeToggle from './ThemeToggle'
-import { homeSections, navPillStyle, pathNav } from './siteNav'
+import { primaryNav } from './siteNav'
+
+/** NavLink `end`: false so /work/*, /blog/*, and /services/* stay highlighted on child routes. */
+const NAV_LINK_END_EXACT = new Set(['/about', '/expertise', '/reviews', '/team', '/contact'])
 
 export default function Header() {
   const [open, setOpen] = useState(false)
@@ -38,9 +40,7 @@ export default function Header() {
 
       const root = sheetRef.current
       if (!root) return
-      const focusables = root.querySelectorAll(
-        'a[href],button:not([disabled]),[tabindex]:not([tabindex=\"-1\"])',
-      )
+      const focusables = root.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])')
       const list = Array.from(focusables).filter((el) => el.offsetParent !== null)
       if (!list.length) return
 
@@ -67,8 +67,7 @@ export default function Header() {
     if (!open) return
     const t = window.setTimeout(() => {
       const root = sheetRef.current
-      const first =
-        root?.querySelector('a[href],button:not([disabled]),[tabindex]:not([tabindex=\"-1\"])') || root
+      const first = root?.querySelector('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])') || root
       first?.focus?.()
     }, 0)
     return () => window.clearTimeout(t)
@@ -80,7 +79,7 @@ export default function Header() {
   }, [open])
 
   return (
-    <motion.header
+    <Motion.header
       className="site-header site-chrome site-chrome--top"
       style={{
         position: 'fixed',
@@ -95,56 +94,24 @@ export default function Header() {
       animate={{ height: shrunk ? 64 : 72 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div
-        className="container site-header-bar"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: '100%',
-          paddingBlock: '0.35rem',
-          position: 'relative',
-          zIndex: 2,
-          gap: '0.5rem',
-          minWidth: 0,
-        }}
-      >
+      <div className="container site-header-bar">
         <SiteBrand onClick={() => setOpen(false)} />
 
-        <nav className="desktop-nav" aria-label="Primary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
-          {homeSections.map((item) => (
-            <HomeHashLink
-              key={item.id}
-              sectionId={item.id}
-              className="nav-pill"
-              style={navPillStyle(false)}
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </HomeHashLink>
-          ))}
-          {pathNav.map((item) => (
+        <nav className="desktop-nav" aria-label="Primary">
+          {primaryNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
+              end={NAV_LINK_END_EXACT.has(item.to)}
               className={({ isActive }) => `nav-pill ${isActive ? 'active' : ''}`}
-              style={({ isActive }) => navPillStyle(isActive)}
               onClick={() => setOpen(false)}
             >
               {item.label}
             </NavLink>
           ))}
-          <Link
-            to="/contact"
-            className="nav-pill"
-            style={navPillStyle(false)}
-            onClick={() => setOpen(false)}
-          >
-            Contact
-          </Link>
         </nav>
 
-        <div className="header-theme-controls" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <div className="header-theme-controls">
           <ThemeToggle />
           <Link to="/contact" className="btn btn-primary desktop-cta" onClick={() => setOpen(false)}>
             Get started
@@ -167,7 +134,7 @@ export default function Header() {
       {open ? (
         <div className="mobile-nav-layer" aria-hidden={false}>
           <button type="button" className="mobile-nav-backdrop" aria-label="Close menu" onClick={() => setOpen(false)} />
-          <motion.aside
+          <Motion.aside
             id="mobile-menu"
             ref={sheetRef}
             role="dialog"
@@ -186,24 +153,22 @@ export default function Header() {
               </button>
             </div>
             <nav className="mobile-nav-list" aria-label="Menu">
-              {homeSections.map((item) => (
-                <HomeHashLink key={item.id} sectionId={item.id} onClick={() => setOpen(false)} className="mobile-nav-item">
+              {primaryNav.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={NAV_LINK_END_EXACT.has(item.to)}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) => `mobile-nav-item${isActive ? ' mobile-nav-item--active' : ''}`}
+                >
                   {item.label}
-                </HomeHashLink>
+                </NavLink>
               ))}
-              {pathNav.map((item) => (
-                <Link key={item.to} to={item.to} onClick={() => setOpen(false)} className="mobile-nav-item">
-                  {item.label}
-                </Link>
-              ))}
-              <Link to="/contact" onClick={() => setOpen(false)} className="mobile-nav-item">
-                Contact
-              </Link>
               <Link to="/contact" className="btn btn-primary mobile-nav-cta" onClick={() => setOpen(false)}>
                 Get started
               </Link>
             </nav>
-          </motion.aside>
+          </Motion.aside>
         </div>
       ) : null}
 
@@ -281,6 +246,10 @@ export default function Header() {
         .mobile-nav-item:hover {
           background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
         }
+        .mobile-nav-item--active {
+          background: color-mix(in srgb, var(--accent) 14%, var(--surface-strong));
+          color: var(--text);
+        }
         .mobile-nav-item:focus-visible {
           outline: 2px solid var(--focus-ring);
           outline-offset: 2px;
@@ -305,6 +274,6 @@ export default function Header() {
           }
         }
       `}</style>
-    </motion.header>
+    </Motion.header>
   )
 }

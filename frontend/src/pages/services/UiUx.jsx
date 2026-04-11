@@ -21,8 +21,8 @@ export default function UiUx() {
 
       <SectionContainer>
         <p className="section-back">
-          <Link to="/" className="text-back-link">
-            ← Home
+          <Link to="/services" className="text-back-link">
+            ← Services
           </Link>
         </p>
         <h1 className="section-title">UI/UX design that feels premium</h1>

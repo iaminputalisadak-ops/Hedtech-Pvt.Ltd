@@ -40,9 +40,7 @@ export default function SiteBrand({ onClick, className = '' }) {
           H
         </span>
       )}
-      <span className="site-brand-text" style={{ fontWeight: 700, letterSpacing: '-0.03em' }}>
-        {brand}
-      </span>
+      <span className="site-brand-text">{brand}</span>
     </Link>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { Send } from 'lucide-react'
 import SectionContainer from '../components/SectionContainer'
 import { submitContact } from '../api/client'
@@ -7,9 +7,14 @@ import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
 
+const DEFAULT_CONTACT_TITLE = 'Contact'
+const DEFAULT_CONTACT_LEAD = 'Tell us about your project. We typically respond within one business day.'
+
 export default function Contact() {
   const { settings } = useSite()
   const reduce = useReducedMotion()
+  const sectionTitle = (settings.contact_section_title || '').trim() || DEFAULT_CONTACT_TITLE
+  const sectionLead = (settings.contact_section_lead || '').trim() || DEFAULT_CONTACT_LEAD
   const [status, setStatus] = useState(null)
   const [pending, setPending] = useState(false)
 
@@ -36,11 +41,11 @@ export default function Contact() {
 
   return (
     <SectionContainer id="contact">
-      <h2 className="section-title">Contact</h2>
-      <p className="section-lead">Tell us about your project. We typically respond within one business day.</p>
+      <h2 className="section-title">{sectionTitle}</h2>
+      <p className="section-lead">{sectionLead}</p>
 
       <div className="contact-grid">
-        <motion.div
+        <Motion.div
           className="glass contact-aside"
           initial={fadeIn(reduce)}
           whileInView={{ opacity: 1 }}
@@ -154,9 +159,9 @@ export default function Contact() {
               </a>
             ) : null}
           </div>
-        </motion.div>
+        </Motion.div>
 
-        <motion.form
+        <Motion.form
           className="glass contact-form-block"
           onSubmit={onSubmit}
           initial={fadeIn(reduce)}
@@ -206,7 +211,7 @@ export default function Contact() {
             {pending ? 'Sending…' : 'Send message'}
             <Send size={18} aria-hidden />
           </button>
-        </motion.form>
+        </Motion.form>
       </div>
     </SectionContainer>
   )

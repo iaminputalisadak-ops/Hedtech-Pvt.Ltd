@@ -21,6 +21,9 @@ const Team = lazy(() => import('./pages/Team'))
 const WebDevelopment = lazy(() => import('./pages/services/WebDevelopment'))
 const SeoServices = lazy(() => import('./pages/services/SeoServices'))
 const UiUx = lazy(() => import('./pages/services/UiUx'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const ServicesHubPage = lazy(() => import('./pages/ServicesHubPage'))
+const ExpertisePage = lazy(() => import('./pages/ExpertisePage'))
 
 export default function App() {
   return (
@@ -33,6 +36,9 @@ export default function App() {
               <Routes>
                 <Route element={<PageLayout />}>
                   <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/services" element={<ServicesHubPage />} />
+                  <Route path="/expertise" element={<ExpertisePage />} />
                   <Route path="/work" element={<Work />} />
                   <Route path="/work/:slug" element={<ProjectDetail />} />
                   <Route path="/blog" element={<BlogList />} />

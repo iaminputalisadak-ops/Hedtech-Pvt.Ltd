@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { MapPin, Phone, Mail } from 'lucide-react'
 import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
@@ -17,17 +17,22 @@ function normalizeMapsEmbed(input) {
   return raw
 }
 
+const DEFAULT_MAP_TITLE = 'Visit & connect'
+const DEFAULT_MAP_LEAD = 'Interactive map and direct lines to our team — details are editable from the admin panel.'
+
 export default function MapSection() {
   const { settings } = useSite()
   const reduce = useReducedMotion()
   const embed = normalizeMapsEmbed(settings.map_embed_url)
+  const mapTitle = (settings.map_section_title || '').trim() || DEFAULT_MAP_TITLE
+  const mapLead = (settings.map_section_lead || '').trim() || DEFAULT_MAP_LEAD
 
   return (
     <SectionContainer id="location">
-      <h2 className="section-title">Visit & connect</h2>
-      <p className="section-lead">Interactive map and direct lines to our team — editable from the admin panel.</p>
+      <h2 className="section-title">{mapTitle}</h2>
+      <p className="section-lead">{mapLead}</p>
       <div className="map-layout">
-        <motion.div
+        <Motion.div
           className="glass map-info-card"
           initial={fadeIn(reduce)}
           whileInView={{ opacity: 1 }}
@@ -56,8 +61,8 @@ export default function MapSection() {
               <span className="map-placeholder">—</span>
             )}
           </div>
-        </motion.div>
-        <motion.div
+        </Motion.div>
+        <Motion.div
           className="glass map-frame"
           initial={fadeIn(reduce)}
           whileInView={{ opacity: 1 }}
@@ -68,7 +73,7 @@ export default function MapSection() {
           ) : (
             <div className="map-frame-placeholder">Add a Google Maps embed URL in admin settings.</div>
           )}
-        </motion.div>
+        </Motion.div>
       </div>
     </SectionContainer>
   )

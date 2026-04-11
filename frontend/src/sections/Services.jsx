@@ -1,23 +1,27 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import SectionContainer from '../components/SectionContainer'
 import { DynamicIcon } from '../utils/icons'
 import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
 
-export default function Services() {
+export default function Services({ showHeader = true }) {
   const { services } = useSite()
   const reduce = useReducedMotion()
 
   return (
     <SectionContainer id="services">
-      <h2 className="section-title">Services</h2>
-      <p className="section-lead">
-        End-to-end delivery focused on speed, accessibility, and ROI — from first prototype to ongoing optimization.
-      </p>
+      {showHeader ? (
+        <>
+          <h2 className="section-title">Services</h2>
+          <p className="section-lead">
+            End-to-end delivery focused on speed, accessibility, and ROI — from first prototype to ongoing optimization.
+          </p>
+        </>
+      ) : null}
       <div className="layout-grid-cards layout-grid-cards--wide">
         {services.map((s, i) => (
-          <motion.article
+          <Motion.article
             key={s.id}
             className="glass service-card"
             initial={fadeIn(reduce)}
@@ -33,7 +37,7 @@ export default function Services() {
               <h3>{s.title}</h3>
             </div>
             <p className="service-card-desc">{s.description}</p>
-          </motion.article>
+          </Motion.article>
         ))}
       </div>
     </SectionContainer>

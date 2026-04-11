@@ -149,14 +149,48 @@ const SETTINGS_GROUPS = [
   },
   {
     title: 'Contact & map',
-    cols2: true,
-    fields: [
-      ['business_email', 'Email'],
-      ['business_phone', 'Phone'],
-      ['address', 'Address'],
-      ['map_lat', 'Map latitude'],
-      ['map_lng', 'Map longitude'],
-      ['map_embed_url', 'Google Maps embed link'],
+    description:
+      'Edit copy for the homepage contact area, the standalone /contact page, the map section, and your business details. SEO fields only affect /contact in search results.',
+    subsections: [
+      {
+        heading: 'Homepage — “Contact” block',
+        help: 'Bottom of the home page (anchor #contact): heading and line above the form.',
+        fields: [
+          ['contact_section_title', 'Section heading (H2)'],
+          ['contact_section_lead', 'Intro line under heading', 'text'],
+        ],
+      },
+      {
+        heading: 'Contact page (/contact)',
+        cols2: true,
+        help: 'Shown under “← Home”, before the map. Fill SEO for better Google snippets.',
+        fields: [
+          ['contact_page_h1', 'Page main heading (H1)'],
+          ['contact_page_intro', 'Intro paragraph', 'text'],
+          ['contact_seo_title', 'SEO title (browser tab); leave blank for “Contact — site name”'],
+          ['contact_seo_description', 'SEO meta description (recommended 120–160 chars)', 'text'],
+        ],
+      },
+      {
+        heading: 'Homepage — “Visit & connect” (map)',
+        help: 'Heading and line above the map on the home page.',
+        fields: [
+          ['map_section_title', 'Section heading (H2)'],
+          ['map_section_lead', 'Intro line under heading', 'text'],
+        ],
+      },
+      {
+        heading: 'Business details & map embed',
+        cols2: true,
+        fields: [
+          ['business_email', 'Email'],
+          ['business_phone', 'Phone'],
+          ['address', 'Address'],
+          ['map_lat', 'Map latitude'],
+          ['map_lng', 'Map longitude'],
+          ['map_embed_url', 'Google Maps embed link', 'text'],
+        ],
+      },
     ],
   },
   {
@@ -243,7 +277,7 @@ const teamFields = [
   { key: 'photo_upload', label: 'Upload photo', uploadFor: 'photo_url', uploadKind: 'team-photo', accept: 'image/*,.svg' },
   { key: 'linkedin_url', label: 'LinkedIn URL (optional)' },
   { key: 'sort_order', label: 'Order', number: true },
-  { key: 'published', label: 'Visible on site', boolean: true, default: true },
+  { key: 'published', label: 'Visible on site (required for public /team)', boolean: true, default: true },
 ]
 
 const TAB_FIELDS = {
@@ -490,7 +524,18 @@ export default function AdminDashboard() {
       )
     }
 
-    const tall = ['about_intro', 'hero_tagline', 'meta_description', 'values', 'map_embed_url', 'hero_gradient_css'].includes(key)
+    const tall = [
+      'about_intro',
+      'hero_tagline',
+      'meta_description',
+      'values',
+      'map_embed_url',
+      'hero_gradient_css',
+      'contact_section_lead',
+      'contact_page_intro',
+      'contact_seo_description',
+      'map_section_lead',
+    ].includes(key)
     return (
       <div key={key} className="admin-field">
         <label className="admin-label" htmlFor={`set-${key}`}>
@@ -702,6 +747,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
     try {
       const body = {}
       fields.forEach((f) => {
+        if (f.uploadFor) return
         if (f.boolean) {
           let v = draft[f.key]
           if ((v === undefined || v === '') && f.default === true) v = true
@@ -716,7 +762,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
       setDraft({})
       setCreateOpen(false)
       await onRefresh()
-      if (resource === 'projects') onSiteRefresh?.()
+      if (resource === 'projects' || resource === 'team' || resource === 'testimonials') onSiteRefresh?.()
     } catch (err) {
       setLocalError(err.message || 'Could not add')
     } finally {
@@ -730,6 +776,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
     try {
       const body = {}
       fields.forEach((f) => {
+        if (f.uploadFor) return
         const k = fk(id, f.key)
         if (f.boolean) {
           let b = draft[k]
@@ -754,7 +801,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
       await adminUpdate(resource, id, body)
       setEditing(null)
       await onRefresh()
-      if (resource === 'projects') onSiteRefresh?.()
+      if (resource === 'projects' || resource === 'team' || resource === 'testimonials') onSiteRefresh?.()
     } catch (err) {
       setLocalError(err.message || 'Could not save')
     } finally {
@@ -968,7 +1015,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
                       await adminDelete(resource, row.id)
                       setEditing(null)
                       await onRefresh()
-                      if (resource === 'projects') onSiteRefresh?.()
+                      if (resource === 'projects' || resource === 'team' || resource === 'testimonials') onSiteRefresh?.()
                     } catch (err) {
                       setLocalError(err.message || 'Delete failed')
                     } finally {
@@ -1223,6 +1270,12 @@ function RecordPreview({ resource, row }) {
         ) : null}
         {resource === 'testimonials' && row.published != null && row.published != 1 ? (
           <span className="admin-tag">Hidden</span>
+        ) : null}
+        {resource === 'team' && (row.published == null || row.published == 1) ? (
+          <span className="admin-tag admin-tag--ok">On site</span>
+        ) : null}
+        {resource === 'team' && row.published != null && row.published != 1 ? (
+          <span className="admin-tag">Off site</span>
         ) : null}
         {row.level != null ? `${row.level}% · ` : null}
         {line ? String(line).slice(0, 120) + (String(line).length > 120 ? '…' : '') : null}

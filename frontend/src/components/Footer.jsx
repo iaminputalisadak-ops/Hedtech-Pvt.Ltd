@@ -2,7 +2,9 @@ import { Link, NavLink } from 'react-router-dom'
 import { Mail, MapPin, Phone } from 'lucide-react'
 import { useSite } from '../context/SiteContext'
 import SiteBrand from './SiteBrand'
-import { pathNav } from './siteNav'
+import { primaryNav } from './siteNav'
+
+const FOOTER_NAV_END_EXACT = new Set(['/about', '/expertise', '/reviews', '/team', '/contact'])
 
 export default function Footer() {
   const { settings } = useSite()
@@ -28,14 +30,13 @@ export default function Footer() {
               <li>
                 <Link to="/">Home</Link>
               </li>
-              {pathNav.map((item) => (
+              {primaryNav.map((item) => (
                 <li key={item.to}>
-                  <NavLink to={item.to}>{item.label}</NavLink>
+                  <NavLink to={item.to} end={FOOTER_NAV_END_EXACT.has(item.to)}>
+                    {item.label}
+                  </NavLink>
                 </li>
               ))}
-              <li>
-                <Link to="/contact">Contact</Link>
-              </li>
             </ul>
           </div>
 
@@ -196,11 +197,10 @@ export default function Footer() {
         }
 
         .modern-ft-main {
-          padding: clamp(2.75rem, 6vw, 4rem) 0 clamp(1.75rem, 4vw, 2.25rem);
-          /* slate-950 — matches bottom bar in light theme */
-          background: #020617;
-          color: rgba(255, 255, 255, 0.92);
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          padding: clamp(2.85rem, 6.2vw, 4.1rem) 0 clamp(1.85rem, 4.2vw, 2.35rem);
+          background: linear-gradient(180deg, #121620 0%, #0e1218 100%);
+          color: rgba(255, 255, 255, 0.93);
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .modern-ft-main .site-brand-text {
@@ -208,7 +208,7 @@ export default function Footer() {
         }
 
         .modern-ft-main .modern-ft-desc {
-          color: rgba(255, 255, 255, 0.78);
+          color: rgba(255, 255, 255, 0.82);
         }
 
         .modern-ft-main .modern-ft-heading {
@@ -292,7 +292,7 @@ export default function Footer() {
         .modern-ft-grid {
           display: grid;
           grid-template-columns: 1.15fr repeat(3, minmax(0, 1fr));
-          gap: clamp(1.75rem, 4vw, 2.75rem);
+          gap: clamp(1.9rem, 4.2vw, 2.85rem);
           align-items: start;
         }
 
@@ -415,8 +415,8 @@ export default function Footer() {
         }
 
         .modern-ft-form input {
-          padding: 0.7rem 0.95rem;
-          border-radius: 8px;
+          padding: 0.72rem 1rem;
+          border-radius: var(--radius, 14px);
           border: 1px solid var(--border);
           background: color-mix(in srgb, var(--bg-elevated) 52%, transparent);
           color: var(--text);
@@ -437,8 +437,8 @@ export default function Footer() {
         }
 
         .modern-ft-submit {
-          padding: 0.7rem 1.35rem;
-          border-radius: 8px;
+          padding: 0.72rem 1.4rem;
+          border-radius: var(--radius, 14px);
           border: none;
           font-weight: 600;
           font-size: 0.9rem;
@@ -502,9 +502,8 @@ export default function Footer() {
 
         .modern-ft-bottom {
           padding: 1rem 0 max(1rem, env(safe-area-inset-bottom, 0px));
-          /* Match footer main surface in dark mode */
-          background: #020617;
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          background: #0e1218;
+          border-top: 1px solid rgba(255, 255, 255, 0.09);
         }
 
         html[data-theme='light'] .modern-ft-bottom {

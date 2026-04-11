@@ -625,6 +625,15 @@ final class AdminApi
     {
         Auth::requireAdmin();
         $pdo = Db::pdo();
+        if (!Db::ensureTeamMembersTable()) {
+            Util::sendJson(
+                [
+                    'error' => 'Could not create team_members table. Import database/migrations/008_team_members.sql or full database/schema.sql using a MySQL user with CREATE privileges.',
+                ],
+                503
+            );
+            return;
+        }
         if ($method === 'GET' && $id === null) {
             $stmt = $pdo->query('SELECT * FROM team_members ORDER BY sort_order, id');
             Util::sendJson(['items' => $stmt->fetchAll()]);

@@ -32,6 +32,9 @@ final class PublicApi
 
         $urls = [
             $base . '/',
+            $base . '/about',
+            $base . '/services',
+            $base . '/expertise',
             $base . '/work',
             $base . '/blog',
             $base . '/services/web-development',
@@ -194,6 +197,7 @@ final class PublicApi
     public static function team(): void
     {
         $pdo = Db::pdo();
+        Db::ensureTeamMembersTable();
         if (!Db::tableExists('team_members')) {
             Util::sendJson(['items' => []]);
             return;
@@ -227,6 +231,7 @@ final class PublicApi
     public static function bootstrap(): void
     {
         $pdo = Db::pdo();
+        Db::ensureTeamMembersTable();
         $settings = [];
         foreach ($pdo->query('SELECT `key`, `value` FROM settings')->fetchAll() as $r) {
             $settings[$r['key']] = $r['value'];

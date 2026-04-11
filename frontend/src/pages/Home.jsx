@@ -25,7 +25,7 @@ export default function Home() {
   if (loading) {
     return (
       <SectionContainer as="div" className="page-state page-state--center" panelClassName="page-state-panel">
-        <p className="page-state-text">Loading experience…</p>
+        <p className="page-state-text">Almost ready…</p>
       </SectionContainer>
     )
   }
@@ -36,7 +36,8 @@ export default function Home() {
         <h1 className="section-title">We could not reach the API</h1>
         <p className="page-state-text page-state-text--block">{error}</p>
         <p className="page-state-hint">
-          Start PHP on port 8080 from <code>backend/public</code> and import <code>database/schema.sql</code>.
+          When you are developing locally, start PHP on port 8080 from <code>backend/public</code> and import{' '}
+          <code>database/schema.sql</code>.
         </p>
         <div className="page-state-actions">
           <button type="button" className="btn btn-primary" onClick={() => refresh()}>

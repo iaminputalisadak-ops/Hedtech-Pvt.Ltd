@@ -1,6 +1,6 @@
 /* Client reviews — desktop grid (4 cols) + mobile carousel / list */
 .reviews-section {
-  --reviews-card-radius: 16px;
+  --reviews-card-radius: var(--radius-lg, 22px);
 }
 
 .reviews-desktop {
@@ -78,9 +78,9 @@
   display: flex;
   flex-direction: column;
   border-radius: var(--reviews-card-radius);
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
-  box-shadow: 0 12px 40px color-mix(in srgb, var(--text) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  box-shadow: 0 14px 44px color-mix(in srgb, var(--text) 4%, transparent);
   overflow: hidden;
 }
 
