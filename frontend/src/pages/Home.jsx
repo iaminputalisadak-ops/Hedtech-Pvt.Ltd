@@ -11,6 +11,7 @@ import Portfolio from '../sections/Portfolio'
 import TrustedBy from '../sections/TrustedBy'
 import BlogPreview from '../sections/BlogPreview'
 import MapSection from '../sections/MapSection'
+import TeamPreview from '../sections/TeamPreview'
 
 const Testimonials = lazy(() => import('../sections/Testimonials'))
 import Contact from '../sections/Contact'
@@ -61,6 +62,7 @@ export default function Home() {
       <Suspense fallback={<div className="section container section--testimonials-placeholder" aria-hidden />}>
         <Testimonials />
       </Suspense>
+      <TeamPreview />
       <MapSection />
       <Contact />
     </>

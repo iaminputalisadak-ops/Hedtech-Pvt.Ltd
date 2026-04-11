@@ -10,8 +10,11 @@ export default function TrustedBy() {
 
   return (
     <SectionContainer aria-label="Trusted by companies" className="trusted-by-section">
-      <h2 className="section-title">Trusted by teams</h2>
-      <p className="section-lead">Partners who expect velocity without sacrificing quality.</p>
+      <div className="section-block-head">
+        <p className="section-kicker">Partners</p>
+        <h2 className="section-title">Trusted by teams</h2>
+        <p className="section-lead">Partners who expect velocity without sacrificing quality.</p>
+      </div>
       <div className="glass trusted-by-marquee">
         <motion.div
           className="trusted-by-track"

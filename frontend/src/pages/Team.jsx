@@ -19,50 +19,36 @@ export default function Team() {
             ← Home
           </Link>
         </p>
-        <h1 className="section-title">Team</h1>
-        <p className="section-lead">The people building your product with craft, speed, and accountability.</p>
+        <div className="section-block-head">
+          <p className="section-kicker">Our team</p>
+          <h1 className="section-title">Team</h1>
+          <p className="section-lead">The people building your product with craft, speed, and accountability.</p>
+        </div>
 
         {loading ? <p className="page-state-text">Loading team…</p> : null}
 
-        <div className="layout-grid-cards layout-grid-cards--wide">
+        <div className="team-page-grid">
           {(team || []).map((m) => (
-            <article key={m.id} className="glass" style={{ padding: '1.1rem 1.2rem', display: 'grid', gap: '0.65rem' }}>
-              <div style={{ display: 'flex', gap: '0.9rem', alignItems: 'center' }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 16,
-                    border: '1px solid var(--border)',
-                    background: 'var(--surface-strong)',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                    display: 'grid',
-                    placeItems: 'center',
-                  }}
-                >
-                  {m.photo_url ? (
-                    <img
-                      src={m.photo_url}
-                      alt={`${m.name} photo`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <span style={{ fontWeight: 800, color: 'var(--muted)' }}>{String(m.name || '?').slice(0, 1).toUpperCase()}</span>
-                  )}
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <h2 style={{ margin: 0, fontSize: '1.05rem' }}>{m.name}</h2>
-                  {m.role ? <p style={{ margin: '0.1rem 0 0', color: 'var(--muted)' }}>{m.role}</p> : null}
-                </div>
+            <article key={m.id} className="glass team-page-card">
+              <div className="team-page-card-media">
+                {m.photo_url ? (
+                  <img src={m.photo_url} alt={`${m.name} — portrait`} loading="lazy" decoding="async" />
+                ) : (
+                  <span className="team-preview-initial" aria-hidden>
+                    {String(m.name || '?')
+                      .trim()
+                      .slice(0, 1)
+                      .toUpperCase()}
+                  </span>
+                )}
               </div>
-
-              {m.bio ? <p style={{ margin: 0, color: 'var(--muted)', lineHeight: 1.65 }}>{m.bio}</p> : null}
-
+              <div className="team-page-card-body">
+                <h3 className="team-page-name">{m.name}</h3>
+                {m.role ? <p className="team-page-role">{m.role}</p> : null}
+                {m.bio ? <p className="team-page-bio">{m.bio}</p> : null}
+              </div>
               {m.linkedin_url ? (
-                <a className="btn btn-ghost btn-compact" href={m.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ justifySelf: 'start' }}>
+                <a className="btn btn-ghost btn-compact" href={m.linkedin_url} target="_blank" rel="noopener noreferrer">
                   LinkedIn →
                 </a>
               ) : null}
@@ -81,4 +67,3 @@ export default function Team() {
     </>
   )
 }
-

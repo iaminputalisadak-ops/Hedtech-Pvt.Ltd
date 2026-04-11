@@ -10,10 +10,13 @@ export default function Expertise() {
 
   return (
     <SectionContainer id="expertise">
-      <h2 className="section-title">Expertise & capabilities</h2>
-      <p className="section-lead">
-        Depth across product engineering, experience design, and measurable growth — backed by tooling you can trust.
-      </p>
+      <div className="section-block-head">
+        <p className="section-kicker">Capabilities</p>
+        <h2 className="section-title">Expertise & capabilities</h2>
+        <p className="section-lead">
+          Depth across product engineering, experience design, and measurable growth — backed by tooling you can trust.
+        </p>
+      </div>
       <div className="glass expertise-bars">
         {skills.map((sk, i) => (
           <motion.div

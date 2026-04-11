@@ -29,8 +29,11 @@ export default function MapSection() {
 
   return (
     <SectionContainer id="location">
-      <h2 className="section-title">{mapTitle}</h2>
-      <p className="section-lead">{mapLead}</p>
+      <div className="section-block-head">
+        <p className="section-kicker">Location</p>
+        <h2 className="section-title">{mapTitle}</h2>
+        <p className="section-lead">{mapLead}</p>
+      </div>
       <div className="map-layout">
         <Motion.div
           className="glass map-info-card"

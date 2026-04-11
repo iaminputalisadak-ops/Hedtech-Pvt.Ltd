@@ -19,10 +19,13 @@ export default function Portfolio() {
 
   return (
     <SectionContainer id="work">
-      <h2 className="section-title">Selected projects</h2>
-      <p className="section-lead">
-        Product-grade interfaces, resilient backends, and SEO-aware launches — filtered by focus area.
-      </p>
+      <div className="section-block-head">
+        <p className="section-kicker">Portfolio</p>
+        <h2 className="section-title">Selected projects</h2>
+        <p className="section-lead">
+          Product-grade interfaces, resilient backends, and SEO-aware launches — filtered by focus area.
+        </p>
+      </div>
       <div className="filter-toolbar">
         {categories.map((c) => (
           <button
@@ -39,7 +42,7 @@ export default function Portfolio() {
         {list.map((p, i) => (
           <motion.article
             key={p.id}
-            className="glass portfolio-card"
+            className="glass portfolio-card portfolio-card--pro"
             initial={fadeIn(reduce)}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, margin: '-40px' }}
@@ -62,6 +65,9 @@ export default function Portfolio() {
             <div className="portfolio-card-body">
               <h3>{p.title}</h3>
               <p>{p.excerpt}</p>
+              <Link to={`/work/${encodeURIComponent(p.slug)}`} className="portfolio-readmore">
+                Read more →
+              </Link>
               <div className="portfolio-card-actions">
                 <Link to={`/work/${encodeURIComponent(p.slug)}`} className="btn btn-primary btn-compact">
                   Case study

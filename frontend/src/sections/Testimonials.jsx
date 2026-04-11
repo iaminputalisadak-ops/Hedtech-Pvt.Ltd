@@ -59,8 +59,11 @@ export default function Testimonials() {
 
   return (
     <SectionContainer id="reviews" className="reviews-section">
-      <h2 className="section-title">Client stories</h2>
-      <p className="section-lead">Video testimonials and feedback from teams we have partnered with.</p>
+      <div className="section-block-head">
+        <p className="section-kicker">Testimonials</p>
+        <h2 className="section-title">Client stories</h2>
+        <p className="section-lead">Video testimonials and feedback from teams we have partnered with.</p>
+      </div>
 
       <motion.div
         initial={reduce ? false : { opacity: 0 }}

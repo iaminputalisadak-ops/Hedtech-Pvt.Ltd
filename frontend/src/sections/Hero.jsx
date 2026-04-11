@@ -199,7 +199,7 @@ export default function Hero() {
       ) : null}
       <div className="hero-container hero-container--full">
         <div className="content-panel content-panel--hero section-panel section-panel--hero hero-panel">
-          <div className="hero-panel-copy">
+          <div className="hero-panel-copy hero-panel-copy--pro">
             <motion.p
               className="hero-eyebrow"
               initial={reduce ? false : { opacity: 0, y: 8 }}
@@ -242,7 +242,7 @@ export default function Hero() {
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35, duration: 0.5 }}
-            className="hero-stats-bar"
+            className="hero-stats-bar hero-stats-bar--pro"
           >
             <div className="hero-stats-bar-inner">
               <div className="hero-stat-primary">

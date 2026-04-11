@@ -15,6 +15,7 @@ export default function BlogPreview() {
     <SectionContainer id="blog">
       <div className="section-header-row">
         <div>
+          <p className="section-kicker section-kicker--left">News & blog</p>
           <h2 className="section-title">Insights</h2>
           <p className="section-lead">SEO-friendly articles on performance, UX, and growth — managed from your admin panel.</p>
         </div>

@@ -41,18 +41,21 @@ export default function Contact() {
 
   return (
     <SectionContainer id="contact">
-      <h2 className="section-title">{sectionTitle}</h2>
-      <p className="section-lead">{sectionLead}</p>
+      <div className="section-block-head">
+        <p className="section-kicker">Get in touch</p>
+        <h2 className="section-title">{sectionTitle}</h2>
+        <p className="section-lead">{sectionLead}</p>
+      </div>
 
-      <div className="contact-grid">
+      <div className="contact-layout-pro">
         <Motion.div
-          className="glass contact-aside"
+          className="contact-info-tiles"
           initial={fadeIn(reduce)}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          <div>
-            <div className="contact-aside-label">Email</div>
+          <div className="contact-tile">
+            <div className="contact-tile-label">Email</div>
             {settings.business_email ? (
               <a href={`mailto:${settings.business_email}`} className="accent-link">
                 {settings.business_email}
@@ -61,19 +64,21 @@ export default function Contact() {
               <span className="map-placeholder">Set in Admin → Settings</span>
             )}
           </div>
-          <div>
-            <div className="contact-aside-label">Phone</div>
+          <div className="contact-tile">
+            <div className="contact-tile-label">Phone</div>
             {settings.business_phone ? (
               <a href={`tel:${(settings.business_phone || '').replace(/\s/g, '')}`}>{settings.business_phone}</a>
             ) : (
               <span className="map-placeholder">—</span>
             )}
           </div>
-          <div>
-            <div className="contact-aside-label">Address</div>
+          <div className="contact-tile">
+            <div className="contact-tile-label">Address</div>
             <p className="map-address">{settings.address || '—'}</p>
           </div>
-          <div className="contact-social-row">
+          <div className="contact-tile">
+            <div className="contact-tile-label">Social</div>
+            <div className="contact-social-row">
             {settings.social_facebook ? (
               <a className="contact-social-icon" href={settings.social_facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <svg viewBox="0 0 24 24" width={18} height={18} aria-hidden>
@@ -158,11 +163,12 @@ export default function Contact() {
                 </svg>
               </a>
             ) : null}
+            </div>
           </div>
         </Motion.div>
 
         <Motion.form
-          className="glass contact-form-block"
+          className="glass contact-form-block contact-form-panel"
           onSubmit={onSubmit}
           initial={fadeIn(reduce)}
           whileInView={{ opacity: 1 }}
