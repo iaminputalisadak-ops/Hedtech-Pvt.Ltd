@@ -789,6 +789,65 @@ html[data-theme='dark'] .admin-row {
   gap: 0.75rem;
 }
 
+.admin-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  min-height: 2.25rem;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--muted);
+  cursor: grab;
+  flex-shrink: 0;
+  touch-action: none;
+}
+
+.admin-drag-handle:active {
+  cursor: grabbing;
+}
+
+.admin-drag-handle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-row--dragging {
+  opacity: 0.72;
+}
+
+.admin-row--drop-target {
+  outline: 2px dashed color-mix(in srgb, var(--accent) 55%, var(--border));
+  outline-offset: 2px;
+}
+
+.admin-reorder-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+}
+
+.admin-reorder-hint__icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
 .admin-row-title {
   margin: 0;
   font-size: 0.95rem;

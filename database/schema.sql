@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS projects (
   image_url VARCHAR(512) DEFAULT NULL,
   image_fit VARCHAR(16) NOT NULL DEFAULT 'contain',
   featured TINYINT(1) NOT NULL DEFAULT 0,
+  sort_order INT NOT NULL DEFAULT 0,
   live_url VARCHAR(512) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -160,10 +161,10 @@ INSERT INTO skills (name, level, sort_order) VALUES
 ('SEO & Analytics', 88, 4),
 ('Cloud & DevOps', 82, 5);
 
-INSERT IGNORE INTO projects (title, slug, excerpt, body, category, image_url, featured, live_url) VALUES
-('Nova Commerce', 'nova-commerce', 'Headless storefront with sub-second LCP and global CDN.', 'Full case study content managed in admin.', 'ecommerce', 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80', 1, 'https://example.com'),
-('Pulse Analytics', 'pulse-analytics', 'Dashboard redesign that improved activation by 34%.', 'Details in admin.', 'web', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80', 1, NULL),
-('Aurora Health Portal', 'aurora-health', 'Patient-first UX with WCAG AA compliance.', 'Details in admin.', 'web', 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80', 0, NULL);
+INSERT IGNORE INTO projects (title, slug, excerpt, body, category, image_url, featured, sort_order, live_url) VALUES
+('Nova Commerce', 'nova-commerce', 'Headless storefront with sub-second LCP and global CDN.', 'Full case study content managed in admin.', 'ecommerce', 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80', 1, 0, 'https://example.com'),
+('Pulse Analytics', 'pulse-analytics', 'Dashboard redesign that improved activation by 34%.', 'Details in admin.', 'web', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80', 1, 1, NULL),
+('Aurora Health Portal', 'aurora-health', 'Patient-first UX with WCAG AA compliance.', 'Details in admin.', 'web', 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80', 0, 2, NULL);
 
 INSERT IGNORE INTO blog_posts (title, slug, excerpt, body, category, tags, published) VALUES
 ('Core Web Vitals in 2026', 'core-web-vitals-2026', 'What still moves the needle for SEO and UX.', 'Write your full article in the admin panel.', 'SEO', 'seo,performance', 1),

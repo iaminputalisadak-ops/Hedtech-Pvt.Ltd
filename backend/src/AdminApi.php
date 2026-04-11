@@ -243,8 +243,11 @@ final class AdminApi
     {
         Auth::requireAdmin();
         $pdo = Db::pdo();
+        $hasFit = Db::columnExists('projects', 'image_fit');
+        $hasSort = Db::columnExists('projects', 'sort_order');
         if ($method === 'GET' && $id === null) {
-            $stmt = $pdo->query('SELECT * FROM projects ORDER BY created_at DESC');
+            $order = $hasSort ? 'ORDER BY sort_order ASC, id ASC' : 'ORDER BY created_at DESC';
+            $stmt = $pdo->query('SELECT * FROM projects ' . $order);
             Util::sendJson(['items' => $stmt->fetchAll()]);
             return;
         }
@@ -263,7 +266,26 @@ final class AdminApi
             $fit = strtolower(trim((string) ($b['image_fit'] ?? 'contain')));
             $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
-            if (Db::columnExists('projects', 'image_fit')) {
+            $nextSort = $hasSort
+                ? (int) $pdo->query('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM projects')->fetchColumn()
+                : 0;
+            if ($hasFit && $hasSort) {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, image_fit, featured, sort_order, live_url) VALUES (?,?,?,?,?,?,?,?,?,?)'
+                );
+                $stmt->execute([
+                    $title,
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    $fit,
+                    !empty($b['featured']) ? 1 : 0,
+                    $nextSort,
+                    $live !== '' ? $live : null,
+                ]);
+            } elseif ($hasFit) {
                 $stmt = $pdo->prepare(
                     'INSERT INTO projects (title, slug, excerpt, body, category, image_url, image_fit, featured, live_url) VALUES (?,?,?,?,?,?,?,?,?)'
                 );
@@ -276,6 +298,21 @@ final class AdminApi
                     $img !== '' ? $img : null,
                     $fit,
                     !empty($b['featured']) ? 1 : 0,
+                    $live !== '' ? $live : null,
+                ]);
+            } elseif ($hasSort) {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, featured, sort_order, live_url) VALUES (?,?,?,?,?,?,?,?,?)'
+                );
+                $stmt->execute([
+                    $title,
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    !empty($b['featured']) ? 1 : 0,
+                    $nextSort,
                     $live !== '' ? $live : null,
                 ]);
             } else {
@@ -306,7 +343,24 @@ final class AdminApi
             $fit = strtolower(trim((string) ($b['image_fit'] ?? 'contain')));
             $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
-            if (Db::columnExists('projects', 'image_fit')) {
+            $sortOrder = (int) ($b['sort_order'] ?? 0);
+            if ($hasFit && $hasSort) {
+                $pdo->prepare(
+                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, image_fit=?, featured=?, sort_order=?, live_url=? WHERE id=?'
+                )->execute([
+                    (string) ($b['title'] ?? ''),
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    $fit,
+                    !empty($b['featured']) ? 1 : 0,
+                    $sortOrder,
+                    $live !== '' ? $live : null,
+                    (int) $id,
+                ]);
+            } elseif ($hasFit) {
                 $pdo->prepare(
                     'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, image_fit=?, featured=?, live_url=? WHERE id=?'
                 )->execute([
@@ -318,6 +372,21 @@ final class AdminApi
                     $img !== '' ? $img : null,
                     $fit,
                     !empty($b['featured']) ? 1 : 0,
+                    $live !== '' ? $live : null,
+                    (int) $id,
+                ]);
+            } elseif ($hasSort) {
+                $pdo->prepare(
+                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, featured=?, sort_order=?, live_url=? WHERE id=?'
+                )->execute([
+                    (string) ($b['title'] ?? ''),
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    (string) ($b['category'] ?? 'web'),
+                    $img !== '' ? $img : null,
+                    !empty($b['featured']) ? 1 : 0,
+                    $sortOrder,
                     $live !== '' ? $live : null,
                     (int) $id,
                 ]);

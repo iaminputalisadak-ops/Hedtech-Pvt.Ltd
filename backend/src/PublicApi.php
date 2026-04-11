@@ -47,7 +47,10 @@ final class PublicApi
         foreach ($pdo->query('SELECT slug FROM blog_posts WHERE published = 1 ORDER BY created_at DESC')->fetchAll() as $r) {
             $urls[] = $base . '/blog/' . rawurlencode((string) $r['slug']);
         }
-        foreach ($pdo->query('SELECT slug FROM projects ORDER BY created_at DESC')->fetchAll() as $r) {
+        $projOrder = Db::columnExists('projects', 'sort_order')
+            ? 'ORDER BY sort_order ASC, id ASC'
+            : 'ORDER BY created_at DESC';
+        foreach ($pdo->query('SELECT slug FROM projects ' . $projOrder)->fetchAll() as $r) {
             $urls[] = $base . '/work/' . rawurlencode((string) $r['slug']);
         }
 
@@ -87,11 +90,17 @@ final class PublicApi
     {
         $pdo = Db::pdo();
         $hasFit = Db::columnExists('projects', 'image_fit');
-        $stmt = $pdo->query(
-            $hasFit
-                ? 'SELECT id, title, slug, excerpt, category, image_url, image_fit, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
-                : 'SELECT id, title, slug, excerpt, category, image_url, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
-        );
+        $hasSort = Db::columnExists('projects', 'sort_order');
+        $cols = 'id, title, slug, excerpt, category, image_url';
+        if ($hasFit) {
+            $cols .= ', image_fit';
+        }
+        $cols .= ', featured, live_url, created_at';
+        if ($hasSort) {
+            $cols .= ', sort_order';
+        }
+        $order = $hasSort ? 'ORDER BY sort_order ASC, id ASC' : 'ORDER BY featured DESC, created_at DESC';
+        $stmt = $pdo->query('SELECT ' . $cols . ' FROM projects ' . $order);
         Util::sendJson(['items' => $stmt->fetchAll()]);
     }
 
@@ -230,11 +239,21 @@ final class PublicApi
             'settings' => $settings,
             'services' => $pdo->query('SELECT id, title, description, icon, sort_order FROM services ORDER BY sort_order')->fetchAll(),
             'skills' => $pdo->query('SELECT id, name, level, sort_order FROM skills ORDER BY sort_order')->fetchAll(),
-            'projects' => $pdo->query(
-                Db::columnExists('projects', 'image_fit')
-                    ? 'SELECT id, title, slug, excerpt, category, image_url, image_fit, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
-                    : 'SELECT id, title, slug, excerpt, category, image_url, featured, live_url, created_at FROM projects ORDER BY featured DESC, created_at DESC'
-            )->fetchAll(),
+            'projects' => (static function () use ($pdo) {
+                $hasFit = Db::columnExists('projects', 'image_fit');
+                $hasSort = Db::columnExists('projects', 'sort_order');
+                $cols = 'id, title, slug, excerpt, category, image_url';
+                if ($hasFit) {
+                    $cols .= ', image_fit';
+                }
+                $cols .= ', featured, live_url, created_at';
+                if ($hasSort) {
+                    $cols .= ', sort_order';
+                }
+                $order = $hasSort ? 'ORDER BY sort_order ASC, id ASC' : 'ORDER BY featured DESC, created_at DESC';
+
+                return $pdo->query('SELECT ' . $cols . ' FROM projects ' . $order)->fetchAll();
+            })(),
             'trusted' => $pdo->query('SELECT id, name, logo_url, sort_order FROM trusted_companies ORDER BY sort_order')->fetchAll(),
             'team' => Db::tableExists('team_members') ? $pdo->query(
                 Db::columnExists('team_members', 'published')

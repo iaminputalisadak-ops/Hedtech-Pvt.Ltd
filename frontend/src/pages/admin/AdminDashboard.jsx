@@ -15,6 +15,7 @@ import {
   adminUpload,
   apiFetch,
 } from '../../api/client'
+import { GripVertical } from 'lucide-react'
 import AdminShell from './AdminShell'
 import { useSite } from '../../context/SiteContext'
 
@@ -618,19 +619,58 @@ export default function AdminDashboard() {
       ) : null}
 
       {tab !== 'settings' && tab !== 'messages' && TAB_FIELDS[tab] ? (
-        <CrudPanel key={tab} resource={tab} fields={TAB_FIELDS[tab]} items={items} loading={tabLoading} error={listError} onRefresh={loadTab} />
+        <CrudPanel
+          key={tab}
+          resource={tab}
+          fields={TAB_FIELDS[tab]}
+          items={items}
+          loading={tabLoading}
+          error={listError}
+          onRefresh={loadTab}
+          onSiteRefresh={refreshSite}
+        />
       ) : null}
     </AdminShell>
   )
 }
 
-function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
+function buildPersistBodyFromRow(row, fields) {
+  const body = {}
+  for (const f of fields) {
+    if (f.uploadFor) continue
+    const v = row[f.key]
+    if (f.boolean) {
+      body[f.key] =
+        v === undefined || v === null ? (f.default === true ? 1 : 0) : v == 1 || v === true || v === '1' ? 1 : 0
+    } else if (f.number) {
+      body[f.key] = v === '' || v === undefined || v === null ? 0 : Number(v)
+    } else {
+      body[f.key] = v === null || v === undefined ? '' : String(v)
+    }
+  }
+  return body
+}
+
+function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteRefresh }) {
   const [draft, setDraft] = useState({})
   const [editing, setEditing] = useState(null)
   const [localError, setLocalError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [draggingProjectId, setDraggingProjectId] = useState(null)
+  const [dropTargetProjectId, setDropTargetProjectId] = useState(null)
   const hasSortOrder = fields.some((f) => f.key === 'sort_order')
+  const projectDragReorder = resource === 'projects' && hasSortOrder
+
+  const sortedItems = useMemo(() => {
+    if (!hasSortOrder) return items
+    return [...items].sort((a, b) => {
+      const ao = Number(a.sort_order ?? 0)
+      const bo = Number(b.sort_order ?? 0)
+      if (ao !== bo) return ao - bo
+      return Number(a.id) - Number(b.id)
+    })
+  }, [items, hasSortOrder])
 
   function fk(id, key) {
     return `${id}__${key}`
@@ -676,6 +716,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
       setDraft({})
       setCreateOpen(false)
       await onRefresh()
+      if (resource === 'projects') onSiteRefresh?.()
     } catch (err) {
       setLocalError(err.message || 'Could not add')
     } finally {
@@ -713,6 +754,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
       await adminUpdate(resource, id, body)
       setEditing(null)
       await onRefresh()
+      if (resource === 'projects') onSiteRefresh?.()
     } catch (err) {
       setLocalError(err.message || 'Could not save')
     } finally {
@@ -722,22 +764,78 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
 
   async function moveRow(row, dir) {
     if (!hasSortOrder) return
-    const idx = items.findIndex((x) => x.id === row.id)
-    const other = items[idx + dir]
+    const idx = sortedItems.findIndex((x) => x.id === row.id)
+    const other = sortedItems[idx + dir]
     if (!other) return
     setLocalError(null)
     setSaving(true)
     try {
       const a = Number(row.sort_order ?? 0)
       const b = Number(other.sort_order ?? 0)
-      await adminUpdate(resource, row.id, { sort_order: b })
-      await adminUpdate(resource, other.id, { sort_order: a })
+      const bodyA = buildPersistBodyFromRow(row, fields)
+      const bodyB = buildPersistBodyFromRow(other, fields)
+      bodyA.sort_order = b
+      bodyB.sort_order = a
+      await adminUpdate(resource, row.id, bodyA)
+      await adminUpdate(resource, other.id, bodyB)
       await onRefresh()
+      onSiteRefresh?.()
     } catch (err) {
       setLocalError(err.message || 'Reorder failed')
     } finally {
       setSaving(false)
     }
+  }
+
+  async function persistOrderFromList(orderedRows) {
+    if (!hasSortOrder) return
+    setLocalError(null)
+    setSaving(true)
+    try {
+      for (let i = 0; i < orderedRows.length; i++) {
+        const body = buildPersistBodyFromRow(orderedRows[i], fields)
+        body.sort_order = i
+        await adminUpdate(resource, orderedRows[i].id, body)
+      }
+      await onRefresh()
+      onSiteRefresh?.()
+    } catch (err) {
+      setLocalError(err.message || 'Could not save order')
+    } finally {
+      setSaving(false)
+      setDraggingProjectId(null)
+      setDropTargetProjectId(null)
+    }
+  }
+
+  function onProjectDragStart(e, rowId) {
+    if (!projectDragReorder || editing != null) return
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(rowId))
+    setDraggingProjectId(rowId)
+  }
+
+  function onProjectRowDragOver(e, rowId) {
+    if (!projectDragReorder || !draggingProjectId || editing != null) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (rowId !== draggingProjectId) setDropTargetProjectId(rowId)
+  }
+
+  function onProjectRowDrop(e, targetId) {
+    if (!projectDragReorder || editing != null) return
+    e.preventDefault()
+    const fromId = draggingProjectId ?? Number(e.dataTransfer.getData('text/plain'), 10)
+    setDropTargetProjectId(null)
+    setDraggingProjectId(null)
+    if (!fromId || fromId === targetId) return
+    const order = [...sortedItems]
+    const fromIdx = order.findIndex((x) => x.id === fromId)
+    const toIdx = order.findIndex((x) => x.id === targetId)
+    if (fromIdx < 0 || toIdx < 0) return
+    const [removed] = order.splice(fromIdx, 1)
+    order.splice(toIdx, 0, removed)
+    void persistOrderFromList(order)
   }
 
   return (
@@ -784,6 +882,13 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
         </div>
       </div>
 
+      {projectDragReorder ? (
+        <p className="admin-reorder-hint">
+          <GripVertical size={16} className="admin-reorder-hint__icon" aria-hidden />
+          Drag a row by the grip to change homepage / portfolio order. Order saves automatically.
+        </p>
+      ) : null}
+
       {loading ? (
         <>
           <div className="admin-skeleton" />
@@ -792,17 +897,47 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
       ) : !items.length ? (
         <div className="admin-empty">Nothing here yet. Add one above.</div>
       ) : (
-        items.map((row) => (
-          <div key={row.id} className="admin-row">
+        sortedItems.map((row) => (
+          <div
+            key={row.id}
+            className={`admin-row${draggingProjectId === row.id ? ' admin-row--dragging' : ''}${
+              dropTargetProjectId === row.id && draggingProjectId !== row.id ? ' admin-row--drop-target' : ''
+            }`}
+            onDragOver={(e) => onProjectRowDragOver(e, row.id)}
+            onDrop={(e) => onProjectRowDrop(e, row.id)}
+            onDragEnd={() => {
+              setDraggingProjectId(null)
+              setDropTargetProjectId(null)
+            }}
+          >
             <div className="admin-row-head">
-              <RecordPreview resource={resource} row={row} />
+              {projectDragReorder ? (
+                <button
+                  type="button"
+                  className="admin-drag-handle"
+                  draggable={editing == null}
+                  disabled={saving || editing != null}
+                  aria-label={`Drag to reorder: ${row.title || row.name || 'item'}`}
+                  title="Drag to reorder"
+                  onDragStart={(e) => onProjectDragStart(e, row.id)}
+                  onDragEnd={() => {
+                    setDraggingProjectId(null)
+                    setDropTargetProjectId(null)
+                  }}
+                >
+                  <GripVertical size={18} aria-hidden />
+                </button>
+              ) : null}
+              <div className="admin-row-main">
+                <RecordPreview resource={resource} row={row} />
+              </div>
               <div className="admin-row-actions">
                 {hasSortOrder ? (
                   <>
                     <button
                       type="button"
                       className="admin-btn admin-btn--ghost"
-                      disabled={saving || items[0]?.id === row.id}
+                      disabled={saving || sortedItems[0]?.id === row.id}
                       onClick={() => moveRow(row, -1)}
                       title="Move up"
                     >
@@ -811,7 +946,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
                     <button
                       type="button"
                       className="admin-btn admin-btn--ghost"
-                      disabled={saving || items[items.length - 1]?.id === row.id}
+                      disabled={saving || sortedItems[sortedItems.length - 1]?.id === row.id}
                       onClick={() => moveRow(row, +1)}
                       title="Move down"
                     >
@@ -833,6 +968,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
                       await adminDelete(resource, row.id)
                       setEditing(null)
                       await onRefresh()
+                      if (resource === 'projects') onSiteRefresh?.()
                     } catch (err) {
                       setLocalError(err.message || 'Delete failed')
                     } finally {
@@ -878,7 +1014,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
                   className="admin-btn admin-btn--primary"
                   disabled={saving}
                   onClick={() => {
-                    const row = items.find((x) => x.id === editing)
+                    const row = sortedItems.find((x) => x.id === editing)
                     if (row) saveRow(editing, row)
                   }}
                 >
