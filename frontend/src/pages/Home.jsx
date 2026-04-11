@@ -6,16 +6,16 @@ import { useScrollToHash } from '../hooks/useScrollToHash'
 import Hero from '../sections/Hero'
 import About from '../sections/About'
 import Services from '../sections/Services'
-import Expertise from '../sections/Expertise'
-import Portfolio from '../sections/Portfolio'
-import TrustedBy from '../sections/TrustedBy'
-import BlogPreview from '../sections/BlogPreview'
-import MapSection from '../sections/MapSection'
-import TeamPreview from '../sections/TeamPreview'
-
-const Testimonials = lazy(() => import('../sections/Testimonials'))
-import Contact from '../sections/Contact'
 import { useSite } from '../context/SiteContext'
+
+const Expertise = lazy(() => import('../sections/Expertise'))
+const Portfolio = lazy(() => import('../sections/Portfolio'))
+const TrustedBy = lazy(() => import('../sections/TrustedBy'))
+const BlogPreview = lazy(() => import('../sections/BlogPreview'))
+const TeamPreview = lazy(() => import('../sections/TeamPreview'))
+const MapSection = lazy(() => import('../sections/MapSection'))
+const Contact = lazy(() => import('../sections/Contact'))
+const Testimonials = lazy(() => import('../sections/Testimonials'))
 
 export default function Home() {
   const { loading, error, refresh } = useSite()
@@ -55,16 +55,30 @@ export default function Home() {
       <Hero />
       <About />
       <Services />
-      <Expertise />
-      <Portfolio />
-      <TrustedBy />
-      <BlogPreview />
+      <Suspense fallback={null}>
+        <Expertise />
+      </Suspense>
+      <Suspense fallback={null}>
+        <Portfolio />
+      </Suspense>
+      <Suspense fallback={null}>
+        <TrustedBy />
+      </Suspense>
+      <Suspense fallback={null}>
+        <BlogPreview />
+      </Suspense>
       <Suspense fallback={<div className="section container section--testimonials-placeholder" aria-hidden />}>
         <Testimonials />
       </Suspense>
-      <TeamPreview />
-      <MapSection />
-      <Contact />
+      <Suspense fallback={null}>
+        <TeamPreview />
+      </Suspense>
+      <Suspense fallback={null}>
+        <MapSection />
+      </Suspense>
+      <Suspense fallback={null}>
+        <Contact />
+      </Suspense>
     </>
   )
 }

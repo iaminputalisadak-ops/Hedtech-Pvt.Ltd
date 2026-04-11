@@ -27,7 +27,9 @@ function disposeCanvasParticles(instance) {
   }
 }
 
-function Orbs() {
+function Orbs({ theme }) {
+  const accentA = theme === 'light' ? '58%' : '45%'
+  const accentB = theme === 'light' ? '52%' : '40%'
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
       <motion.div
@@ -38,7 +40,7 @@ function Orbs() {
           borderRadius: '50%',
           left: '8%',
           top: '12%',
-          background: 'radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--accent) 45%, transparent), transparent 65%)',
+          background: `radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--accent) ${accentA}, transparent), transparent 65%)`,
           filter: 'blur(2px)',
         }}
         animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
@@ -52,7 +54,7 @@ function Orbs() {
           borderRadius: '50%',
           right: '4%',
           bottom: '8%',
-          background: 'radial-gradient(circle at 70% 40%, color-mix(in srgb, var(--accent-2) 40%, transparent), transparent 62%)',
+          background: `radial-gradient(circle at 70% 40%, color-mix(in srgb, var(--accent-2) ${accentB}, transparent), transparent 62%)`,
           filter: 'blur(2px)',
         }}
         animate={{ x: [0, -14, 0], y: [0, 10, 0] }}
@@ -73,24 +75,31 @@ function safeWallpaperPosition(input) {
   return allowed.has(raw) ? raw : 'center'
 }
 
-function HeroWallpaper({ url, opacity = 0.28, fit = 'cover', position = 'center' }) {
+function HeroWallpaper({ url, opacity = 0.28, fit = 'cover', position = 'center', theme }) {
   const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.28
   if (!url) return null
   const objectFit = safeWallpaperFit(fit)
   const objectPosition = safeWallpaperPosition(position)
+  const isLight = theme === 'light'
+  /* screen() lifts dark art on dark bg; on light bg it blows out. normal + slightly higher opacity keeps line art visible. */
+  const mixBlendMode = isLight ? 'normal' : 'screen'
+  const opacityOut = isLight ? Math.min(1, safeOpacity * 1.2 + 0.06) : safeOpacity
+  const contrast = isLight ? 'saturate(1.02) contrast(1.08)' : 'saturate(1.05) contrast(1.02)'
   return (
     <img
       src={url}
       alt=""
       decoding="async"
+      loading="eager"
+      fetchPriority="high"
       aria-hidden
       className={`hero-wallpaper-img${objectFit === 'contain' ? ' hero-wallpaper-img--contain' : ''}`}
       style={{
-        opacity: safeOpacity,
+        opacity: opacityOut,
         objectFit,
         objectPosition,
-        filter: 'saturate(1.05) contrast(1.02)',
-        mixBlendMode: 'screen',
+        filter: contrast,
+        mixBlendMode,
       }}
     />
   )
@@ -107,10 +116,11 @@ function safeGradientCss(input) {
   return raw
 }
 
-function HeroGradient({ gradient, opacity = 0.6 }) {
+function HeroGradient({ gradient, opacity = 0.6, theme }) {
   const safe = safeGradientCss(gradient)
   if (!safe) return null
   const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.6
+  const isLight = theme === 'light'
   return (
     <div
       aria-hidden
@@ -119,8 +129,8 @@ function HeroGradient({ gradient, opacity = 0.6 }) {
         inset: 0,
         pointerEvents: 'none',
         backgroundImage: safe,
-        opacity: safeOpacity,
-        mixBlendMode: 'screen',
+        opacity: isLight ? Math.min(1, safeOpacity * 0.72) : safeOpacity,
+        mixBlendMode: isLight ? 'normal' : 'screen',
       }}
     />
   )
@@ -156,7 +166,7 @@ export default function Hero() {
     particlesRef.current = null
 
     const particleColor =
-      theme === 'dark' ? 'rgba(226, 232, 240, 0.35)' : 'rgba(15, 23, 42, 0.32)'
+      theme === 'dark' ? 'rgba(226, 232, 240, 0.38)' : 'rgba(30, 41, 59, 0.52)'
 
     let instance
     try {
@@ -167,7 +177,7 @@ export default function Hero() {
         },
         particles: {
           relSpeed: 3,
-          relSize: 2,
+          relSize: theme === 'light' ? 2.35 : 2,
           rotationSpeed: 40,
           color: particleColor,
         },
@@ -189,10 +199,16 @@ export default function Hero() {
       {/* Full-bleed behind the graph (canvas): same bounds as particle field, not the text card */}
       <div className="hero-media" aria-hidden>
         {bgMode === 'image' ? (
-          <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} fit={wallpaperFit} position={wallpaperPosition} />
+          <HeroWallpaper
+            url={wallpaperUrl}
+            opacity={wallpaperOpacity}
+            fit={wallpaperFit}
+            position={wallpaperPosition}
+            theme={theme}
+          />
         ) : null}
-        {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} /> : null}
-        {!reduce && bgMode === 'animated' ? <Orbs /> : null}
+        {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} theme={theme} /> : null}
+        {!reduce && bgMode === 'animated' ? <Orbs theme={theme} /> : null}
       </div>
       {!reduce ? (
         <canvas ref={canvasRef} id="showcase-movement" aria-hidden className="hero-canvas" />

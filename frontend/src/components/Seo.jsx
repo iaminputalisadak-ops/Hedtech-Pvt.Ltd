@@ -9,17 +9,20 @@ export default function Seo({ title, description, path = '', image }) {
   const base = (settings.canonical_base || '').replace(/\/$/, '')
   const canonical = base && path ? `${base}${path}` : base || undefined
   const og = image || settings.og_image || undefined
+  const ogAlt = `${site} — share image`
 
   return (
     <Helmet>
       <title>{metaTitle}</title>
       {metaDesc ? <meta name="description" content={metaDesc} /> : null}
       <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+      <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
       {canonical ? <link rel="canonical" href={canonical} /> : null}
       <meta property="og:title" content={metaTitle} />
       {metaDesc ? <meta property="og:description" content={metaDesc} /> : null}
       {canonical ? <meta property="og:url" content={canonical} /> : null}
       {og ? <meta property="og:image" content={og} /> : null}
+      {og ? <meta property="og:image:alt" content={ogAlt} /> : null}
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={site} />
       <meta property="og:locale" content="en_US" />

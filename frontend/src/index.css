@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap');
+/* Fonts load from index.html (async) to avoid render-blocking @import */
 
 :root {
   color-scheme: dark light;
@@ -429,6 +429,13 @@ html[data-theme='light'] .site-brand-mark--img {
   z-index: 1;
   padding-block: var(--section-space-y);
   scroll-margin-top: var(--header-offset);
+}
+
+@supports (content-visibility: auto) {
+  .section:not(.hero-section) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 420px;
+  }
 }
 
 /* Framed panels: see styles/section-system.css (.content-panel / .section-panel) */
