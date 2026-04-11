@@ -15,7 +15,7 @@ const DESKTOP_HEADER_MQ = '(min-width: 961px)'
 export default function Header() {
   const [open, setOpen] = useState(false)
   const [shrunk, setShrunk] = useState(false)
-  /** Desktop only: false = bar slid up (hidden); scroll down sets true. Mobile never uses false. */
+  /** Desktop only: false = bar slid up (hidden). Hide on scroll down, show on scroll up. */
   const [headerRevealed, setHeaderRevealed] = useState(true)
   const [isDesktop, setIsDesktop] = useState(
     () => typeof window !== 'undefined' && window.matchMedia(DESKTOP_HEADER_MQ).matches,
@@ -60,9 +60,9 @@ export default function Header() {
 
       const prev = lastScrollY.current
       if (y < prev) {
-        setHeaderRevealed(false)
-      } else if (y > prev) {
         setHeaderRevealed(true)
+      } else if (y > prev) {
+        setHeaderRevealed(false)
       }
       lastScrollY.current = y
     }
