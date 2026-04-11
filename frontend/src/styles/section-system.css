@@ -76,18 +76,18 @@ html[data-theme='light'] .page-shell--home .section-panel {
   border-color: color-mix(in srgb, var(--border) 82%, transparent);
 }
 
-/* Hero can be slightly more transparent without harming legibility */
+/* Hero panel background is controlled by .hero-panel + homepage overrides (transparent on home) */
 .page-shell--home .hero-panel {
-  background: color-mix(in srgb, var(--bg-elevated) 38%, transparent);
+  background: transparent;
 }
 
 html[data-theme='light'] .page-shell--home .hero-panel {
-  background: color-mix(in srgb, var(--bg-elevated) 76%, transparent);
+  background: transparent;
 }
 
-/* Hero: readable over canvas; still a distinct block */
-.content-panel--hero,
-.section-panel--hero {
+/* Hero panels: default framed variant (homepage hero overrides below with flat transparent card) */
+.content-panel--hero:not(.hero-panel),
+.section-panel--hero:not(.hero-panel) {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   background: color-mix(in srgb, var(--bg-elevated) 52%, transparent);
@@ -95,26 +95,32 @@ html[data-theme='light'] .page-shell--home .hero-panel {
   box-shadow: var(--panel-shadow);
 }
 
-html[data-theme='light'] .content-panel--hero,
-html[data-theme='light'] .section-panel--hero {
+html[data-theme='light'] .content-panel--hero:not(.hero-panel),
+html[data-theme='light'] .section-panel--hero:not(.hero-panel) {
   background: color-mix(in srgb, var(--bg-elevated) 93%, transparent);
 }
 
-/* Home-only: make hero panel significantly more transparent
-   (placed AFTER .section-panel--hero so it wins the cascade). */
-.page-shell--home .hero-panel.section-panel--hero {
-  /* Keep “glass” feel but don't blur particles away */
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: color-mix(in srgb, var(--bg-elevated) 12%, transparent);
-  border-color: color-mix(in srgb, var(--border) 66%, transparent);
+/* Homepage hero: fully flat + transparent — no radius, no glass tint, no drop-shadow halo */
+.page-shell--home .hero-panel.section-panel--hero,
+.page-shell--home .hero-panel.content-panel--hero {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
-html[data-theme='light'] .page-shell--home .hero-panel.section-panel--hero {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: color-mix(in srgb, var(--bg-elevated) 48%, transparent);
-  border-color: color-mix(in srgb, var(--border) 72%, transparent);
+html[data-theme='light'] .page-shell--home .hero-panel.section-panel--hero,
+html[data-theme='light'] .page-shell--home .hero-panel.content-panel--hero {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 /* Stacks & grids — replace ad-hoc inline flex/grid */
@@ -302,26 +308,20 @@ html[data-theme='dark'] .ds-ship-track {
   width: 100%;
   height: 100%;
   border-radius: 999px;
-  transform-origin: left;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, #9ca3af 70%, #d1d5db 30%),
-    color-mix(in srgb, #6b7280 85%, #4b5563 15%)
-  );
+  transform-origin: left center;
+  will-change: transform;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.45) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.12) inset;
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.15) inset;
 }
 
 html[data-theme='dark'] .ds-ship-fill {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, #94a3b8 55%, #64748b 45%),
-    color-mix(in srgb, #475569 80%, #334155 20%)
-  );
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 92%, #fff 8%), var(--accent-2));
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.2) inset,
-    0 -2px 4px rgba(0, 0, 0, 0.35) inset;
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+    0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .portfolio-card {
@@ -935,11 +935,59 @@ html[data-theme='dark'] .ds-ship-fill {
 
 /* Hero layout (minimal motion; structure in CSS) */
 .hero-section {
-  padding-top: clamp(2rem, 5vw, 3rem);
-  padding-bottom: clamp(2rem, 4vw, 3rem);
+  /* True edge-to-edge under the header (break out of any parent width quirks) */
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-top: clamp(1.5rem, 4vw, 2.75rem);
+  padding-bottom: clamp(1.75rem, 4vw, 3rem);
   position: relative;
   overflow: hidden;
-  min-height: min(88vh, 820px);
+  overflow-x: clip;
+  min-height: min(92vh, 920px);
+  min-height: min(calc(100dvh - var(--header-offset)), 920px);
+  border-bottom: none;
+}
+
+/* Seam below hero: first homepage section panel often shows a 1px top edge — hide it */
+.page-shell--home #about > .container > .content-panel {
+  border-top: none;
+}
+
+/* Wallpaper / gradient / orbs — same full area as .hero-canvas (entire section), not the inner card */
+.hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Behind image/gradient only: soft bands when wallpaper is "contain" */
+.hero-section--backdrop-fill .hero-media {
+  background: color-mix(in srgb, var(--bg) 88%, var(--accent) 4%);
+}
+
+html[data-theme='light'] .hero-section--backdrop-fill .hero-media {
+  background: color-mix(in srgb, var(--bg) 92%, var(--accent) 5%);
+}
+
+.hero-wallpaper-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  /* object-fit comes from admin (cover vs contain) */
+  transform: scale(1.02);
+  transform-origin: center center;
+}
+
+.hero-wallpaper-img--contain {
+  transform: none;
 }
 
 .hero-canvas {
@@ -947,41 +995,106 @@ html[data-theme='dark'] .ds-ship-fill {
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   display: block;
 }
 
 .hero-container {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .hero-container--full {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding-inline: var(--site-pad-x);
+  /* Slightly tighter than global site padding so the glass panel uses more width */
+  padding-inline: clamp(0.65rem, 2.2vw, 1.25rem);
   box-sizing: border-box;
 }
 
+/* Homepage: hero content spans the same width as the wallpaper + graph (true banner) */
+.page-shell--home .hero-section .hero-container--full {
+  padding-inline: 0;
+  width: 100%;
+  max-width: none;
+}
+
+.page-shell--home .hero-section .hero-container--full .hero-panel {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Full width of the hero row — only used on Home; keep fully transparent */
 .hero-panel {
   position: relative;
-  width: min(1100px, 100%);
-  margin-inline: auto;
-  padding: clamp(1.25rem, 2.2vw, 1.85rem);
-  background: color-mix(in srgb, var(--bg-elevated) 22%, transparent);
-  border-color: color-mix(in srgb, var(--border) 72%, transparent);
-  box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.42),
-    0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding: clamp(1.25rem, 2.2vw, 1.85rem) clamp(1.1rem, 2.8vw, 2.25rem);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
 }
 
 html[data-theme='light'] .hero-panel {
-  background: color-mix(in srgb, var(--bg-elevated) 86%, transparent);
-  box-shadow:
-    0 20px 70px rgba(2, 6, 23, 0.12),
-    0 1px 0 rgba(255, 255, 255, 0.55) inset;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
+}
+
+/* Strip inherited panel chrome (radius + border from .content-panel / .section-panel) */
+.hero-panel.content-panel.section-panel,
+.hero-panel.content-panel--hero.section-panel--hero {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Legibility when hero panel is transparent over wallpaper */
+.page-shell--home .hero-panel .hero-title,
+.page-shell--home .hero-panel .hero-lead,
+.page-shell--home .hero-panel .hero-eyebrow {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme='light'] .page-shell--home .hero-panel .hero-title,
+html[data-theme='light'] .page-shell--home .hero-panel .hero-lead,
+html[data-theme='light'] .page-shell--home .hero-panel .hero-eyebrow {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35), 0 2px 20px rgba(0, 0, 0, 0.18);
+}
+
+.page-shell--home .hero-panel .hero-stat-value,
+.page-shell--home .hero-panel .hero-stat-label,
+.page-shell--home .hero-panel .hero-stat-aside {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme='light'] .page-shell--home .hero-panel .hero-stat-value,
+html[data-theme='light'] .page-shell--home .hero-panel .hero-stat-label,
+html[data-theme='light'] .page-shell--home .hero-panel .hero-stat-aside {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4), 0 1px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* Headline / lead / CTAs: centered column, comfortable measure on wide glass panels */
+.hero-panel-copy {
+  max-width: min(48rem, 100%);
+  width: 100%;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.hero-panel-copy .hero-lead {
+  margin-inline: auto;
 }
 
 .hero-actions {
@@ -989,27 +1102,63 @@ html[data-theme='light'] .hero-panel {
   flex-wrap: wrap;
   gap: var(--space-3);
   align-items: center;
+  justify-content: center;
 }
 
+/* Plain text only — no glass box, no divider */
 .hero-stats-bar {
   margin-top: var(--space-10);
-  padding: var(--space-4) var(--space-5);
+  padding: 0;
+  width: 100%;
+  max-width: min(48rem, 100%);
+  margin-inline: auto;
+  box-sizing: border-box;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.hero-stats-bar-inner {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
   align-items: center;
-  width: 100%;
-  box-sizing: border-box;
+  justify-content: center;
+  text-align: center;
+  column-gap: clamp(1rem, 2.5vw, 1.75rem);
+  row-gap: 0.5rem;
 }
 
-.hero-stat-divider {
-  width: 1px;
-  height: 40px;
-  background: var(--border);
+.hero-stat-primary {
+  display: grid;
+  gap: 0.15rem;
+  justify-items: center;
 }
 
-.hero-stat-aside-narrow {
-  max-width: 280px;
+.hero-stats-bar .hero-stat-aside {
+  margin: 0;
+  flex: 1 1 12rem;
+  min-width: min(100%, 12rem);
+  max-width: 28rem;
+  text-align: center;
+  text-wrap: balance;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  .hero-stats-bar-inner {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .hero-stats-bar .hero-stat-aside {
+    flex: none;
+    max-width: 100%;
+  }
 }
 
 /* Contact page intro uses page-stack + optional tight section */

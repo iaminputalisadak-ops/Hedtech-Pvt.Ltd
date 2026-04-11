@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
 import { CKEditor } from '@ckeditor/ckeditor5-react'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
@@ -40,6 +41,7 @@ const SETTINGS_GROUPS = [
   {
     title: 'SEO',
     cols2: true,
+    description: 'Search snippets and default social preview.',
     fields: [
       ['meta_title', 'Page title (browser tab)'],
       ['meta_description', 'Short description for Google'],
@@ -48,26 +50,96 @@ const SETTINGS_GROUPS = [
     ],
   },
   {
-    title: 'Homepage text',
-    cols2: false,
+    title: 'Homepage — headline & stats',
+    cols2: true,
+    description: 'Main hero copy and the number shown next to “Shipped milestones”.',
     fields: [
       ['site_name', 'Company name'],
-      ['project_count', 'Number shown on homepage'],
+      ['project_count', 'Number shown in the hero (e.g. 150+)'],
       ['hero_headline', 'Main headline'],
       ['hero_tagline', 'Subtext under headline'],
-      ['brand_logo_url', 'Brand logo URL (optional)'],
-      ['brand_logo_upload', 'Upload website logo', 'upload', { kind: 'brand-logo', setKey: 'brand_logo_url', modeKey: null }],
-      ['brand_mark_url', 'Brand mark/icon URL (optional)'],
-      ['brand_mark_upload', 'Upload brand mark / icon', 'upload', { kind: 'brand-mark', setKey: 'brand_mark_url', modeKey: null }],
-      ['brand_favicon_url', 'Favicon URL (optional)'],
-      ['brand_favicon_upload', 'Upload favicon (.ico/.png/.svg)', 'upload', { kind: 'brand-favicon', setKey: 'brand_favicon_url', modeKey: null, accept: 'image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico' }],
-      ['hero_bg_mode', 'Hero background type', 'select', HERO_BG_MODES],
-      ['hero_wallpaper_url', 'Hero wallpaper image URL (optional)'],
-      ['hero_wallpaper_upload', 'Upload hero wallpaper (recommended)', 'upload', { kind: 'hero-wallpaper', setKey: 'hero_wallpaper_url', modeKey: 'hero_bg_mode', modeValue: 'image' }],
-      ['hero_wallpaper_opacity', 'Hero wallpaper opacity (0–1, optional)'],
-      ['hero_wallpaper_fit', 'Hero wallpaper fit', 'select', HERO_WALLPAPER_FIT],
-      ['hero_wallpaper_position', 'Hero wallpaper position', 'select', HERO_WALLPAPER_POS],
-      ['hero_gradient_css', 'Hero gradient CSS (linear-gradient / radial-gradient)', 'text'],
+    ],
+  },
+  {
+    title: 'Homepage — branding',
+    description: 'Header logo, compact mark, and favicon. Each block is independent.',
+    subsections: [
+      {
+        heading: 'Website logo',
+        cols2: true,
+        help: 'Wide logo in the navigation bar. You can paste a URL, upload a file, or both.',
+        fields: [
+          ['brand_logo_url', 'Logo image URL (optional)'],
+          ['brand_logo_upload', 'Upload website logo', 'upload', { kind: 'brand-logo', setKey: 'brand_logo_url', modeKey: null }],
+        ],
+      },
+      {
+        heading: 'Brand mark / icon',
+        cols2: true,
+        help: 'Smaller mark or monogram beside the name.',
+        fields: [
+          ['brand_mark_url', 'Brand mark URL (optional)'],
+          ['brand_mark_upload', 'Upload brand mark / icon', 'upload', { kind: 'brand-mark', setKey: 'brand_mark_url', modeKey: null }],
+        ],
+      },
+      {
+        heading: 'Favicon',
+        cols2: true,
+        help: 'Browser tab icon.',
+        fields: [
+          ['brand_favicon_url', 'Favicon URL (optional)'],
+          [
+            'brand_favicon_upload',
+            'Upload favicon (.ico/.png/.svg)',
+            'upload',
+            {
+              kind: 'brand-favicon',
+              setKey: 'brand_favicon_url',
+              modeKey: null,
+              accept: 'image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico',
+            },
+          ],
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Homepage — hero banner & background',
+    description: 'Full-width backdrop behind hero text (image, gradient, or animated).',
+    subsections: [
+      {
+        heading: 'Background type',
+        fields: [['hero_bg_mode', 'Hero background type', 'select', HERO_BG_MODES]],
+      },
+      {
+        heading: 'Image wallpaper',
+        cols2: true,
+        help: 'Used when “Image wallpaper” is selected. Upload applies immediately.',
+        fields: [
+          ['hero_wallpaper_url', 'Wallpaper image URL (optional)'],
+          [
+            'hero_wallpaper_upload',
+            'Upload hero wallpaper (recommended)',
+            'upload',
+            { kind: 'hero-wallpaper', setKey: 'hero_wallpaper_url', modeKey: 'hero_bg_mode', modeValue: 'image' },
+          ],
+          ['hero_wallpaper_opacity', 'Wallpaper opacity (0–1, optional)'],
+          ['hero_wallpaper_fit', 'Wallpaper fit', 'select', HERO_WALLPAPER_FIT],
+          ['hero_wallpaper_position', 'Wallpaper position', 'select', HERO_WALLPAPER_POS],
+        ],
+      },
+      {
+        heading: 'CSS gradient',
+        help: 'Used when “CSS gradient” is selected. One valid gradient value only.',
+        fields: [['hero_gradient_css', 'Hero gradient CSS (linear-gradient / radial-gradient)', 'text']],
+      },
+    ],
+  },
+  {
+    title: 'Homepage — about',
+    cols2: false,
+    description: 'Content for the About area on the home page.',
+    fields: [
       ['about_intro', 'About paragraph'],
       ['mission', 'Mission'],
       ['vision', 'Vision'],
@@ -278,6 +350,162 @@ export default function AdminDashboard() {
     }
   }
 
+  function renderSettingsField(fieldDef) {
+    const [key, label, kind, extra] =
+      fieldDef.length === 4 ? fieldDef : fieldDef.length === 3 ? [...fieldDef, undefined] : [...fieldDef, 'text', undefined]
+    if (kind === 'checkbox') {
+      const on = (settingsForm[key] ?? (key === 'reviews_autoscroll' ? '1' : '0')) === '1'
+      return (
+        <label key={key} className="admin-checkbox-row admin-field">
+          <input
+            type="checkbox"
+            checked={on}
+            onChange={(e) => setSettingsForm((s) => ({ ...s, [key]: e.target.checked ? '1' : '0' }))}
+          />
+          <span className="admin-label" style={{ textTransform: 'none', fontWeight: 500, color: 'var(--text)' }}>
+            {label}
+          </span>
+        </label>
+      )
+    }
+
+    if (kind === 'select') {
+      const options = Array.isArray(extra) ? extra : []
+      return (
+        <div key={key} className="admin-field">
+          <label className="admin-label" htmlFor={`set-${key}`}>
+            {label}
+          </label>
+          <select
+            id={`set-${key}`}
+            className="admin-input"
+            value={settingsForm[key] ?? options[0]?.value ?? ''}
+            onChange={(e) => setSettingsForm((s) => ({ ...s, [key]: e.target.value }))}
+          >
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )
+    }
+
+    if (kind === 'upload') {
+      const cfg = extra && typeof extra === 'object' ? extra : {}
+      const setKey = String(cfg.setKey || '').trim()
+      const kindTag = String(cfg.kind || 'asset').trim()
+      const modeKey = cfg.modeKey ? String(cfg.modeKey) : null
+      const modeValue = cfg.modeValue ? String(cfg.modeValue) : null
+      const accept = String(cfg.accept || 'image/*,.svg,.ico')
+      const currentUrl = setKey ? (settingsForm[setKey] ?? '') : ''
+      return (
+        <div key={key} className="admin-field">
+          <div className="admin-label">{label}</div>
+          <input
+            type="file"
+            accept={accept}
+            className="admin-input"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              setBusy(true)
+              setNote(null)
+              try {
+                const r = await adminUpload(file, { kind: kindTag })
+                const url = r?.url ? String(r.url) : ''
+                if (url) {
+                  const patch = {}
+                  if (setKey) patch[setKey] = url
+                  if (modeKey && modeValue) patch[modeKey] = modeValue
+                  setSettingsForm((s) => ({ ...s, ...patch }))
+                  await adminPatchSettings(patch)
+                  refreshSite()
+                  setNote({ ok: true, text: 'Uploaded and applied.' })
+                } else {
+                  setNote({ ok: false, text: 'Upload succeeded but no URL returned.' })
+                }
+              } catch (ex) {
+                setNote({ ok: false, text: ex.message || 'Upload failed' })
+              } finally {
+                setBusy(false)
+                e.target.value = ''
+              }
+            }}
+          />
+          {currentUrl ? (
+            <div
+              style={{
+                marginTop: '0.5rem',
+                display: 'flex',
+                gap: '0.65rem',
+                flexWrap: 'wrap',
+                flexDirection: kindTag === 'hero-wallpaper' ? 'column' : 'row',
+                alignItems: kindTag === 'hero-wallpaper' ? 'stretch' : 'center',
+              }}
+            >
+              <img
+                src={String(currentUrl)}
+                alt="Uploaded preview"
+                className={kindTag === 'hero-wallpaper' ? 'admin-hero-wallpaper-preview' : undefined}
+                style={
+                  kindTag === 'hero-wallpaper'
+                    ? undefined
+                    : { width: 88, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)' }
+                }
+                loading="lazy"
+                decoding="async"
+              />
+              <button
+                type="button"
+                className="admin-btn admin-btn--ghost"
+                disabled={busy}
+                onClick={async () => {
+                  if (!setKey) return
+                  setBusy(true)
+                  setNote(null)
+                  try {
+                    const patch = { [setKey]: '' }
+                    if (modeKey && modeValue) {
+                      patch[modeKey] = modeKey === 'hero_bg_mode' ? 'animated' : ''
+                    }
+                    setSettingsForm((s) => ({ ...s, ...patch }))
+                    await adminPatchSettings(patch)
+                    refreshSite()
+                    setNote({ ok: true, text: 'Removed.' })
+                  } catch (ex) {
+                    setNote({ ok: false, text: ex.message || 'Remove failed' })
+                  } finally {
+                    setBusy(false)
+                  }
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ) : null}
+        </div>
+      )
+    }
+
+    const tall = ['about_intro', 'hero_tagline', 'meta_description', 'values', 'map_embed_url', 'hero_gradient_css'].includes(key)
+    return (
+      <div key={key} className="admin-field">
+        <label className="admin-label" htmlFor={`set-${key}`}>
+          {label}
+        </label>
+        <textarea
+          id={`set-${key}`}
+          className="admin-textarea"
+          rows={tall ? 3 : 2}
+          value={settingsForm[key] ?? ''}
+          onChange={(e) => setSettingsForm((s) => ({ ...s, [key]: e.target.value }))}
+        />
+      </div>
+    )
+  }
+
   async function logout() {
     await adminLogout()
     setAuthed(false)
@@ -324,152 +552,27 @@ export default function AdminDashboard() {
             SETTINGS_GROUPS.map((group) => (
               <section key={group.title} className="admin-section">
                 <h2>{group.title}</h2>
-                <div className={`admin-settings-grid ${group.cols2 ? 'cols-2' : ''}`}>
-                  {group.fields.map((fieldDef) => {
-                    const [key, label, kind, extra] =
-                      fieldDef.length === 4 ? fieldDef : fieldDef.length === 3 ? [...fieldDef, undefined] : [...fieldDef, 'text', undefined]
-                    if (kind === 'checkbox') {
-                      const on = (settingsForm[key] ?? (key === 'reviews_autoscroll' ? '1' : '0')) === '1'
+                {group.description ? <p className="admin-section-desc">{group.description}</p> : null}
+                {group.subsections ? (
+                  <div className="admin-settings-subpanels">
+                    {group.subsections.map((sub) => {
+                      const cols2 = sub.cols2 ?? group.cols2
                       return (
-                        <label key={key} className="admin-checkbox-row admin-field">
-                          <input
-                            type="checkbox"
-                            checked={on}
-                            onChange={(e) => setSettingsForm((s) => ({ ...s, [key]: e.target.checked ? '1' : '0' }))}
-                          />
-                          <span className="admin-label" style={{ textTransform: 'none', fontWeight: 500, color: 'var(--text)' }}>
-                            {label}
-                          </span>
-                        </label>
-                      )
-                    }
-
-                    if (kind === 'select') {
-                      const options = Array.isArray(extra) ? extra : []
-                      return (
-                        <div key={key} className="admin-field">
-                          <label className="admin-label" htmlFor={`set-${key}`}>
-                            {label}
-                          </label>
-                          <select
-                            id={`set-${key}`}
-                            className="admin-input"
-                            value={settingsForm[key] ?? options[0]?.value ?? ''}
-                            onChange={(e) => setSettingsForm((s) => ({ ...s, [key]: e.target.value }))}
-                          >
-                            {options.map((o) => (
-                              <option key={o.value} value={o.value}>
-                                {o.label}
-                              </option>
-                            ))}
-                          </select>
+                        <div key={sub.heading} className="admin-settings-subpanel">
+                          <h3 className="admin-settings-subpanel__title">{sub.heading}</h3>
+                          {sub.help ? <p className="admin-settings-subpanel__help">{sub.help}</p> : null}
+                          <div className={`admin-settings-grid ${cols2 ? 'cols-2' : ''}`}>
+                            {(sub.fields || []).map((fieldDef) => renderSettingsField(fieldDef))}
+                          </div>
                         </div>
                       )
-                    }
-
-                    if (kind === 'upload') {
-                      const cfg = extra && typeof extra === 'object' ? extra : {}
-                      const setKey = String(cfg.setKey || '').trim()
-                      const kindTag = String(cfg.kind || 'asset').trim()
-                      const modeKey = cfg.modeKey ? String(cfg.modeKey) : null
-                      const modeValue = cfg.modeValue ? String(cfg.modeValue) : null
-                      const accept = String(cfg.accept || 'image/*,.svg,.ico')
-                      const currentUrl = setKey ? (settingsForm[setKey] ?? '') : ''
-                      return (
-                        <div key={key} className="admin-field">
-                          <div className="admin-label">{label}</div>
-                          <input
-                            type="file"
-                            accept={accept}
-                            className="admin-input"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0]
-                              if (!file) return
-                              setBusy(true)
-                              setNote(null)
-                              try {
-                                const r = await adminUpload(file, { kind: kindTag })
-                                const url = r?.url ? String(r.url) : ''
-                                if (url) {
-                                  const patch = {}
-                                  if (setKey) patch[setKey] = url
-                                  if (modeKey && modeValue) patch[modeKey] = modeValue
-                                  setSettingsForm((s) => ({ ...s, ...patch }))
-                                  // Save immediately so the homepage updates right away.
-                                  await adminPatchSettings(patch)
-                                  refreshSite()
-                                  setNote({ ok: true, text: 'Uploaded and applied.' })
-                                } else {
-                                  setNote({ ok: false, text: 'Upload succeeded but no URL returned.' })
-                                }
-                              } catch (ex) {
-                                setNote({ ok: false, text: ex.message || 'Upload failed' })
-                              } finally {
-                                setBusy(false)
-                                // Allow picking the same file again
-                                e.target.value = ''
-                              }
-                            }}
-                          />
-                          {currentUrl ? (
-                            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                              <img
-                                src={String(currentUrl)}
-                                alt="Uploaded preview"
-                                style={{ width: 88, height: 56, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)' }}
-                                loading="lazy"
-                                decoding="async"
-                              />
-                              <button
-                                type="button"
-                                className="admin-btn admin-btn--ghost"
-                                disabled={busy}
-                                onClick={async () => {
-                                  if (!setKey) return
-                                  setBusy(true)
-                                  setNote(null)
-                                  try {
-                                    const patch = { [setKey]: '' }
-                                    if (modeKey && modeValue) {
-                                      // Revert to animated when removing hero wallpaper
-                                      patch[modeKey] = modeKey === 'hero_bg_mode' ? 'animated' : ''
-                                    }
-                                    setSettingsForm((s) => ({ ...s, ...patch }))
-                                    await adminPatchSettings(patch)
-                                    refreshSite()
-                                    setNote({ ok: true, text: 'Removed.' })
-                                  } catch (ex) {
-                                    setNote({ ok: false, text: ex.message || 'Remove failed' })
-                                  } finally {
-                                    setBusy(false)
-                                  }
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-                      )
-                    }
-
-                    const tall = ['about_intro', 'hero_tagline', 'meta_description', 'values', 'map_embed_url'].includes(key)
-                    return (
-                      <div key={key} className="admin-field">
-                        <label className="admin-label" htmlFor={`set-${key}`}>
-                          {label}
-                        </label>
-                        <textarea
-                          id={`set-${key}`}
-                          className="admin-textarea"
-                          rows={tall ? 3 : 2}
-                          value={settingsForm[key] ?? ''}
-                          onChange={(e) => setSettingsForm((s) => ({ ...s, [key]: e.target.value }))}
-                        />
-                      </div>
-                    )
-                  })}
-                </div>
+                    })}
+                  </div>
+                ) : (
+                  <div className={`admin-settings-grid ${group.cols2 ? 'cols-2' : ''}`}>
+                    {(group.fields || []).map((fieldDef) => renderSettingsField(fieldDef))}
+                  </div>
+                )}
               </section>
             ))
           )}
@@ -667,12 +770,16 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
         </div>
         <div className={`admin-add-body ${createOpen ? 'is-open' : ''}`} aria-hidden={!createOpen}>
           <form onSubmit={createRow} className="admin-add-form">
-            {fields.map((f) => (
-              <FieldInput key={f.key} f={f} prefix="" draft={draft} setDraft={setDraft} />
-            ))}
-            <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
-              {saving ? 'Adding…' : 'Add'}
-            </button>
+            <div className="admin-add-form-fields">
+              {fields.map((f) => (
+                <FieldInput key={f.key} f={f} prefix="" draft={draft} setDraft={setDraft} />
+              ))}
+            </div>
+            <div className="admin-add-form-footer">
+              <button type="submit" className="admin-btn admin-btn--primary" disabled={saving}>
+                {saving ? 'Adding…' : 'Add'}
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -744,30 +851,44 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh }) {
                     <FieldInput key={f.key} f={f} prefix={String(row.id)} draft={draft} setDraft={setDraft} />
                   ))}
                 </div>
+                <div className="admin-edit-inline-actions">
+                  <span className="admin-form-actions-hint">{saving ? 'Saving…' : 'Save to apply changes'}</span>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--primary"
+                    disabled={saving}
+                    onClick={() => saveRow(row.id, row)}
+                  >
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
               </div>
             ) : null}
           </div>
         ))
       )}
 
-      {editing != null ? (
-        <div className="admin-edit-fixed">
-          <div className="admin-edit-fixed-inner">
-            <span className="admin-form-actions-hint">{saving ? 'Saving…' : 'Editing — remember to save changes'}</span>
-            <button
-              type="button"
-              className="admin-btn admin-btn--primary"
-              disabled={saving}
-              onClick={() => {
-                const row = items.find((x) => x.id === editing)
-                if (row) saveRow(editing, row)
-              }}
-            >
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-          </div>
-        </div>
-      ) : null}
+      {editing != null
+        ? createPortal(
+            <div className="admin-edit-fixed" role="region" aria-label="Save edited item">
+              <div className="admin-edit-fixed-inner">
+                <span className="admin-form-actions-hint">{saving ? 'Saving…' : 'Editing — save to apply'}</span>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--primary"
+                  disabled={saving}
+                  onClick={() => {
+                    const row = items.find((x) => x.id === editing)
+                    if (row) saveRow(editing, row)
+                  }}
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   )
 }

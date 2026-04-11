@@ -76,18 +76,19 @@ function safeWallpaperPosition(input) {
 function HeroWallpaper({ url, opacity = 0.28, fit = 'cover', position = 'center' }) {
   const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.28
   if (!url) return null
+  const objectFit = safeWallpaperFit(fit)
+  const objectPosition = safeWallpaperPosition(position)
   return (
-    <div
+    <img
+      src={url}
+      alt=""
+      decoding="async"
       aria-hidden
+      className={`hero-wallpaper-img${objectFit === 'contain' ? ' hero-wallpaper-img--contain' : ''}`}
       style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        backgroundImage: `url(${url})`,
-        backgroundSize: safeWallpaperFit(fit),
-        backgroundPosition: safeWallpaperPosition(position),
-        backgroundRepeat: 'no-repeat',
         opacity: safeOpacity,
+        objectFit,
+        objectPosition,
         filter: 'saturate(1.05) contrast(1.02)',
         mixBlendMode: 'screen',
       }}
@@ -141,7 +142,7 @@ export default function Hero() {
   const wallpaperUrl = (settings.hero_wallpaper_url || '').trim()
   const wallpaperOpacityRaw = (settings.hero_wallpaper_opacity || '').trim()
   const wallpaperOpacity = wallpaperOpacityRaw === '' ? 0.28 : Number(wallpaperOpacityRaw)
-  const wallpaperFit = (settings.hero_wallpaper_fit || '').toString().trim()
+  const wallpaperFit = (settings.hero_wallpaper_fit || '').toString().trim() || 'cover'
   const wallpaperPosition = (settings.hero_wallpaper_position || '').toString().trim()
   const bgMode = (settings.hero_bg_mode || '').toString().trim() || (wallpaperUrl ? 'image' : 'animated')
   const gradientCss = (settings.hero_gradient_css || '').toString().trim()
@@ -181,70 +182,76 @@ export default function Hero() {
     }
   }, [reduce, theme])
 
+  const backdropFill = bgMode === 'image' || bgMode === 'gradient'
+
   return (
-    <section className="section hero-section">
+    <section className={`section hero-section${backdropFill ? ' hero-section--backdrop-fill' : ''}`.trim()}>
+      {/* Full-bleed behind the graph (canvas): same bounds as particle field, not the text card */}
+      <div className="hero-media" aria-hidden>
+        {bgMode === 'image' ? (
+          <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} fit={wallpaperFit} position={wallpaperPosition} />
+        ) : null}
+        {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} /> : null}
+        {!reduce && bgMode === 'animated' ? <Orbs /> : null}
+      </div>
       {!reduce ? (
         <canvas ref={canvasRef} id="showcase-movement" aria-hidden className="hero-canvas" />
       ) : null}
       <div className="hero-container hero-container--full">
-        <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          {bgMode === 'image' ? (
-            <HeroWallpaper url={wallpaperUrl} opacity={wallpaperOpacity} fit={wallpaperFit} position={wallpaperPosition} />
-          ) : null}
-          {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} /> : null}
-          {!reduce && bgMode === 'animated' ? <Orbs /> : null}
-        </div>
-        <div className="content-panel section-panel section-panel--hero hero-panel">
-          <motion.p
-            className="hero-eyebrow"
-            initial={reduce ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-          >
-            Digital studio · Performance · SEO
-          </motion.p>
-          <motion.h1
-            className="hero-title"
-            initial={reduce ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.05 }}
-          >
-            {headline}
-          </motion.h1>
-          <motion.p
-            className="hero-lead"
-            initial={reduce ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.12 }}
-          >
-            {tagline}
-          </motion.p>
-          <motion.div
-            className="hero-actions"
-            initial={reduce ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.2 }}
-          >
-            <Link to="/contact" className="btn btn-primary">
-              Start a project <ArrowRight size={18} />
-            </Link>
-            <Link to="/work" className="btn btn-ghost">
-              <PlayCircle size={18} aria-hidden /> View selected work
-            </Link>
-          </motion.div>
+        <div className="content-panel content-panel--hero section-panel section-panel--hero hero-panel">
+          <div className="hero-panel-copy">
+            <motion.p
+              className="hero-eyebrow"
+              initial={reduce ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45 }}
+            >
+              Digital studio · Performance · SEO
+            </motion.p>
+            <motion.h1
+              className="hero-title"
+              initial={reduce ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.05 }}
+            >
+              {headline}
+            </motion.h1>
+            <motion.p
+              className="hero-lead"
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.12 }}
+            >
+              {tagline}
+            </motion.p>
+            <motion.div
+              className="hero-actions"
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.2 }}
+            >
+              <Link to="/contact" className="btn btn-primary">
+                Start a project <ArrowRight size={18} />
+              </Link>
+              <Link to="/work" className="btn btn-ghost">
+                <PlayCircle size={18} aria-hidden /> View selected work
+              </Link>
+            </motion.div>
+          </div>
           <motion.div
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35, duration: 0.5 }}
-            className="glass hero-stats-bar"
+            className="hero-stats-bar"
           >
-            <div>
-              <div className="hero-stat-value">{count}+</div>
-              <div className="hero-stat-label">Shipped milestones</div>
-            </div>
-            <div className="hero-stat-divider" aria-hidden />
-            <div className="hero-stat-aside hero-stat-aside-narrow">
-              Core Web Vitals–minded builds, accessible UI, and SEO that earns the click.
+            <div className="hero-stats-bar-inner">
+              <div className="hero-stat-primary">
+                <div className="hero-stat-value">{count}+</div>
+                <div className="hero-stat-label">Shipped milestones</div>
+              </div>
+              <p className="hero-stat-aside">
+                Core Web Vitals–minded builds, accessible UI, and SEO that earns the click.
+              </p>
             </div>
           </motion.div>
         </div>
