@@ -151,6 +151,7 @@ INSERT INTO settings (`key`, `value`) VALUES
 ('social_youtube', ''),
 ('social_tiktok', ''),
 ('social_whatsapp', ''),
+('home_client_stories_enabled', '1'),
 ('reviews_autoscroll', '1')
 ON DUPLICATE KEY UPDATE `key` = VALUES(`key`);
 

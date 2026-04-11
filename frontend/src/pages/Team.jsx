@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import LinkedInIcon from '../components/LinkedInIcon'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
 import { useSite } from '../context/SiteContext'
@@ -13,7 +14,7 @@ export default function Team() {
         description="Meet the people behind Hedztech — design, engineering, and delivery."
         path="/team"
       />
-      <SectionContainer>
+      <SectionContainer className="team-showcase-section team-showcase-section--page">
         <p className="section-back">
           <Link to="/" className="text-back-link">
             ← Home
@@ -27,31 +28,40 @@ export default function Team() {
 
         {loading ? <p className="page-state-text">Loading team…</p> : null}
 
-        <div className="team-page-grid">
+        <div className="team-showcase-grid team-showcase-grid--page">
           {(team || []).map((m) => (
-            <article key={m.id} className="glass team-page-card">
-              <div className="team-page-card-media">
-                {m.photo_url ? (
-                  <img src={m.photo_url} alt={`${m.name} — portrait`} loading="lazy" decoding="async" />
-                ) : (
-                  <span className="team-preview-initial" aria-hidden>
-                    {String(m.name || '?')
-                      .trim()
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </span>
-                )}
+            <article key={m.id} className="team-showcase-card team-showcase-card--page">
+              <div className="team-showcase-media">
+                <div className="team-showcase-media-inner">
+                  {m.photo_url ? (
+                    <img src={m.photo_url} alt={`${m.name} — portrait`} loading="lazy" decoding="async" />
+                  ) : (
+                    <span className="team-showcase-initial" aria-hidden>
+                      {String(m.name || '?')
+                        .trim()
+                        .slice(0, 1)
+                        .toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                {m.linkedin_url ? (
+                  <a
+                    className="team-showcase-social"
+                    href={m.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${m.name} on LinkedIn`}
+                  >
+                    <LinkedInIcon size={18} />
+                  </a>
+                ) : null}
               </div>
-              <div className="team-page-card-body">
-                <h3 className="team-page-name">{m.name}</h3>
-                {m.role ? <p className="team-page-role">{m.role}</p> : null}
-                {m.bio ? <p className="team-page-bio">{m.bio}</p> : null}
+              <div className="team-showcase-body team-showcase-body--page">
+                <h3 className="team-showcase-name">{m.name}</h3>
+                {m.role ? <p className="team-showcase-role">{m.role}</p> : null}
+                <span className="team-showcase-accent" aria-hidden />
+                {m.bio ? <p className="team-showcase-bio">{m.bio}</p> : null}
               </div>
-              {m.linkedin_url ? (
-                <a className="btn btn-ghost btn-compact" href={m.linkedin_url} target="_blank" rel="noopener noreferrer">
-                  LinkedIn →
-                </a>
-              ) : null}
             </article>
           ))}
         </div>

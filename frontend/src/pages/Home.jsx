@@ -18,7 +18,7 @@ const Contact = lazy(() => import('../sections/Contact'))
 const Testimonials = lazy(() => import('../sections/Testimonials'))
 
 export default function Home() {
-  const { loading, error, refresh } = useSite()
+  const { loading, error, refresh, settings } = useSite()
   const { hash } = useLocation()
   const contentReady = !loading && !error
   useScrollToHash(hash, contentReady)
@@ -49,6 +49,8 @@ export default function Home() {
     )
   }
 
+  const showClientStories = (settings?.home_client_stories_enabled ?? '1') === '1'
+
   return (
     <>
       <Seo path="/" />
@@ -67,9 +69,11 @@ export default function Home() {
       <Suspense fallback={null}>
         <BlogPreview />
       </Suspense>
-      <Suspense fallback={<div className="section container section--testimonials-placeholder" aria-hidden />}>
-        <Testimonials />
-      </Suspense>
+      {showClientStories ? (
+        <Suspense fallback={<div className="section container section--testimonials-placeholder" aria-hidden />}>
+          <Testimonials />
+        </Suspense>
+      ) : null}
       <Suspense fallback={null}>
         <TeamPreview />
       </Suspense>

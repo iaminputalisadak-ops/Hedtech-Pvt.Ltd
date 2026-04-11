@@ -221,7 +221,15 @@ const SETTINGS_GROUPS = [
   {
     title: 'Reviews',
     cols2: false,
-    fields: [['reviews_autoscroll', 'Auto-scroll the client reviews carousel (when off, visitors can still swipe or use arrows)', 'checkbox']],
+    description: 'Control the “Client stories” block on the home page and carousel behavior.',
+    fields: [
+      [
+        'home_client_stories_enabled',
+        'Show “Client stories” on the homepage (off hides the whole section until you are ready)',
+        'checkbox',
+      ],
+      ['reviews_autoscroll', 'Auto-scroll the client reviews carousel (when off, visitors can still swipe or use arrows)', 'checkbox'],
+    ],
   },
 ]
 
@@ -400,7 +408,8 @@ export default function AdminDashboard() {
     const [key, label, kind, extra] =
       fieldDef.length === 4 ? fieldDef : fieldDef.length === 3 ? [...fieldDef, undefined] : [...fieldDef, 'text', undefined]
     if (kind === 'checkbox') {
-      const on = (settingsForm[key] ?? (key === 'reviews_autoscroll' ? '1' : '0')) === '1'
+      const on =
+        (settingsForm[key] ?? (key === 'reviews_autoscroll' || key === 'home_client_stories_enabled' ? '1' : '0')) === '1'
       return (
         <label key={key} className="admin-checkbox-row admin-field">
           <input
