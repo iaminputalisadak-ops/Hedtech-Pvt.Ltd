@@ -1068,6 +1068,26 @@ html[data-theme='light'] .hero-section--backdrop-fill .hero-media {
   /* object-fit / object-position from Hero inline styles (admin cover vs contain); no extra transform — fills .hero-media */
 }
 
+.hero-wallpaper-stack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-wallpaper-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.65s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-wallpaper-slide--active {
+  opacity: 1;
+  z-index: 1;
+}
+
 .hero-wallpaper-img--contain {
   /* Admin "contain": show whole image without cropping; still centered in full hero area */
   min-width: 0;

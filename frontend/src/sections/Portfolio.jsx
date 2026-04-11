@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ExternalLink } from 'lucide-react'
+import { ChevronRight, ExternalLink } from 'lucide-react'
 import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
+
+const HOME_PORTFOLIO_PREVIEW = 5
 
 export default function Portfolio() {
   const { projects } = useSite()
@@ -16,6 +18,8 @@ export default function Portfolio() {
   }, [projects])
   const [filter, setFilter] = useState('all')
   const list = filter === 'all' ? projects : projects.filter((p) => p.category === filter)
+  const displayed = list.slice(0, HOME_PORTFOLIO_PREVIEW)
+  const extraCount = Math.max(0, list.length - displayed.length)
 
   return (
     <SectionContainer id="work">
@@ -82,6 +86,24 @@ export default function Portfolio() {
           </motion.article>
         ))}
       </div>
+      {extraCount > 0 ? (
+        <motion.div
+          className="services-see-all"
+          initial={fadeIn(reduce)}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.35 }}
+        >
+          <Link
+            to="/work"
+            className="services-see-all-link"
+            aria-label={`See more projects, ${extraCount} not shown in this preview`}
+          >
+            See more projects
+            <ChevronRight size={18} aria-hidden />
+          </Link>
+        </motion.div>
+      ) : null}
       <div className="section-actions">
         <Link to="/work" className="btn btn-ghost">
           View full portfolio

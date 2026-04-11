@@ -55,7 +55,7 @@ export default function ServicesHubPage() {
           ))}
         </div>
       </SectionContainer>
-      <Services showHeader={false} />
+      <Services showHeader={false} previewCount={0} />
     </>
   )
 }

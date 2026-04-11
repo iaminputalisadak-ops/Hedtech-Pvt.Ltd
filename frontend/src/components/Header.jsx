@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { motion as Motion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import SiteBrand from './SiteBrand'
 import ThemeToggle from './ThemeToggle'
@@ -9,18 +9,69 @@ import { primaryNav } from './siteNav'
 /** NavLink `end`: false so /work/*, /blog/*, and /services/* stay highlighted on child routes. */
 const NAV_LINK_END_EXACT = new Set(['/about', '/expertise', '/reviews', '/team', '/contact'])
 
+/** Same breakpoint as `.desktop-nav` / `.mobile-toggle` in this file — scroll-hide only applies here. */
+const DESKTOP_HEADER_MQ = '(min-width: 961px)'
+
 export default function Header() {
   const [open, setOpen] = useState(false)
   const [shrunk, setShrunk] = useState(false)
+  /** Desktop only: false = bar slid up (hidden); scroll down sets true. Mobile never uses false. */
+  const [headerRevealed, setHeaderRevealed] = useState(true)
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(DESKTOP_HEADER_MQ).matches,
+  )
   const toggleBtnRef = useRef(null)
   const sheetRef = useRef(null)
+  const lastScrollY = useRef(0)
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
-    const onScroll = () => setShrunk(window.scrollY > 24)
+    const mq = window.matchMedia(DESKTOP_HEADER_MQ)
+    const onMq = () => {
+      const d = mq.matches
+      setIsDesktop(d)
+      if (!d) setHeaderRevealed(true)
+    }
+    onMq()
+    mq.addEventListener('change', onMq)
+    return () => mq.removeEventListener('change', onMq)
+  }, [])
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY
+      setShrunk(y > 24)
+
+      if (!window.matchMedia(DESKTOP_HEADER_MQ).matches) {
+        lastScrollY.current = y
+        return
+      }
+      if (open || reduceMotion) {
+        setHeaderRevealed(true)
+        lastScrollY.current = y
+        return
+      }
+
+      if (y <= 0) {
+        setHeaderRevealed(true)
+        lastScrollY.current = y
+        return
+      }
+
+      const prev = lastScrollY.current
+      if (y < prev) {
+        setHeaderRevealed(false)
+      } else if (y > prev) {
+        setHeaderRevealed(true)
+      }
+      lastScrollY.current = y
+    }
+
+    lastScrollY.current = window.scrollY
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [open, reduceMotion])
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -78,6 +129,8 @@ export default function Header() {
     toggleBtnRef.current?.focus?.()
   }, [open])
 
+  const hideBarDesktop = isDesktop && !headerRevealed
+
   return (
     <Motion.header
       className="site-header site-chrome site-chrome--top"
@@ -91,8 +144,14 @@ export default function Header() {
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
       initial={false}
-      animate={{ height: shrunk ? 64 : 72 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      animate={{
+        height: shrunk ? 64 : 72,
+        y: hideBarDesktop ? '-100%' : 0,
+      }}
+      transition={{
+        height: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+        y: { duration: 0, ease: 'linear' },
+      }}
     >
       <div className="container site-header-bar">
         <SiteBrand onClick={() => setOpen(false)} />

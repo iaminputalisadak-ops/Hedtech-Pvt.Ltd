@@ -7,11 +7,12 @@ import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
 
-export default function Services({ showHeader = true, previewCount }) {
+export default function Services({ showHeader = true, previewCount = 5 }) {
   const { services } = useSite()
   const reduce = useReducedMotion()
 
   const list = Array.isArray(services) ? services : []
+  // previewCount={0} shows every service (hub pages); positive N caps the preview list.
   const limit = typeof previewCount === 'number' && previewCount > 0 ? Math.floor(previewCount) : 0
   const displayed = limit > 0 ? list.slice(0, limit) : list
   const extra = limit > 0 ? Math.max(0, list.length - limit) : 0
@@ -55,7 +56,13 @@ export default function Services({ showHeader = true, previewCount }) {
         ))}
       </div>
       {extra > 0 ? (
-        <div className="services-see-all">
+        <Motion.div
+          className="services-see-all"
+          initial={fadeIn(reduce)}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35 }}
+        >
           <Link
             to="/services"
             className="services-see-all-link"
@@ -64,7 +71,7 @@ export default function Services({ showHeader = true, previewCount }) {
             See all services
             <ChevronRight size={18} aria-hidden />
           </Link>
-        </div>
+        </Motion.div>
       ) : null}
     </SectionContainer>
   )

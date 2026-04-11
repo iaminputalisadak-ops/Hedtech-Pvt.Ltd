@@ -17,6 +17,7 @@ import {
 } from '../../api/client'
 import { GripVertical } from 'lucide-react'
 import AdminShell from './AdminShell'
+import HeroBannerCarouselField from './HeroBannerCarouselField'
 import { useSite } from '../../context/SiteContext'
 
 const HERO_BG_MODES = [
@@ -123,7 +124,8 @@ const SETTINGS_GROUPS = [
       {
         heading: 'Image wallpaper',
         cols2: true,
-        help: 'Used when “Image wallpaper” is selected. Upload applies immediately.',
+        help:
+          'Used when “Image wallpaper” is selected. One URL above works alone. Add two or more slides below for a rotating banner (every 2 seconds on the site).',
         fields: [
           ['hero_wallpaper_url', 'Wallpaper image URL (optional)'],
           [
@@ -135,6 +137,7 @@ const SETTINGS_GROUPS = [
           ['hero_wallpaper_opacity', 'Wallpaper opacity (0–1, optional)'],
           ['hero_wallpaper_fit', 'Wallpaper fit', 'select', HERO_WALLPAPER_FIT],
           ['hero_wallpaper_position', 'Wallpaper position', 'select', HERO_WALLPAPER_POS],
+          ['hero_banner_carousel_json', 'Rotating banner slides', 'hero-carousel'],
         ],
       },
       {
@@ -529,6 +532,21 @@ export default function AdminDashboard() {
             </div>
           ) : null}
         </div>
+      )
+    }
+
+    if (kind === 'hero-carousel') {
+      return (
+        <HeroBannerCarouselField
+          key={key}
+          label={label}
+          value={settingsForm[key] ?? '[]'}
+          setSettingsForm={setSettingsForm}
+          busy={busy}
+          setBusy={setBusy}
+          setNote={setNote}
+          refreshSite={refreshSite}
+        />
       )
     }
 

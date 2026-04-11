@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, PlayCircle } from 'lucide-react'
@@ -121,12 +121,30 @@ function safeWallpaperPosition(input) {
   return allowed.has(raw) ? raw : 'center'
 }
 
+function parseHeroCarouselUrls(raw) {
+  if (raw == null || raw === '') return []
+  try {
+    const v = JSON.parse(String(raw))
+    if (!Array.isArray(v)) return []
+    return v.map((s) => String(s || '').trim()).filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
 /**
  * Hero wallpaper must fill the full viewport band (no letterboxing). Admin "contain"
  * is useful for previews/logos; on the public hero we always use cover so Earth/graph
  * backgrounds reach the left and right edges.
  */
-function HeroWallpaper({ url, opacity = 0.28, position = 'center', theme }) {
+function HeroWallpaper({
+  url,
+  opacity = 0.28,
+  position = 'center',
+  theme,
+  loading = 'eager',
+  fetchPriority = 'high',
+}) {
   const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.28
   if (!url) return null
   const objectFit = 'cover'
@@ -141,8 +159,8 @@ function HeroWallpaper({ url, opacity = 0.28, position = 'center', theme }) {
       src={url}
       alt=""
       decoding="async"
-      loading="eager"
-      fetchPriority="high"
+      loading={loading}
+      fetchPriority={fetchPriority}
       aria-hidden
       className="hero-wallpaper-img"
       style={{
@@ -153,6 +171,46 @@ function HeroWallpaper({ url, opacity = 0.28, position = 'center', theme }) {
         mixBlendMode,
       }}
     />
+  )
+}
+
+const HERO_CAROUSEL_MS = 2000
+
+function HeroWallpaperCarousel({ urls, opacity, position, theme, reducedMotion }) {
+  const n = urls.length
+  const [active, setActive] = useState(0)
+  const rotate = !reducedMotion && n >= 2
+
+  useEffect(() => {
+    if (!rotate || n < 2) return
+    const id = window.setInterval(() => {
+      setActive((i) => (i + 1) % n)
+    }, HERO_CAROUSEL_MS)
+    return () => window.clearInterval(id)
+  }, [rotate, n])
+
+  if (n === 0) return null
+
+  const visibleIndex = rotate ? active : 0
+
+  return (
+    <div className="hero-wallpaper-stack" aria-hidden>
+      {urls.map((url, i) => (
+        <div
+          key={`${url}-${i}`}
+          className={`hero-wallpaper-slide${i === visibleIndex ? ' hero-wallpaper-slide--active' : ''}`}
+        >
+          <HeroWallpaper
+            url={url}
+            opacity={opacity}
+            position={position}
+            theme={theme}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            fetchPriority={i === 0 ? 'high' : 'low'}
+          />
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -206,11 +264,21 @@ export default function Hero() {
   const statAside = trimSetting(settings.hero_stat_aside) || HERO_COPY_DEFAULTS.statAside
 
   const wallpaperUrl = (settings.hero_wallpaper_url || '').trim()
+  const carouselUrls = parseHeroCarouselUrls(settings.hero_banner_carousel_json)
   const wallpaperOpacityRaw = (settings.hero_wallpaper_opacity || '').trim()
   const wallpaperOpacity = wallpaperOpacityRaw === '' ? 0.28 : Number(wallpaperOpacityRaw)
   const wallpaperPosition = (settings.hero_wallpaper_position || '').toString().trim()
   const bgMode = (settings.hero_bg_mode || '').toString().trim() || (wallpaperUrl ? 'image' : 'animated')
   const gradientCss = (settings.hero_gradient_css || '').toString().trim()
+
+  const heroImageUrls =
+    carouselUrls.length >= 2
+      ? carouselUrls
+      : carouselUrls.length === 1
+        ? carouselUrls
+        : wallpaperUrl
+          ? [wallpaperUrl]
+          : []
 
   useLayoutEffect(() => {
     if (reduce) return
@@ -253,9 +321,18 @@ export default function Hero() {
     <section className={`section hero-section${backdropFill ? ' hero-section--backdrop-fill' : ''}`.trim()}>
       {/* Full-bleed behind the graph (canvas): same bounds as particle field, not the text card */}
       <div className="hero-media" aria-hidden>
-        {bgMode === 'image' ? (
+        {bgMode === 'image' && heroImageUrls.length >= 2 ? (
+          <HeroWallpaperCarousel
+            urls={heroImageUrls}
+            opacity={wallpaperOpacity}
+            position={wallpaperPosition}
+            theme={theme}
+            reducedMotion={reduce}
+          />
+        ) : null}
+        {bgMode === 'image' && heroImageUrls.length === 1 ? (
           <HeroWallpaper
-            url={wallpaperUrl}
+            url={heroImageUrls[0]}
             opacity={wallpaperOpacity}
             position={wallpaperPosition}
             theme={theme}

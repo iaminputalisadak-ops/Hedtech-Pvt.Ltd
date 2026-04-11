@@ -136,6 +136,7 @@ INSERT INTO settings (`key`, `value`) VALUES
 ('vision', 'To be the studio teams trust for craft, communication, and outcomes.'),
 ('values', '["Transparency","Performance","Partnership","Craft"]'),
 ('hero_gradient_css', ''),
+('hero_banner_carousel_json', '[]'),
 ('address', 'Your City, Your Country'),
 ('business_phone', '+1 (555) 000-0000'),
 ('business_email', 'hello@hedztech.com'),
