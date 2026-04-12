@@ -43,6 +43,10 @@ final class Router
         Auth::startSession();
 
         // --- Public ---
+        if ($method === 'GET' && $path === '/public/db-health') {
+            PublicApi::dbHealth();
+            return;
+        }
         if ($method === 'GET' && $path === '/public/bootstrap') {
             PublicApi::bootstrap();
             return;

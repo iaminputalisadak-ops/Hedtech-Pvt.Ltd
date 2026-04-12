@@ -1,15 +1,23 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # Block direct HTTP access to PHP backend files stored next to the SPA (cPanel layout).
+  RewriteRule ^(bootstrap|config)\.php$ - [F,L]
+  RewriteRule ^(src|database)(/|$) - [F,L]
+
   # If the request targets an existing file/folder, serve it directly.
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Don't rewrite API requests (PHP backend).
-  RewriteCond %{REQUEST_URI} ^/api/ [OR]
-  RewriteCond %{REQUEST_URI} ^/api$
-  RewriteRule ^ - [L]
+  # SEO: pretty sitemap URL (not a static file — proxied to the PHP API for blog + project URLs).
+  RewriteRule ^sitemap\.xml$ /api/public/sitemap.xml [L]
+
+  # PHP API: URIs like /api/public/... are NOT real folders under public_html/api/ (only index.php, uploads, …).
+  # Without this rule, LiteSpeed/Apache returns 404 before PHP runs. Route non-files to api/index.php.
+  RewriteCond %{REQUEST_URI} ^/api(/|$)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^api(?:$|/)(.*)$ api/index.php [L,QSA]
 
   # SPA fallback for React Router routes.
   RewriteRule ^ index.html [L]

@@ -222,13 +222,19 @@ html[data-theme='light'] .page-shell--home .hero-panel.content-panel--hero {
 .expertise-bars {
   padding: 1.5rem;
   display: grid;
-  gap: 1.1rem;
+  gap: 1.35rem;
+}
+
+.expertise-skill-block {
+  min-width: 0;
 }
 
 .skill-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
   font-size: 0.95rem;
 }
 
@@ -240,22 +246,89 @@ html[data-theme='light'] .page-shell--home .hero-panel.content-panel--hero {
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
-.skill-track {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--surface-strong);
+/* Skewed “glitchy” progress bar — inspired by https://codepen.io/MyXoToD/pen/JjpLzQv */
+.expertise-glitch-range {
+  --skew: 18deg;
+  position: relative;
+  width: calc(100% - 1.1rem);
+  max-width: 100%;
+  height: clamp(26px, 3.6vw, 32px);
+  margin-inline: auto;
+  transform: skewX(var(--skew));
+  transform-origin: center;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--surface-strong) 88%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 6%, transparent);
   overflow: hidden;
-  border: 1px solid var(--border);
 }
 
-.skill-fill {
-  width: 100%;
+.expertise-glitch-range::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
   height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  transform-origin: left;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2)));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .expertise-glitch-range:not(.expertise-glitch-range--reduce)::before {
+    animation:
+      expertise-glitch-load 0.85s forwards cubic-bezier(0.22, 1, 0.36, 1),
+      expertise-glitch-shake 2.25s infinite linear;
+    animation-delay:
+      calc(0.06s + var(--i, 0) * 0.05s),
+      calc(0.85s + var(--i, 0) * 0.05s);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expertise-glitch-range::before {
+    animation: none;
+    width: calc(var(--p, 0) * 1%);
+  }
+}
+
+.expertise-glitch-range--reduce::before {
+  animation: none;
+  width: calc(var(--p, 0) * 1%);
+}
+
+@keyframes expertise-glitch-load {
+  to {
+    width: calc(var(--p, 0) * 1%);
+  }
+}
+
+@keyframes expertise-glitch-shake {
+  0%,
+  8%,
+  100% {
+    transform: translate(0, 0);
+  }
+  1% {
+    transform: translate(-4%, -8%);
+  }
+  2% {
+    transform: translate(8%, 18%);
+  }
+  3% {
+    transform: translate(-28%, 8%);
+  }
+  4% {
+    transform: translate(3%, -14%);
+  }
+  5% {
+    transform: translate(-2%, 6%);
+  }
 }
 
 .expertise-footnote {
@@ -613,16 +686,48 @@ a.service-card--link:hover {
   margin-bottom: 0;
 }
 
-/* Trusted-by logo strip */
+/* Trusted-by logo strip — seamless CSS loop (two identical segments, translate -50%) */
 .trusted-by-marquee {
   padding: var(--space-4) 0;
   overflow: hidden;
 }
 
+.trusted-by-viewport {
+  overflow: hidden;
+}
+
 .trusted-by-track {
   display: flex;
-  gap: var(--space-12);
   width: max-content;
+  flex-shrink: 0;
+  animation: trusted-by-marquee 36s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trusted-by-track {
+    animation: none;
+  }
+}
+
+.trusted-by-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes trusted-by-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.trusted-by-segment {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  flex-shrink: 0;
 }
 
 .trusted-by-item {

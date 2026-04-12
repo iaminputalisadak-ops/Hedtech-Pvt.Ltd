@@ -13,19 +13,57 @@ final class Db
     /** @var array<string, bool> */
     private static array $tableExistsCache = [];
 
-    public static function pdo(): PDO
+    /** @param array<string, mixed> $c */
+    private static function buildDsn(array $c): string
     {
-        if (self::$pdo instanceof PDO) {
-            return self::$pdo;
+        $socket = trim((string) ($c['socket'] ?? ''));
+        if ($socket !== '') {
+            return sprintf(
+                'mysql:unix_socket=%s;dbname=%s;charset=%s',
+                $socket,
+                $c['name'],
+                $c['charset']
+            );
         }
-        $c = $GLOBALS['hedztech_config']['db'];
-        $dsn = sprintf(
+
+        return sprintf(
             'mysql:host=%s;port=%d;dbname=%s;charset=%s',
             $c['host'],
             $c['port'],
             $c['name'],
             $c['charset']
         );
+    }
+
+    /**
+     * Try MySQL once without caching (for diagnostics).
+     *
+     * @return array{ok: bool, message?: string}
+     */
+    public static function probe(): array
+    {
+        $c = $GLOBALS['hedztech_config']['db'];
+        $dsn = self::buildDsn($c);
+        try {
+            $pdo = new PDO($dsn, $c['user'], $c['pass'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+            $pdo->query('SELECT 1');
+
+            return ['ok' => true];
+        } catch (PDOException $e) {
+            return ['ok' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    public static function pdo(): PDO
+    {
+        if (self::$pdo instanceof PDO) {
+            return self::$pdo;
+        }
+        $c = $GLOBALS['hedztech_config']['db'];
+        $dsn = self::buildDsn($c);
         try {
             self::$pdo = new PDO($dsn, $c['user'], $c['pass'], [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -34,7 +72,15 @@ final class Db
         } catch (PDOException $e) {
             http_response_code(503);
             header('Content-Type: application/json');
-            echo json_encode(['error' => 'Database connection failed']);
+            $show = ($GLOBALS['hedztech_config']['db_show_error'] ?? false) === true;
+            $payload = [
+                'error' => 'Database connection failed',
+                'hint' => 'Check public_html/config.php: host (on cPanel try 127.0.0.1 instead of localhost), database name, MySQL username, and password. In cPanel → MySQL® Databases, confirm the user is added to the database with ALL PRIVILEGES. Import database/schema.sql into that database if tables are missing.',
+            ];
+            if ($show) {
+                $payload['detail'] = $e->getMessage();
+            }
+            echo json_encode($payload);
             exit;
         }
         return self::$pdo;

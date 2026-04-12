@@ -1,12 +1,31 @@
-import { motion, useReducedMotion } from 'framer-motion'
 import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
 
+function TrustedItem({ c }) {
+  return (
+    <div className="trusted-by-item">
+      {c.logo_url ? <img src={c.logo_url} alt={c.name} loading="lazy" decoding="async" /> : c.name}
+    </div>
+  )
+}
+
+/** Repeat the partner list so one segment is usually wider than the viewport — avoids empty “dead” space in the pill. */
+function buildMarqueeRow(trusted) {
+  const cycles = Math.max(6, Math.ceil(42 / Math.max(trusted.length, 1)))
+  const row = []
+  for (let i = 0; i < cycles; i += 1) {
+    for (const c of trusted) {
+      row.push({ c, k: `${c.id}--${i}` })
+    }
+  }
+  return row
+}
+
 export default function TrustedBy() {
   const { trusted } = useSite()
-  const reduce = useReducedMotion()
   if (!trusted.length) return null
-  const doubled = [...trusted, ...trusted]
+
+  const row = buildMarqueeRow(trusted)
 
   return (
     <SectionContainer aria-label="Trusted by companies" className="trusted-by-section">
@@ -16,17 +35,20 @@ export default function TrustedBy() {
         <p className="section-lead">Partners who expect velocity without sacrificing quality.</p>
       </div>
       <div className="glass trusted-by-marquee">
-        <motion.div
-          className="trusted-by-track"
-          animate={reduce ? undefined : { x: ['0%', '-50%'] }}
-          transition={reduce ? undefined : { duration: 28, repeat: Infinity, ease: 'linear' }}
-        >
-          {doubled.map((c, i) => (
-            <div key={`${c.id}-${i}`} className="trusted-by-item">
-              {c.logo_url ? <img src={c.logo_url} alt={c.name} loading="lazy" /> : c.name}
+        <div className="trusted-by-viewport">
+          <div className="trusted-by-track">
+            <div className="trusted-by-segment">
+              {row.map(({ c, k }) => (
+                <TrustedItem key={`a-${k}`} c={c} />
+              ))}
             </div>
-          ))}
-        </motion.div>
+            <div className="trusted-by-segment" aria-hidden="true">
+              {row.map(({ c, k }) => (
+                <TrustedItem key={`b-${k}`} c={c} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </SectionContainer>
   )

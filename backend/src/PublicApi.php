@@ -236,9 +236,11 @@ final class PublicApi
         foreach ($pdo->query('SELECT `key`, `value` FROM settings')->fetchAll() as $r) {
             $settings[$r['key']] = $r['value'];
         }
-        // Allow dynamic sitemap to use this base when configured in DB
-        if (!isset($GLOBALS['hedztech_config']['canonical_base']) && isset($settings['canonical_base'])) {
-            $GLOBALS['hedztech_config']['canonical_base'] = $settings['canonical_base'];
+        // Prefer DB canonical when config leaves it empty (typical: config.sample + Admin settings).
+        $cfgBase = trim((string) ($GLOBALS['hedztech_config']['canonical_base'] ?? ''));
+        $dbBase = trim((string) ($settings['canonical_base'] ?? ''));
+        if ($cfgBase === '' && $dbBase !== '') {
+            $GLOBALS['hedztech_config']['canonical_base'] = $dbBase;
         }
         Util::sendJson([
             'settings' => $settings,
@@ -274,5 +276,46 @@ final class PublicApi
                 'SELECT id, title, slug, excerpt, category, tags, created_at FROM blog_posts WHERE published = 1 ORDER BY created_at DESC LIMIT 6'
             )->fetchAll(),
         ]);
+    }
+
+    /**
+     * Read-only DB check (no passwords). Use: GET /api/public/db-health
+     * If db_show_error is true in config, includes PDO detail for one-off debugging.
+     */
+    public static function dbHealth(): void
+    {
+        $root = dirname(__DIR__);
+        $samplePath = $root . '/config.sample.php';
+        $configPath = $root . '/config.php';
+
+        $db = $GLOBALS['hedztech_config']['db'];
+        $meta = [
+            'config_php_readable' => is_readable($configPath),
+            'config_sample_php_readable' => is_readable($samplePath),
+            'db_host' => $db['host'],
+            'db_port' => $db['port'],
+            'db_name' => $db['name'],
+            'db_user' => $db['user'],
+            'db_password_is_non_empty' => trim((string) $db['pass']) !== '',
+            'db_socket_set' => trim((string) ($db['socket'] ?? '')) !== '',
+        ];
+
+        $probe = Db::probe();
+        if ($probe['ok']) {
+            Util::sendJson(array_merge(['connected' => true], ['config' => $meta]));
+
+            return;
+        }
+
+        $show = ($GLOBALS['hedztech_config']['db_show_error'] ?? false) === true;
+        $out = array_merge(
+            [
+                'connected' => false,
+                'config' => $meta,
+                'hint' => 'If config_sample_php_readable is false, upload config.sample.php next to config.php (same folder as bootstrap.php). If db_password_is_non_empty is false, set the MySQL user password in config.php. In cPanel, add the user to the database with ALL PRIVILEGES. Try db_host 127.0.0.1 or localhost.',
+            ],
+            $show ? ['detail' => $probe['message'] ?? ''] : []
+        );
+        Util::sendJson($out, 503);
     }
 }

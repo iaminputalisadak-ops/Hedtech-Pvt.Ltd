@@ -14,6 +14,8 @@ export default function TeamPreview() {
   const { team, loading } = useSite()
   const reduce = useReducedMotion()
   const members = (team || []).slice(0, HOME_TEAM_FEATURED)
+  const n = members.length
+  const countClass = n === 1 ? 'team-showcase-grid--n1' : n === 2 ? 'team-showcase-grid--n2' : 'team-showcase-grid--n3'
 
   if (loading || members.length === 0) {
     return null
@@ -28,7 +30,7 @@ export default function TeamPreview() {
           Design, engineering, and delivery — the same faces you will collaborate with from kickoff to launch.
         </p>
       </div>
-      <div className="team-showcase-grid">
+      <div className={`team-showcase-grid team-showcase-grid--home ${countClass}`}>
         {members.map((m, i) => (
           <motion.article
             key={m.id}

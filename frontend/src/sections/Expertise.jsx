@@ -18,29 +18,33 @@ export default function Expertise() {
         </p>
       </div>
       <div className="glass expertise-bars">
-        {skills.map((sk, i) => (
-          <motion.div
-            key={sk.id}
-            initial={fadeIn(reduce)}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.3, delay: i * 0.03 }}
-          >
-            <div className="skill-row">
-              <span className="skill-row-name">{sk.name}</span>
-              <span className="skill-row-level">{sk.level}%</span>
-            </div>
-            <div className="skill-track" role="progressbar" aria-valuenow={sk.level} aria-valuemin={0} aria-valuemax={100} aria-label={sk.name}>
-              <motion.div
-                className="skill-fill"
-                initial={reduce ? false : { scaleX: 0 }}
-                whileInView={{ scaleX: sk.level / 100 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.08 + i * 0.04 }}
+        {skills.map((sk, i) => {
+          const pct = Math.min(100, Math.max(0, Math.round(Number(sk.level) || 0)))
+          return (
+            <motion.div
+              key={sk.id}
+              className="expertise-skill-block"
+              initial={fadeIn(reduce)}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.3, delay: i * 0.03 }}
+            >
+              <div className="skill-row">
+                <span className="skill-row-name">{sk.name}</span>
+                <span className="skill-row-level">{pct}%</span>
+              </div>
+              <div
+                className={`expertise-glitch-range ${reduce ? 'expertise-glitch-range--reduce' : ''}`}
+                style={{ '--p': pct, '--i': i }}
+                role="progressbar"
+                aria-valuenow={pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${sk.name}, ${pct} percent`}
               />
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          )
+        })}
       </div>
       <p className="expertise-footnote">
         Tooling highlights: React, Vite, PHP APIs, MySQL, analytics pipelines, structured data, and performance budgets on every release.
