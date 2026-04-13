@@ -724,7 +724,7 @@ a.service-card--link:hover {
   display: flex;
   width: max-content;
   flex-shrink: 0;
-  animation: trusted-by-marquee 60s linear infinite;
+  animation: trusted-by-marquee 80s linear infinite;
   will-change: transform;
 }
 
