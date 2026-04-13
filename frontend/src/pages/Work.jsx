@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
 import SectionContainer from '../components/SectionContainer'
+import CmsImage from '../components/CmsImage'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import Seo from '../components/Seo'
 import { useSite } from '../context/SiteContext'
 
@@ -51,7 +53,7 @@ export default function Work() {
         </div>
         <div className="layout-grid-cards layout-grid-cards--wide">
           {list.map((p, i) => (
-            <motion.article
+            <Motion.article
               key={p.id}
               className="glass portfolio-card"
               initial={fadeIn(reduce)}
@@ -61,7 +63,15 @@ export default function Work() {
             >
               <div className="portfolio-thumb">
                 {p.image_url ? (
-                  <img src={p.image_url} alt={`${p.title} — project preview`} loading="lazy" decoding="async" />
+                  <CmsImage
+                    src={p.image_url}
+                    alt={`${p.title} — project preview`}
+                    sizes={CMS_SIZES.workGrid}
+                    className="portfolio-thumb-img is-cover"
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority={i < 3 ? 'high' : 'low'}
+                  />
                 ) : (
                   <div className="portfolio-thumb-placeholder">Preview</div>
                 )}
@@ -80,7 +90,7 @@ export default function Work() {
                   ) : null}
                 </div>
               </div>
-            </motion.article>
+            </Motion.article>
           ))}
         </div>
         <div className="section-actions">

@@ -37,8 +37,9 @@ export default function Home() {
         <h1 className="section-title">We could not reach the API</h1>
         <p className="page-state-text page-state-text--block">{error}</p>
         <p className="page-state-hint">
-          When you are developing locally, start PHP on port 8080 from <code>backend/public</code> and import{' '}
-          <code>database/schema.sql</code>.
+          When developing locally, run <code>npm run api</code> in the project root (starts PHP on port 8080). On Windows,
+          install <strong>XAMPP</strong> or <strong>Laragon</strong>, or set <code>PHP_PATH</code> to your <code>php.exe</code>.
+          Import <code>database/schema.sql</code> into MySQL and match <code>backend/config.php</code>.
         </p>
         <div className="page-state-actions">
           <button type="button" className="btn btn-primary" onClick={() => refresh()}>

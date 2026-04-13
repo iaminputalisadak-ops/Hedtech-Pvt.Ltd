@@ -439,6 +439,14 @@ html[data-theme='dark'] .ds-ship-fill {
   flex-direction: column;
 }
 
+/* Skip off-screen layout/paint for heavy image tiles until the user scrolls near them. */
+.portfolio-thumb,
+.project-preview-top-inner,
+.team-showcase-media-inner {
+  content-visibility: auto;
+  contain-intrinsic-size: 320px 200px;
+}
+
 .portfolio-thumb {
   position: relative;
   aspect-ratio: 16 / 10;
@@ -694,13 +702,29 @@ a.service-card--link:hover {
 
 .trusted-by-viewport {
   overflow: hidden;
+  /* Inset + soft fade so scrolling text does not look “clipped” at the rounded pill edges */
+  padding-inline: var(--space-5);
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 1.25rem,
+    #000 calc(100% - 1.25rem),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 1.25rem,
+    #000 calc(100% - 1.25rem),
+    transparent
+  );
 }
 
 .trusted-by-track {
   display: flex;
   width: max-content;
   flex-shrink: 0;
-  animation: trusted-by-marquee 36s linear infinite;
+  animation: trusted-by-marquee 60s linear infinite;
   will-change: transform;
 }
 

@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import LinkedInIcon from '../components/LinkedInIcon'
+import CmsImage from '../components/CmsImage'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
 import { useSite } from '../context/SiteContext'
@@ -34,7 +36,14 @@ export default function Team() {
               <div className="team-showcase-media">
                 <div className="team-showcase-media-inner">
                   {m.photo_url ? (
-                    <img src={m.photo_url} alt={`${m.name} — portrait`} loading="lazy" decoding="async" />
+                    <CmsImage
+                      src={m.photo_url}
+                      alt={`${m.name} — portrait`}
+                      sizes={CMS_SIZES.teamPortrait}
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
+                    />
                   ) : (
                     <span className="team-showcase-initial" aria-hidden>
                       {String(m.name || '?')

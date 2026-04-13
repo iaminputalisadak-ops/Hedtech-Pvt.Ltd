@@ -1,0 +1,23 @@
+{
+  "name": "hedztech → cPanel public_html",
+  "context": "deploy/cpanel/out",
+  "host": "REPLACE_FTP_OR_SSH_HOST",
+  "protocol": "ftp",
+  "port": 21,
+  "secure": true,
+  "username": "REPLACE_FTP_USERNAME",
+  "password": "REPLACE_OR_USE_KEY_PER_EXTENSION_DOCS",
+  "remotePath": "/home/REPLACE_USER/public_html",
+  "uploadOnSave": true,
+  "useTempFile": false,
+  "openSsh": false,
+  "ignore": [
+    "**/.git/**",
+    "**/.DS_Store",
+    "**/Thumbs.db"
+  ],
+  "watcher": {
+    "files": "**/*",
+    "autoUpload": true
+  }
+}

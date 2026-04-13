@@ -1,10 +1,23 @@
+import CmsImage from '../components/CmsImage'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
 
 function TrustedItem({ c }) {
   return (
     <div className="trusted-by-item">
-      {c.logo_url ? <img src={c.logo_url} alt={c.name} loading="lazy" decoding="async" /> : c.name}
+      {c.logo_url ? (
+        <CmsImage
+          src={c.logo_url}
+          alt={c.name}
+          sizes={CMS_SIZES.logoStrip}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
+        />
+      ) : (
+        c.name
+      )}
     </div>
   )
 }

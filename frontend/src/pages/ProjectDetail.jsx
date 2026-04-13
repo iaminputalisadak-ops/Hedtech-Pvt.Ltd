@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ExternalLink } from 'lucide-react'
 import SectionContainer from '../components/SectionContainer'
+import CmsImage from '../components/CmsImage'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import Seo from '../components/Seo'
 import { getProject } from '../api/client'
 
@@ -62,12 +64,14 @@ export default function ProjectDetail() {
         <h1 className="article-title">{item.title}</h1>
         <p className="project-category">{item.category}</p>
         {item.image_url ? (
-          <img
+          <CmsImage
             src={item.image_url}
             alt={`${item.title} preview`}
             className="project-hero-img"
-            loading="lazy"
+            sizes={CMS_SIZES.projectHero}
+            loading="eager"
             decoding="async"
+            fetchPriority="high"
           />
         ) : null}
         <div className="section-actions project-detail-actions">

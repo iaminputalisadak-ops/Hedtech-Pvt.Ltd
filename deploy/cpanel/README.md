@@ -1,5 +1,7 @@
 # Deploy Hedztech to cPanel (public_html)
 
+**Want Cursor connected to cPanel + database (no manual zip)?** Read **[CURSOR_CPANEL.md](../CURSOR_CPANEL.md)** (Remote SSH, FTP/SFTP, MySQL tunnel + SQLTools).
+
 ## One folder on your PC (recommended)
 
 From the **project root** (where `package.json`, `frontend/`, and `backend/` are):
@@ -9,6 +11,43 @@ npm run pack:cpanel
 ```
 
 That runs the frontend build and fills **`deploy/cpanel/out/`** with the same layout as **`public_html`** (SPA + `api/` + `bootstrap.php` + `src/` + `config.php` + `database/schema.sql` for import). Open **`deploy/cpanel/out/README_UPLOAD.txt`**, then upload **everything inside `out/`** to **`public_html`** in cPanel File Manager or FTP.
+
+---
+
+## One command: build + upload everything (FTP / FTPS)
+
+Use this when you want **every deploy** to be: pack the site, then push **`deploy/cpanel/out/`** to your hosting (same files as a manual zip upload).
+
+1. **One-time:** copy **`deploy.env.example`** → **`deploy.env`** in the project root (or run **`npm run deploy:init`**).
+2. Edit **`deploy.env`**: set **`HEDZTECH_FTP_HOST`**, **`HEDZTECH_FTP_USER`**, **`HEDZTECH_FTP_PASS`**, and **`HEDZTECH_FTP_REMOTE`** to the **absolute path of your site document root** (usually **`public_html`** for the main domain — check cPanel **FTP Accounts** for the path that FTP opens into).
+3. From the project root run:
+   ```bash
+   npm install
+   npm run deploy:cpanel
+   ```
+   That runs **`pack:cpanel`**, then uploads the **contents** of **`deploy/cpanel/out/`** into **`HEDZTECH_FTP_REMOTE`**.
+4. **Re-deploy after edits:** run **`npm run deploy:cpanel`** again (or **`npm run deploy:upload`** if you already ran **`pack:cpanel`** and only want to upload).
+5. **`deploy.env`** is **gitignored** — do not commit passwords.
+
+If FTPS fails with a TLS error, try **`HEDZTECH_FTP_SECURE=false`** (plain FTP — only if your host requires it). For verbose FTP logs: **`set HEDZTECH_FTP_DEBUG=1`** (Windows) or **`HEDZTECH_FTP_DEBUG=1 npm run deploy:upload`** (Unix).
+
+---
+
+## SFTP: save locally → sync to cPanel (Cursor / VS Code)
+
+Use the **SFTP** extension (recommended: **Natizyskunk** — workspace may prompt to install it from `.vscode/extensions.json`).
+
+1. **One-time setup**
+   - Run **`npm run sftp:init`** (copies **`.vscode/sftp.json.example`** → **`.vscode/sftp.json`**) or copy that file manually.
+   - Edit **`sftp.json`**: set **`host`**, **`username`**, **`password`** (or use **`privateKeyPath`** and remove **`password`** — see [Natizyskunk SFTP](https://github.com/Natizyskunk/vscode-sftp)).
+   - Set **`remotePath`** to your real **`public_html`** path. In cPanel it is often **`/home/CPANEL_USERNAME/public_html`** (check **FTP Accounts** or **SSH** page for the exact home path).
+2. **Why `"context": "deploy/cpanel/out"`**  
+   Uploads are scoped to the **pack output** folder so only the built site (not `node_modules` or the whole repo) maps to **`public_html`**.
+3. **Workflow**
+   - Run **`npm run pack:cpanel`** when you change code (refreshes **`deploy/cpanel/out/`**).
+   - With **`uploadOnSave`: true** and watcher **`autoUpload`: true**, saving files under **`deploy/cpanel/out/`** uploads to the server. You can set **`uploadOnSave`** / **`autoUpload`** to **`false`** and use the command palette **“SFTP: Upload Folder”** on **`deploy/cpanel/out`** for manual deploys.
+4. **Security**  
+   **`.vscode/sftp.json`** is listed in **`.gitignore`** so passwords are not committed. Keep secrets only in **`sftp.json`** on your machine.
 
 ---
 
@@ -28,7 +67,7 @@ This guide produces a **single document root** (`public_html`) that serves:
 | Everything **inside** `backend/public/` | Folder **`api/`** (so you get `public_html/api/index.php`, …) |
 | `backend/bootstrap.php` | **Root** `bootstrap.php` |
 | Folder `backend/src/` | **`src/`** |
-| `backend/config.php` (with DB password) | **Root** `config.php` |
+| `backend/config.php` | **Root** `config.php` (loads `config.sample.php`; optional **`config.local.php`** on the server for cPanel MySQL — see Step 2) |
 | **`backend/config.sample.php`** (do not skip) | **Root** `config.sample.php` — `config.php` **requires** this file |
 
 SEO is covered by:
@@ -42,7 +81,7 @@ SEO is covered by:
 
 ## Server requirements
 
-- **PHP** 8.1+ (8.2+ recommended) with extensions: **pdo_mysql**, **json**, **session**, **fileinfo** (uploads)
+- **PHP** 8.1+ (8.2+ recommended) with extensions: **pdo_mysql**, **json**, **session**, **fileinfo** (uploads). **gd** (recommended) lets the admin uploader shrink very large JPEG/PNG/WebP files so pages load faster.
 - **MySQL** 5.7+ / MariaDB 10.3+
 - **Apache** with **mod_rewrite** enabled (standard on cPanel)
 
@@ -61,7 +100,8 @@ public_html/
 ├── site.webmanifest
 ├── robots.txt
 ├── bootstrap.php          ← from repo `backend/bootstrap.php`
-├── config.php             ← from repo `backend/config.php` (set MySQL password on server)
+├── config.php             ← from repo `backend/config.php`
+├── config.local.php       ← optional, **create only on the server** (cPanel DB user/pass — gitignored; see `backend/config.local.php.example`)
 ├── config.sample.php      ← from repo `backend/config.sample.php` (required: `config.php` loads this file)
 ├── src/                   ← from repo `backend/src/` (PHP application code)
 ├── database/              ← optional on server (for reference / manual imports only)
@@ -103,20 +143,19 @@ In **phpMyAdmin**, confirm the database selected in the left sidebar is **`hedzt
 
 ---
 
-## Step 2 — Backend config (`config.php`)
+## Step 2 — Backend config (`config.php` + optional `config.local.php`)
 
-1. On your PC, copy `backend/config.sample.php` to `backend/config.php` (or edit the one you already use).
-2. Set **`db`** to match cPanel, for example:
-   - **`host`**: `localhost`
-   - **`name`**: `hedztech_hedzdb`
-   - **`user`**: `hedztech_hedzdb`
-   - **`pass`**: your MySQL user’s password (set only in `config.php` on the server or in a private env var — do not commit real passwords to git).
-3. Set **`canonical_base`** to your live URL (no trailing slash), e.g. `https://hedztech.com`.
-4. Ensure **`cors_origins`** includes that same URL (the sample file lists `https://hedztech.com` and `https://www.hedztech.com` plus localhost for dev).
+The repo **`backend/config.php`** loads **`config.sample.php`** (defaults: **`hedztech`** database, **`root`**, empty password — good for local XAMPP), then merges **`config.local.php`** if that file exists **in the same folder** (`public_html` on the server).
 
-The repo’s `backend/config.php` is pre-wired for the **`hedztech_hedzdb`** database and user names; you only need to set **`pass`** (and adjust **`host`** if your host documents a different socket/host).
+**On cPanel (production):**
 
-Upload **`config.php`** to **`public_html/config.php`**.
+1. Upload **`config.php`** and **`config.sample.php`** from each pack (or keep the server copy if unchanged).
+2. In **File Manager**, create **`public_html/config.local.php`** once (not in git). Copy **`backend/config.local.php.example`** from the repo as a template and set **`db.name`**, **`db.user`**, **`db.pass`**, and **`canonical_base`** to match your host (see **MySQL® Databases** in cPanel for the exact DB and user names — often both look like **`hedztech_hedzdb`** with your account prefix).
+3. **`config.local.php` is gitignored** — it is **not** overwritten when you run **`npm run deploy:cpanel`** as long as your FTP client merges uploads and does not delete unknown remote files. If a deploy ever removes it, re-create **`config.local.php`** on the server.
+
+**Alternative:** set **`HEDZTECH_DB_*`** and **`HEDZTECH_CANONICAL_BASE`** environment variables for PHP if your host supports that (see keys in **`backend/config.sample.php`**).
+
+**Local development:** do **not** add **`config.local.php`** unless you need overrides; import **`database/schema.sql`** into MySQL and use the sample defaults (**`hedztech`** / **`root`** / empty password).
 
 ---
 
@@ -177,6 +216,10 @@ If a deep link (e.g. `/blog/your-post`) returns **404 from Apache**, **`mod_rewr
 
 If **`/api/public/...`** (including **`/api/public/bootstrap`**) returns **404 from LiteSpeed**, the root **`.htaccess`** must rewrite non-file `/api/*` URLs to **`api/index.php`** (the build copies this rule from `frontend/public/.htaccess`). Re-upload **`.htaccess`** from a fresh `npm run build` / `npm run pack:cpanel` output.
 
+If **uploaded images do not show**, URLs must point to **`/api/uploads/...`** (files live under **`public_html/api/uploads/`**). The root **`.htaccess`** also rewrites legacy **`/uploads/...`** to **`/api/uploads/...`** for older database rows. Re-pack and re-upload **`.htaccess`**, or fix **`image_url`** / **`logo_url`** in the database to use **`/api/uploads/filename`**.
+
+If **`/admin`** returns **404 (LiteSpeed)**, delete any stray **`public_html/admin`** folder in File Manager (it is not part of this app), then ensure the root **`.htaccess`** from the build is present — it rewrites **`/admin`** to **`index.html`** for the React admin UI.
+
 ---
 
 ## Optional: force HTTPS and one hostname
@@ -189,7 +232,9 @@ In cPanel you can use **“Force HTTPS Redirect”**. To redirect **`www` → ap
 
 ### Quick diagnostic URL
 
-Open **`https://YOURDOMAIN.com/api/public/db-health`** (replace with your domain).
+Open **`https://hedztech.com/api/public/db-health`**.
+
+For a **simple HTML page** (and optional JSON) that shows host, database name, user, and MySQL version without using the API router, open **`https://hedztech.com/db_connection_check.php`**. That file is **`backend/db_connection_check.php`** in the repo and is copied into **`deploy/cpanel/out/`** when you run **`npm run pack:cpanel`**. **Delete it from `public_html` after you finish testing** — it is only for diagnostics.
 
 It returns JSON such as:
 
@@ -199,35 +244,42 @@ It returns JSON such as:
 
 ### Bootstrap URL
 
-Open **`https://YOURDOMAIN.com/api/public/bootstrap`**. If you see **`"error":"Database connection failed"`**, fix **`public_html/config.php`**:
+Open **`https://hedztech.com/api/public/bootstrap`**. If you see **`"error":"Database connection failed"`**, fix **`public_html/config.local.php`** (or env vars / **`config.sample.php`** defaults if you are not using **`config.local.php`**):
 
-1. **Password** — In cPanel → **MySQL® Databases**, the MySQL user has its **own** password (not your cPanel login). Paste that exact value into **`$config['db']['pass']`** (or set env **`HEDZTECH_DB_PASS`**). An empty password almost always fails on shared hosting.
+1. **Password** — In cPanel → **MySQL® Databases**, the MySQL user has its **own** password (not your cPanel login). Put that value in **`config.local.php`** under **`db.pass`** (or set env **`HEDZTECH_DB_PASS`**). An empty password almost always fails on shared hosting.
 
 2. **User attached to database** — In **MySQL® Databases**, use **“Add User to Database”** and give **ALL PRIVILEGES** for **`hedztech_hedzdb`** (or whatever your DB name is).
 
 3. **Exact names** — **`name`** and **`user`** must match cPanel (often both look like **`hedztech_hedzdb`** with your account prefix).
 
-4. **Host** — The repo defaults to **`127.0.0.1`** (TCP). If it still fails, try **`host` => `'localhost'`** in `config.php`. Rarely, your host requires a **Unix socket**; then set **`socket`** (see comments in `backend/config.sample.php`) and leave host unused when socket is set.
+4. **Host** — Defaults use **`127.0.0.1`** (TCP). If it still fails, set **`db.host`** to **`localhost`** in **`config.local.php`**. Rarely, your host requires a **Unix socket**; then set **`db.socket`** (see comments in `backend/config.sample.php`).
 
 5. **Tables exist** — In **phpMyAdmin**, select your database and confirm tables such as **`settings`**, **`services`**. If empty, **Import** `database/schema.sql`.
 
-6. **Temporary PDO message** — In `config.php`, set **`$config['db_show_error'] = true;`** (from `config.sample.php` it follows **`HEDZTECH_DB_DEBUG=1`**). Reload **`/api/public/bootstrap`** once to read the **`detail`** field in JSON, then **turn it off** on production.
+6. **Temporary PDO message** — Set **`db_show_error`** to **`true`** in **`config.local.php`**, or set env **`HEDZTECH_DB_DEBUG=1`** (see `backend/config.sample.php`). Reload **`/api/public/bootstrap`** once to read the **`detail`** field in JSON, then **turn it off** on production.
 
 ---
 
 ## Local development note
 
+Run **two terminals** from the project root:
+
+1. **`npm run api`** — starts PHP on **http://127.0.0.1:8080** (uses **`node scripts/run-api.mjs`**, which looks for `php` on PATH, then common **XAMPP** / **Laragon** paths on Windows, or set **`PHP_PATH`** to your **`php.exe`**).
+2. **`npm run dev`** — Vite on **http://localhost:5173/** (proxies **`/api`** to port 8080).
+
+Import **`database/schema.sql`** into local MySQL (**`hedztech`** database). With no **`backend/config.local.php`**, **`backend/config.php`** uses the sample defaults (**`root`** / empty password on **`127.0.0.1`**).
+
 With **`frontend/public/sitemap.xml` removed**, the pretty URL **`/sitemap.xml`** is satisfied in production by Apache rewrite to the API. On **`npm run dev`**, use the API directly if needed:
 
-`http://127.0.0.1:8080` (or your PHP host) → **`/api/public/sitemap.xml`**
+`http://127.0.0.1:8080` → **`/api/public/sitemap.xml`**
 
 ---
 
 ## Support checklist
 
 - [ ] Database imported; migrations applied if any  
-- [ ] `config.php` + **`config.sample.php`** in `public_html` (same folder) + DB credentials + `canonical_base`  
-- [ ] **`/api/public/db-health`** returns `"connected": true`  
+- [ ] `config.php` + **`config.sample.php`** in `public_html` (same folder); production **`config.local.php`** with DB credentials + `canonical_base` (or env vars)  
+- [ ] **`/api/public/db-health`** returns `"connected": true` (optional: **`/db_connection_check.php`**, then remove that file)  
 - [ ] `public_html/api/uploads` writable  
 - [ ] Frontend `dist` merged into `public_html`  
 - [ ] Admin password changed  

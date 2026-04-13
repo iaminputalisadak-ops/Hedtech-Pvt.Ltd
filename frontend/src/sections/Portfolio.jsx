@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { Navigation, Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import SectionContainer from '../components/SectionContainer'
+import CmsImage from '../components/CmsImage'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import { useSite } from '../context/SiteContext'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import 'swiper/css'
@@ -16,7 +18,7 @@ import './PortfolioHome.css'
 const DESKTOP_GRID = '(min-width: 1024px)'
 const HOME_PORTFOLIO_PREVIEW = 4
 
-function ProjectPreviewCard({ p }) {
+function ProjectPreviewCard({ p, imagePriority = 'low' }) {
   return (
     <article className="review-card project-preview-card">
       <Link
@@ -26,11 +28,13 @@ function ProjectPreviewCard({ p }) {
       >
         <div className="project-preview-top-inner">
           {p.image_url ? (
-            <img
+            <CmsImage
               src={p.image_url}
               alt=""
+              sizes={CMS_SIZES.card16x9}
               loading="lazy"
               decoding="async"
+              fetchPriority={imagePriority}
               className={p.image_fit === 'contain' ? 'is-contain' : 'is-cover'}
             />
           ) : (
@@ -58,10 +62,6 @@ export default function Portfolio() {
   const isDesktop = useMediaQuery(DESKTOP_GRID)
 
   const n = projects?.length ?? 0
-  if (!n) return null
-
-  const loopEnabled = n >= 4
-  const rewindEnabled = !loopEnabled && n > 1
 
   const breakpoints = useMemo(() => {
     const count = Math.max(1, n)
@@ -71,6 +71,11 @@ export default function Portfolio() {
       900: { slidesPerView: Math.min(2, count), spaceBetween: 20 },
     }
   }, [n])
+
+  if (!n) return null
+
+  const loopEnabled = n >= 4
+  const rewindEnabled = !loopEnabled && n > 1
 
   const desktopItems = projects.slice(0, HOME_PORTFOLIO_PREVIEW)
   const showViewAll = n > HOME_PORTFOLIO_PREVIEW
@@ -83,7 +88,7 @@ export default function Portfolio() {
         <p className="section-lead">A snapshot of recent builds — interfaces, platforms, and launches we have shipped.</p>
       </div>
 
-      <motion.div
+      <Motion.div
         initial={reduce ? false : { opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: '-40px' }}
@@ -92,8 +97,8 @@ export default function Portfolio() {
         {isDesktop ? (
           <div className="reviews-desktop">
             <div className="reviews-desktop-grid">
-              {desktopItems.map((p) => (
-                <ProjectPreviewCard key={p.id} p={p} />
+              {desktopItems.map((p, idx) => (
+                <ProjectPreviewCard key={p.id} p={p} imagePriority={idx < 2 ? 'high' : 'low'} />
               ))}
             </div>
             {showViewAll ? (
@@ -127,9 +132,9 @@ export default function Portfolio() {
                   nextEl: '.reviews-carousel-wrap .reviews-next',
                 }}
               >
-                {projects.map((p) => (
+                {projects.map((p, idx) => (
                   <SwiperSlide key={p.id}>
-                    <ProjectPreviewCard p={p} />
+                    <ProjectPreviewCard p={p} imagePriority={idx === 0 ? 'high' : 'low'} />
                   </SwiperSlide>
                 ))}
               </Swiper>
@@ -153,7 +158,7 @@ export default function Portfolio() {
             ) : null}
           </div>
         )}
-      </motion.div>
+      </Motion.div>
     </SectionContainer>
   )
 }

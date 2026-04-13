@@ -1,0 +1,17 @@
+{
+  "sqltools.connections": [
+    {
+      "name": "cPanel MySQL (via SSH tunnel)",
+      "driver": "MySQL",
+      "server": "127.0.0.1",
+      "port": 13307,
+      "database": "REPLACE_WITH_YOUR_DATABASE_NAME",
+      "username": "REPLACE_WITH_YOUR_MYSQL_USER",
+      "askForPassword": true,
+      "connectionTimeout": 60,
+      "mysqlOptions": {
+        "authPlugin": "mysql_native_password"
+      }
+    }
+  ]
+}

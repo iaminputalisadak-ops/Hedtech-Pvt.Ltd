@@ -158,6 +158,7 @@ function HeroWallpaper({
     <img
       src={url}
       alt=""
+      sizes="100vw"
       decoding="async"
       loading={loading}
       fetchPriority={fetchPriority}

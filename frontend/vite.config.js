@@ -47,6 +47,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // PHP docroot is backend/public — paths are /uploads/... not /api/uploads/...
+      '/api/uploads': {
+        target: 'http://127.0.0.1:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
       '/api': {
         target: 'http://127.0.0.1:8080',
         changeOrigin: true,
@@ -59,6 +65,11 @@ export default defineConfig({
   },
   preview: {
     proxy: {
+      '/api/uploads': {
+        target: 'http://127.0.0.1:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
       '/api': {
         target: 'http://127.0.0.1:8080',
         changeOrigin: true,

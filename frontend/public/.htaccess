@@ -9,6 +9,13 @@
   # stale static sitemap.xml on disk cannot override the dynamic sitemap.
   RewriteRule ^sitemap\.xml$ /api/public/sitemap.xml [L]
 
+  # Older admin uploads stored image_url as /uploads/... — files actually live in api/uploads/.
+  RewriteRule ^uploads/(.*)$ /api/uploads/$1 [L]
+
+  # Admin UI is React Router (no real /admin files). If public_html/admin exists as an empty folder,
+  # LiteSpeed would 404 here — always serve the SPA shell first.
+  RewriteRule ^admin(?:/.*)?$ /index.html [L]
+
   # If the request targets an existing file/folder, serve it directly.
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

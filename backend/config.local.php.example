@@ -1,0 +1,19 @@
+<?php
+/**
+ * Copy to config.local.php in this same folder (backend/). That file is gitignored.
+ *
+ * - Local XAMPP: usually NOT needed — config.sample.php already uses database `hedztech`, user `root`, empty password.
+ * - Production (cPanel): create config.local.php on the server next to config.php (e.g. in public_html) with your
+ *   real MySQL database name, user, and password from cPanel → MySQL® Databases. Do not commit it to git.
+ *
+ * After `npm run pack:cpanel`, only config.php is uploaded from the repo; leave config.local.php on the server only.
+ */
+return [
+    'db' => [
+        'host' => '127.0.0.1',
+        'name' => 'hedztech_hedzdb',
+        'user' => 'hedztech_hedzdb',
+        'pass' => 'REPLACE_WITH_CPANEL_MYSQL_PASSWORD',
+    ],
+    'canonical_base' => 'https://hedztech.com',
+];

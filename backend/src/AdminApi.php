@@ -15,7 +15,78 @@ final class AdminApi
 
     private static function publicUploadUrl(string $filename): string
     {
-        return '/uploads/' . rawurlencode($filename);
+        // On cPanel, backend/public is deployed as public_html/api/, so files are at /api/uploads/.
+        // (Returning /uploads/ would point at public_html/uploads/, which does not exist.)
+        return '/api/uploads/' . rawurlencode($filename);
+    }
+
+    /**
+     * Reduce dimensions of large JPEG/PNG/WebP uploads (GD). Keeps originals that are already ≤ max edge.
+     * Skips GIF/SVG/ICO. Fails silently if GD cannot read the file.
+     */
+    private static function tryDownscaleRasterUpload(string $path, string $ext): void
+    {
+        $ext = strtolower($ext);
+        if (!in_array($ext, ['jpg', 'png', 'webp'], true)) {
+            return;
+        }
+        if (!function_exists('imagecreatefromstring') || !function_exists('imagecreatetruecolor')) {
+            return;
+        }
+
+        $data = @file_get_contents($path);
+        if ($data === false || $data === '') {
+            return;
+        }
+
+        $img = @imagecreatefromstring($data);
+        if ($img === false) {
+            return;
+        }
+
+        $w = imagesx($img);
+        $h = imagesy($img);
+        if ($w < 1 || $h < 1) {
+            imagedestroy($img);
+            return;
+        }
+
+        $maxEdge = 1920;
+        if ($w <= $maxEdge && $h <= $maxEdge) {
+            imagedestroy($img);
+            return;
+        }
+
+        $scale = min($maxEdge / $w, $maxEdge / $h);
+        $nw = max(1, (int) round($w * $scale));
+        $nh = max(1, (int) round($h * $scale));
+
+        $dst = imagecreatetruecolor($nw, $nh);
+        if ($dst === false) {
+            imagedestroy($img);
+            return;
+        }
+
+        if ($ext === 'png') {
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+            $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+            imagefilledrectangle($dst, 0, 0, $nw, $nh, $transparent);
+        }
+
+        imagecopyresampled($dst, $img, 0, 0, 0, 0, $nw, $nh, $w, $h);
+        imagedestroy($img);
+
+        $written = match ($ext) {
+            'jpg' => imagejpeg($dst, $path, 86),
+            'png' => imagepng($dst, $path, 6),
+            'webp' => function_exists('imagewebp') ? imagewebp($dst, $path, 82) : false,
+            default => false,
+        };
+        imagedestroy($dst);
+        if ($written !== true) {
+            // Leave whatever was on disk; rare write failure.
+        }
     }
 
     private static function extFromMime(string $mime): ?string
@@ -102,7 +173,15 @@ final class AdminApi
             return;
         }
 
-        Util::sendJson(['ok' => true, 'url' => self::publicUploadUrl($name), 'mime' => $mime, 'bytes' => $size]);
+        self::tryDownscaleRasterUpload($dest, $ext);
+        clearstatcache(true, $dest);
+        $finalSize = filesize($dest);
+        Util::sendJson([
+            'ok' => true,
+            'url' => self::publicUploadUrl($name),
+            'mime' => $mime,
+            'bytes' => $finalSize !== false ? $finalSize : $size,
+        ]);
     }
 
     public static function login(): void

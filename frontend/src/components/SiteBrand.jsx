@@ -30,8 +30,10 @@ export default function SiteBrand({ onClick, className = '' }) {
           <img
             src={markUrl || logoUrl}
             alt=""
+            sizes="160px"
             loading="eager"
             decoding="async"
+            fetchPriority="high"
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         </span>

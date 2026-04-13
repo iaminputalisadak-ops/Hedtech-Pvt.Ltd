@@ -4,7 +4,16 @@
   "scripts": {
     "dev": "npm run dev --prefix frontend",
     "build": "npm run build --prefix frontend",
-    "api": "php -S 127.0.0.1:8080 -t backend/public backend/public/router.php",
-    "pack:cpanel": "npm run build && node scripts/assemble-cpanel-upload.mjs"
+    "api": "node scripts/run-api.mjs",
+    "pack:cpanel": "npm run build && node scripts/assemble-cpanel-upload.mjs",
+    "deploy:upload": "node scripts/deploy-ftp.mjs",
+    "deploy:cpanel": "npm run pack:cpanel && node scripts/deploy-ftp.mjs",
+    "deploy:init": "node scripts/copy-deploy-env.mjs",
+    "tunnel:init": "node scripts/copy-tunnel-env.mjs",
+    "tunnel:mysql": "node scripts/mysql-tunnel.mjs",
+    "sftp:init": "node scripts/copy-sftp-config.mjs"
+  },
+  "devDependencies": {
+    "basic-ftp": "^5.0.5"
   }
 }

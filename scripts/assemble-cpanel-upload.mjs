@@ -27,6 +27,7 @@ cpSync(dist, out, { recursive: true })
 
 // 2) PHP app next to index.html
 cpSync(join(root, 'backend', 'bootstrap.php'), join(out, 'bootstrap.php'))
+cpSync(join(root, 'backend', 'db_connection_check.php'), join(out, 'db_connection_check.php'))
 cpSync(join(root, 'backend', 'src'), join(out, 'src'), { recursive: true })
 cpSync(join(root, 'backend', 'public'), join(out, 'api'), { recursive: true })
 
@@ -72,8 +73,9 @@ writeFileSync(
     '- If .htaccess is missing, rename CPANEL-public_html-RENAME-TO-dothtaccess.txt to .htaccess',
     '- In api/, rename CPANEL-api-folder-RENAME-TO-dothtaccess.txt to .htaccess if needed',
     '- Import database/schema.sql via phpMyAdmin into your MySQL database',
-    '- Keep config.sample.php next to config.php (required). Edit config.php: set db pass, host (127.0.0.1 or localhost), canonical_base',
+    '- Keep config.sample.php next to config.php (required). On production, add config.local.php next to them (see backend/config.local.php.example in repo) with cPanel MySQL db/user/pass and canonical_base',
     '- Debug DB: open /api/public/db-health in the browser',
+    '- Optional: open /db_connection_check.php for a simple HTML/JSON DB test — delete that file after testing',
     '',
     'Full guide: deploy/cpanel/README.md in the repo.',
     '',

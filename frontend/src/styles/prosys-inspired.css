@@ -288,18 +288,9 @@ html[data-theme='light'] .service-card--pro .service-card-icon-wrap {
 
 .team-showcase-grid--page {
   margin-top: var(--space-6);
-}
-
-@media (min-width: 560px) {
-  .team-showcase-grid--page {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .team-showcase-grid--page {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  /* Smaller cards + more columns on wide viewports (was 2–3 stretch columns that grew very tall). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
+  gap: clamp(1rem, 2.2vw, 1.5rem);
 }
 
 .team-showcase-card {
@@ -338,6 +329,14 @@ html[data-theme='light'] .team-showcase-card {
 
 .team-showcase-card--page {
   text-align: center;
+  max-width: 16.25rem;
+  width: 100%;
+  justify-self: center;
+}
+
+.team-showcase-card--page .team-showcase-media {
+  /* Slightly less tall than the home strip (3/4) so the /team page feels lighter */
+  aspect-ratio: 4 / 5;
 }
 
 .team-showcase-media {
@@ -432,7 +431,7 @@ html[data-theme='light'] .team-showcase-card {
 }
 
 .team-showcase-body--page {
-  padding: 1.2rem 1.2rem 1.55rem;
+  padding: 0.95rem 1rem 1.25rem;
 }
 
 .team-showcase-name {
@@ -443,6 +442,10 @@ html[data-theme='light'] .team-showcase-card {
   letter-spacing: -0.032em;
   line-height: 1.2;
   color: var(--text);
+}
+
+.team-showcase-card--page .team-showcase-name {
+  font-size: clamp(0.98rem, 1.25vw, 1.08rem);
 }
 
 .team-showcase-role {
@@ -472,6 +475,11 @@ html[data-theme='light'] .team-showcase-card {
   line-height: 1.64;
   color: color-mix(in srgb, var(--muted) 88%, var(--text));
   text-align: left;
+}
+
+.team-showcase-card--page .team-showcase-bio {
+  font-size: 0.85rem;
+  line-height: 1.58;
 }
 
 .team-showcase-foot {

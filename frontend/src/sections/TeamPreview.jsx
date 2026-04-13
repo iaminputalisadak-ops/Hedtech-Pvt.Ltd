@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import LinkedInIcon from '../components/LinkedInIcon'
+import CmsImage from '../components/CmsImage'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
 
@@ -32,7 +34,7 @@ export default function TeamPreview() {
       </div>
       <div className={`team-showcase-grid team-showcase-grid--home ${countClass}`}>
         {members.map((m, i) => (
-          <motion.article
+          <Motion.article
             key={m.id}
             className="team-showcase-card"
             initial={fadeIn(reduce)}
@@ -44,7 +46,14 @@ export default function TeamPreview() {
             <div className="team-showcase-media">
               <div className="team-showcase-media-inner">
                 {m.photo_url ? (
-                  <img src={m.photo_url} alt={`${m.name} — portrait`} loading="lazy" decoding="async" />
+                  <CmsImage
+                    src={m.photo_url}
+                    alt={`${m.name} — portrait`}
+                    sizes={CMS_SIZES.teamPortrait}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority={i === 0 ? 'high' : 'low'}
+                  />
                 ) : (
                   <span className="team-showcase-initial" aria-hidden>
                     {String(m.name || '?')
@@ -71,7 +80,7 @@ export default function TeamPreview() {
               {m.role ? <p className="team-showcase-role">{m.role}</p> : null}
               <span className="team-showcase-accent" aria-hidden />
             </div>
-          </motion.article>
+          </Motion.article>
         ))}
       </div>
       <div className="team-showcase-foot">

@@ -14,6 +14,11 @@ deploy/cpanel/out/
 .env
 .env.*
 !.env.example
+deploy.env
+
+# Local / server-only PHP overrides (DB passwords, etc.)
+backend/config.local.php
+tunnel.env
 
 # Logs & OS
 *.log
@@ -26,7 +31,10 @@ backend/public/uploads/
 # IDE
 .idea/
 *.sw?
+# SFTP (Cursor/VS Code “SFTP” extension) — real host/user/password; never commit
+.vscode/sftp.json
 
 # Local deployment bundles (generated; not for Git)
 backend.zip
 frontend/dist.zip
+deploy.zip
