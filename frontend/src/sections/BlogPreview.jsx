@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
+import CmsImage from '../components/CmsImage'
 import SectionContainer from '../components/SectionContainer'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
@@ -33,6 +35,19 @@ export default function BlogPreview() {
             viewport={{ once: true, margin: '-20px' }}
             transition={{ duration: 0.35, delay: i * 0.05 }}
           >
+            {(post.og_image || '').trim() ? (
+              <div className="blog-card__thumb">
+                <CmsImage
+                  className="blog-card__thumb-img"
+                  src={String(post.og_image).trim()}
+                  alt={(post.og_image_alt || '').trim() || post.title}
+                  sizes={CMS_SIZES.blogCardThumb}
+                  loading="lazy"
+                  decoding="async"
+                  fetchPriority="low"
+                />
+              </div>
+            ) : null}
             <span className="blog-card__category">{post.category}</span>
             <h3>{post.title}</h3>
             <p className="blog-card__excerpt">{post.excerpt}</p>

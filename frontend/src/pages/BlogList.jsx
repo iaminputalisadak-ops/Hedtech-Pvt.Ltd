@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import CmsImage from '../components/CmsImage'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import { getBlogList } from '../api/client'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
@@ -130,6 +132,19 @@ export default function BlogList() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.04 }}
             >
+              {(post.og_image || '').trim() ? (
+                <div className="blog-post-card__thumb">
+                  <CmsImage
+                    className="blog-post-card__thumb-img"
+                    src={String(post.og_image).trim()}
+                    alt={(post.og_image_alt || '').trim() || post.title}
+                    sizes={CMS_SIZES.blogCardThumb}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                  />
+                </div>
+              ) : null}
               <span className="blog-card__category">{post.category}</span>
               <h2>{post.title}</h2>
               <p className="blog-card__excerpt">{post.excerpt}</p>

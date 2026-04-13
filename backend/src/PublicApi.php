@@ -94,7 +94,8 @@ final class PublicApi
 
     public static function services(): void
     {
-        $stmt = Db::pdo()->query('SELECT id, title, description, icon, sort_order FROM services ORDER BY sort_order ASC, id ASC');
+        Db::ensureServicesImageUrlColumn();
+        $stmt = Db::pdo()->query('SELECT id, title, description, icon, image_url, sort_order FROM services ORDER BY sort_order ASC, id ASC');
         Util::sendJson(['items' => $stmt->fetchAll()]);
     }
 
@@ -166,12 +167,13 @@ final class PublicApi
             $params[] = $like;
         }
         $pdo = Db::pdo();
+        Db::ensureBlogOgImageAltColumn();
 
         $stmtCount = $pdo->prepare('SELECT COUNT(*)' . $sqlBase);
         $stmtCount->execute($params);
         $total = (int) $stmtCount->fetchColumn();
 
-        $sql = 'SELECT id, title, slug, excerpt, category, tags, created_at, meta_title, meta_description, og_image'
+        $sql = 'SELECT id, title, slug, excerpt, category, tags, created_at, meta_title, meta_description, og_image, og_image_alt'
             . $sqlBase
             . ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
         $stmt = $pdo->prepare($sql);
@@ -181,8 +183,9 @@ final class PublicApi
 
     public static function blogBySlug(string $slug): void
     {
+        Db::ensureBlogOgImageAltColumn();
         $stmt = Db::pdo()->prepare(
-            'SELECT id, title, slug, excerpt, body, category, tags, created_at, meta_title, meta_description, og_image
+            'SELECT id, title, slug, excerpt, body, category, tags, created_at, meta_title, meta_description, og_image, og_image_alt
              FROM blog_posts WHERE slug = ? AND published = 1 LIMIT 1'
         );
         $stmt->execute([$slug]);
@@ -246,6 +249,8 @@ final class PublicApi
     public static function bootstrap(): void
     {
         $pdo = Db::pdo();
+        Db::ensureServicesImageUrlColumn();
+        Db::ensureBlogOgImageAltColumn();
         Db::ensureTeamMembersTable();
         $settings = [];
         foreach ($pdo->query('SELECT `key`, `value` FROM settings')->fetchAll() as $r) {
@@ -259,7 +264,7 @@ final class PublicApi
         }
         Util::sendJson([
             'settings' => $settings,
-            'services' => $pdo->query('SELECT id, title, description, icon, sort_order FROM services ORDER BY sort_order')->fetchAll(),
+            'services' => $pdo->query('SELECT id, title, description, icon, image_url, sort_order FROM services ORDER BY sort_order')->fetchAll(),
             'skills' => $pdo->query('SELECT id, name, level, sort_order FROM skills ORDER BY sort_order')->fetchAll(),
             'projects' => (static function () use ($pdo) {
                 $hasFit = Db::columnExists('projects', 'image_fit');
@@ -284,7 +289,7 @@ final class PublicApi
                     : 'SELECT id, name, role, video_url, rating, quote, sort_order FROM testimonials ORDER BY sort_order'
             )->fetchAll(),
             'blog' => $pdo->query(
-                'SELECT id, title, slug, excerpt, category, tags, created_at FROM blog_posts WHERE published = 1 ORDER BY created_at DESC LIMIT 6'
+                'SELECT id, title, slug, excerpt, category, tags, created_at, og_image, og_image_alt FROM blog_posts WHERE published = 1 ORDER BY created_at DESC LIMIT 6'
             )->fetchAll(),
         ], 200, 30);
     }

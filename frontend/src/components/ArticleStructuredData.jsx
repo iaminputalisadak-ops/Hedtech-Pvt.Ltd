@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { useSite } from '../context/SiteContext'
+import { absoluteUrlFromBase } from '../utils/absoluteUrl'
 
 export default function ArticleStructuredData({ item }) {
   const { settings } = useSite()
@@ -8,9 +9,17 @@ export default function ArticleStructuredData({ item }) {
 
   const url = `${base}/blog/${encodeURIComponent(item.slug)}`
   const siteName = settings.site_name || 'Hedztech'
-  const logo = settings.og_image && /^https?:\/\//i.test(settings.og_image) ? settings.og_image : `${base}/favicon.svg`
+  const logoRaw = (settings.og_image || '').trim()
+  const logo = logoRaw && /^https?:\/\//i.test(logoRaw) ? logoRaw : `${base}/favicon.svg`
 
-  const img = item.og_image && /^https?:\/\//i.test(item.og_image) ? item.og_image : undefined
+  const rawImg = (item.og_image || '').trim()
+  const img = rawImg ? absoluteUrlFromBase(rawImg, base) : undefined
+  const imgName = (item.og_image_alt || item.title || '').trim() || item.title
+
+  const tagList = (item.tags || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
 
   const article = {
     '@context': 'https://schema.org',
@@ -22,7 +31,19 @@ export default function ArticleStructuredData({ item }) {
     dateModified: item.created_at,
     author: { '@type': 'Organization', name: siteName },
     publisher: { '@type': 'Organization', name: siteName, logo: { '@type': 'ImageObject', url: logo } },
-    ...(img ? { image: [img] } : {}),
+    inLanguage: 'en',
+    ...(item.category ? { articleSection: item.category } : {}),
+    ...(tagList.length ? { keywords: tagList.join(', ') } : {}),
+    ...(img
+      ? {
+          image: {
+            '@type': 'ImageObject',
+            url: img,
+            name: imgName,
+            caption: imgName,
+          },
+        }
+      : {}),
   }
 
   const breadcrumb = {
@@ -42,4 +63,3 @@ export default function ArticleStructuredData({ item }) {
     </Helmet>
   )
 }
-

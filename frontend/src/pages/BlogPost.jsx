@@ -1,7 +1,9 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import CmsImage from '../components/CmsImage'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import { DESIGN_SYSTEMS_SHIP_SLUG } from '../constants/blogSlugs'
 import { getBlogList, getBlogPost } from '../api/client'
 import { renderMarkdown } from '../utils/markdown'
@@ -72,13 +74,32 @@ export default function BlogPost() {
     )
   }
 
+  const heroSrc = (item.og_image || '').trim()
+  const heroAlt = (item.og_image_alt || '').trim() || item.title
+  const tagKeywords = (item.tags || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(', ')
+
   return (
     <>
       <Seo
         title={item.meta_title || `${item.title} — Hedztech Blog`}
         description={item.meta_description || item.excerpt || ''}
         path={`/blog/${item.slug}`}
-        image={item.og_image || undefined}
+        image={heroSrc || undefined}
+        imageAlt={heroAlt}
+        keywords={tagKeywords || undefined}
+        ogType="article"
+        article={{
+          publishedTime: item.created_at,
+          section: item.category,
+          tags: (item.tags || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean),
+        }}
       />
       <ArticleStructuredData item={item} />
       <SectionContainer as="article" containerClassName="container--narrow">
@@ -91,6 +112,19 @@ export default function BlogPost() {
         <h1 className="article-title">{item.title}</h1>
         <p className="article-date">{new Date(item.created_at).toLocaleDateString()}</p>
         {item.tags ? <p className="article-tags">Tags: {item.tags}</p> : null}
+        {heroSrc ? (
+          <figure className="article-hero">
+            <CmsImage
+              className="article-hero-img"
+              src={heroSrc}
+              alt={heroAlt}
+              sizes={CMS_SIZES.blogHero}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </figure>
+        ) : null}
         <div className="glass article-body-panel">
           <p className="article-lead">{item.excerpt}</p>
           {slug === DESIGN_SYSTEMS_SHIP_SLUG ? (

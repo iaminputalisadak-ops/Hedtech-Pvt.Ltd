@@ -236,7 +236,15 @@ const SETTINGS_GROUPS = [
 const svcFields = [
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description', multiline: true },
-  { key: 'icon', label: 'Icon name' },
+  { key: 'icon', label: 'Icon name (shown when no card image)' },
+  { key: 'image_url', label: 'Card image URL (optional)' },
+  {
+    key: 'image_upload',
+    label: 'Upload card image',
+    uploadFor: 'image_url',
+    uploadKind: 'service-card',
+    accept: 'image/*,.svg',
+  },
   { key: 'sort_order', label: 'Order', number: true },
 ]
 
@@ -261,14 +269,25 @@ const projectFields = [
 
 const blogFields = [
   { key: 'title', label: 'Title' },
-  { key: 'slug', label: 'URL slug' },
-  { key: 'excerpt', label: 'Summary', multiline: true },
+  { key: 'slug', label: 'URL slug (use lowercase, hyphens — e.g. core-web-vitals-guide)' },
+  { key: 'excerpt', label: 'Summary (shown in listings & meta fallback)', multiline: true },
   { key: 'body', label: 'Article text', multiline: true },
   { key: 'category', label: 'Category' },
-  { key: 'tags', label: 'Tags' },
-  { key: 'meta_title', label: 'SEO title (optional)' },
-  { key: 'meta_description', label: 'SEO description (optional)', multiline: true },
-  { key: 'og_image', label: 'OG image URL (optional)' },
+  { key: 'tags', label: 'Tags (comma-separated — used for article:tag meta & JSON-LD)' },
+  { key: 'meta_title', label: 'SEO title (optional — overrides browser title when set)' },
+  { key: 'meta_description', label: 'Meta description (optional — aim for ~150 characters)', multiline: true },
+  { key: 'og_image', label: 'Featured image URL (Open Graph, Twitter, and article hero)' },
+  {
+    key: 'og_image_upload',
+    label: 'Upload featured image',
+    uploadFor: 'og_image',
+    uploadKind: 'blog-og',
+    accept: 'image/*,.svg',
+  },
+  {
+    key: 'og_image_alt',
+    label: 'Featured image alt text (required for accessibility; helps image SEO)',
+  },
   { key: 'published', label: 'Published', boolean: true },
 ]
 
@@ -798,7 +817,15 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
       setDraft({})
       setCreateOpen(false)
       await onRefresh()
-      if (resource === 'projects' || resource === 'team' || resource === 'testimonials') onSiteRefresh?.()
+      if (
+        resource === 'projects' ||
+        resource === 'team' ||
+        resource === 'testimonials' ||
+        resource === 'services' ||
+        resource === 'blog'
+      ) {
+        onSiteRefresh?.()
+      }
     } catch (err) {
       setLocalError(err.message || 'Could not add')
     } finally {
@@ -837,7 +864,15 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
       await adminUpdate(resource, id, body)
       setEditing(null)
       await onRefresh()
-      if (resource === 'projects' || resource === 'team' || resource === 'testimonials') onSiteRefresh?.()
+      if (
+        resource === 'projects' ||
+        resource === 'team' ||
+        resource === 'testimonials' ||
+        resource === 'services' ||
+        resource === 'blog'
+      ) {
+        onSiteRefresh?.()
+      }
     } catch (err) {
       setLocalError(err.message || 'Could not save')
     } finally {
@@ -1051,7 +1086,15 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
                       await adminDelete(resource, row.id)
                       setEditing(null)
                       await onRefresh()
-                      if (resource === 'projects' || resource === 'team' || resource === 'testimonials') onSiteRefresh?.()
+                      if (
+                        resource === 'projects' ||
+                        resource === 'team' ||
+                        resource === 'testimonials' ||
+                        resource === 'services' ||
+                        resource === 'blog'
+                      ) {
+                        onSiteRefresh?.()
+                      }
                     } catch (err) {
                       setLocalError(err.message || 'Delete failed')
                     } finally {

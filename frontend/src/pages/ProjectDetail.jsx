@@ -54,7 +54,13 @@ export default function ProjectDetail() {
 
   return (
     <>
-      <Seo title={`${item.title} — Hedztech`} description={item.excerpt || ''} path={`/work/${item.slug}`} image={item.image_url} />
+      <Seo
+        title={`${item.title} — Hedztech`}
+        description={item.excerpt || ''}
+        path={`/work/${item.slug}`}
+        image={item.image_url}
+        imageAlt={`${item.title} — project preview`}
+      />
       <SectionContainer as="article" containerClassName="container--reading">
         <p className="section-back">
           <Link to="/work" className="text-back-link">

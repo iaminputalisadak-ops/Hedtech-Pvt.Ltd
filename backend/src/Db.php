@@ -13,6 +13,9 @@ final class Db
     /** @var array<string, bool> */
     private static array $tableExistsCache = [];
 
+    /** @var array<string, bool> */
+    private static array $columnExistsCache = [];
+
     /** @param array<string, mixed> $c */
     private static function buildDsn(array $c): string
     {
@@ -89,19 +92,39 @@ final class Db
     /** Cached check so public API can run before/after optional migrations (e.g. testimonials.published). */
     public static function columnExists(string $table, string $column): bool
     {
-        static $cache = [];
         $key = $table . '.' . $column;
-        if (array_key_exists($key, $cache)) {
-            return $cache[$key];
+        if (array_key_exists($key, self::$columnExistsCache)) {
+            return self::$columnExistsCache[$key];
         }
         $stmt = self::pdo()->prepare(
             'SELECT COUNT(*) FROM information_schema.COLUMNS
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
         );
         $stmt->execute([$table, $column]);
-        $cache[$key] = (int) $stmt->fetchColumn() > 0;
+        self::$columnExistsCache[$key] = (int) $stmt->fetchColumn() > 0;
 
-        return $cache[$key];
+        return self::$columnExistsCache[$key];
+    }
+
+    /** Clear column existence cache (e.g. after ALTER TABLE adds a column). */
+    public static function forgetColumnExistsCache(?string $table = null, ?string $column = null): void
+    {
+        if ($table === null && $column === null) {
+            self::$columnExistsCache = [];
+
+            return;
+        }
+        if ($column !== null) {
+            unset(self::$columnExistsCache[$table . '.' . $column]);
+
+            return;
+        }
+        $prefix = $table . '.';
+        foreach (array_keys(self::$columnExistsCache) as $k) {
+            if (str_starts_with($k, $prefix)) {
+                unset(self::$columnExistsCache[$k]);
+            }
+        }
     }
 
     /** Cached check so public API can work even if a table migration hasn't been run yet. */
@@ -155,5 +178,33 @@ SQL;
         self::forgetTableExistsCache('team_members');
 
         return self::tableExists('team_members');
+    }
+
+    /** Adds blog_posts.og_image_alt when missing (see database/migrations/016_blog_og_image_alt.sql). */
+    public static function ensureBlogOgImageAltColumn(): void
+    {
+        if (!self::tableExists('blog_posts') || self::columnExists('blog_posts', 'og_image_alt')) {
+            return;
+        }
+        try {
+            self::pdo()->exec('ALTER TABLE blog_posts ADD COLUMN og_image_alt VARCHAR(255) DEFAULT NULL AFTER og_image');
+        } catch (PDOException) {
+            return;
+        }
+        self::forgetColumnExistsCache('blog_posts', 'og_image_alt');
+    }
+
+    /** Adds services.image_url when missing (see database/migrations/015_services_image_url.sql). */
+    public static function ensureServicesImageUrlColumn(): void
+    {
+        if (!self::tableExists('services') || self::columnExists('services', 'image_url')) {
+            return;
+        }
+        try {
+            self::pdo()->exec('ALTER TABLE services ADD COLUMN image_url VARCHAR(512) DEFAULT NULL AFTER icon');
+        } catch (PDOException) {
+            return;
+        }
+        self::forgetColumnExistsCache('services', 'image_url');
     }
 }

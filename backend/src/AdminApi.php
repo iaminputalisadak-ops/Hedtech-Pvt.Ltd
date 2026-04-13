@@ -234,6 +234,7 @@ final class AdminApi
     public static function crudServices(string $method, ?string $id): void
     {
         Auth::requireAdmin();
+        Db::ensureServicesImageUrlColumn();
         $pdo = Db::pdo();
         if ($method === 'GET' && $id === null) {
             $stmt = $pdo->query('SELECT * FROM services ORDER BY sort_order, id');
@@ -247,11 +248,12 @@ final class AdminApi
                 Util::sendJson(['error' => 'title required'], 400);
                 return;
             }
-            $stmt = $pdo->prepare('INSERT INTO services (title, description, icon, sort_order) VALUES (?,?,?,?)');
+            $stmt = $pdo->prepare('INSERT INTO services (title, description, icon, image_url, sort_order) VALUES (?,?,?,?,?)');
             $stmt->execute([
                 $title,
                 (string) ($b['description'] ?? ''),
                 (string) ($b['icon'] ?? 'code'),
+                trim((string) ($b['image_url'] ?? '')) !== '' ? trim((string) $b['image_url']) : null,
                 (int) ($b['sort_order'] ?? 0),
             ]);
             Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
@@ -259,11 +261,13 @@ final class AdminApi
         }
         if ($method === 'PUT' && $id !== null) {
             $b = Util::jsonInput();
-            $stmt = $pdo->prepare('UPDATE services SET title=?, description=?, icon=?, sort_order=? WHERE id=?');
+            $img = trim((string) ($b['image_url'] ?? ''));
+            $stmt = $pdo->prepare('UPDATE services SET title=?, description=?, icon=?, image_url=?, sort_order=? WHERE id=?');
             $stmt->execute([
                 (string) ($b['title'] ?? ''),
                 (string) ($b['description'] ?? ''),
                 (string) ($b['icon'] ?? 'code'),
+                $img !== '' ? $img : null,
                 (int) ($b['sort_order'] ?? 0),
                 (int) $id,
             ]);
@@ -498,6 +502,7 @@ final class AdminApi
     public static function crudBlog(string $method, ?string $id): void
     {
         Auth::requireAdmin();
+        Db::ensureBlogOgImageAltColumn();
         $pdo = Db::pdo();
         if ($method === 'GET' && $id === null) {
             $stmt = $pdo->query('SELECT * FROM blog_posts ORDER BY created_at DESC');
@@ -515,9 +520,11 @@ final class AdminApi
             if ($slug === '') {
                 $slug = Util::slugify($title);
             }
+            $og = trim((string) ($b['og_image'] ?? ''));
+            $ogAlt = trim((string) ($b['og_image_alt'] ?? ''));
             $stmt = $pdo->prepare(
-                'INSERT INTO blog_posts (title, slug, excerpt, body, category, tags, meta_title, meta_description, og_image, published)
-                 VALUES (?,?,?,?,?,?,?,?,?,?)'
+                'INSERT INTO blog_posts (title, slug, excerpt, body, category, tags, meta_title, meta_description, og_image, og_image_alt, published)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
             );
             $stmt->execute([
                 $title,
@@ -528,7 +535,8 @@ final class AdminApi
                 (string) ($b['tags'] ?? ''),
                 (string) ($b['meta_title'] ?? ''),
                 (string) ($b['meta_description'] ?? ''),
-                (string) ($b['og_image'] ?? ''),
+                $og !== '' ? $og : null,
+                $ogAlt !== '' ? $ogAlt : null,
                 !empty($b['published']) ? 1 : 0,
             ]);
             Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
@@ -540,9 +548,11 @@ final class AdminApi
             if ($slug === '') {
                 $slug = Util::slugify((string) ($b['title'] ?? 'post'));
             }
+            $og = trim((string) ($b['og_image'] ?? ''));
+            $ogAlt = trim((string) ($b['og_image_alt'] ?? ''));
             $pdo->prepare(
                 'UPDATE blog_posts
-                 SET title=?, slug=?, excerpt=?, body=?, category=?, tags=?, meta_title=?, meta_description=?, og_image=?, published=?
+                 SET title=?, slug=?, excerpt=?, body=?, category=?, tags=?, meta_title=?, meta_description=?, og_image=?, og_image_alt=?, published=?
                  WHERE id=?'
             )->execute([
                 (string) ($b['title'] ?? ''),
@@ -553,7 +563,8 @@ final class AdminApi
                 (string) ($b['tags'] ?? ''),
                 (string) ($b['meta_title'] ?? ''),
                 (string) ($b['meta_description'] ?? ''),
-                (string) ($b['og_image'] ?? ''),
+                $og !== '' ? $og : null,
+                $ogAlt !== '' ? $ogAlt : null,
                 !empty($b['published']) ? 1 : 0,
                 (int) $id,
             ]);

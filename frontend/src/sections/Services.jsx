@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
+import CmsImage from '../components/CmsImage'
 import SectionContainer from '../components/SectionContainer'
+import { CMS_SIZES } from '../constants/cmsImageSizes'
 import { DynamicIcon } from '../utils/icons'
 import { useSite } from '../context/SiteContext'
 
@@ -38,10 +40,27 @@ export default function Services({ showHeader = true, previewCount = 5 }) {
             viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.35, delay: Math.min(i * 0.04, 0.24) }}
           >
-            <div className="service-card-media" aria-hidden>
-              <span className="glass service-card-icon-wrap">
-                <DynamicIcon name={s.icon} />
-              </span>
+            <div
+              className={`service-card-media${(s.image_url || '').toString().trim() ? ' service-card-media--image' : ''}`}
+              aria-hidden
+            >
+              {(s.image_url || '').toString().trim() ? (
+                <div className="service-card-thumb">
+                  <CmsImage
+                    className="service-card-thumb-img"
+                    src={String(s.image_url).trim()}
+                    alt=""
+                    sizes={CMS_SIZES.serviceCard}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                  />
+                </div>
+              ) : (
+                <span className="glass service-card-icon-wrap">
+                  <DynamicIcon name={s.icon} />
+                </span>
+              )}
             </div>
             <div className="service-card-body">
               <div className="service-card-head">
