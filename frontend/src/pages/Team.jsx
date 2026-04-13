@@ -1,13 +1,32 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import LinkedInIcon from '../components/LinkedInIcon'
 import CmsImage from '../components/CmsImage'
 import { CMS_SIZES } from '../constants/cmsImageSizes'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
-import { useSite } from '../context/SiteContext'
+import { getTeam } from '../api/client'
 
 export default function Team() {
-  const { team, loading } = useSite()
+  const [team, setTeam] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await getTeam()
+        if (!cancelled) setTeam(res.items || [])
+      } catch {
+        if (!cancelled) setTeam([])
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <>

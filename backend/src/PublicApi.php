@@ -12,6 +12,21 @@ final class PublicApi
         return htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
     }
 
+    /** Team list for bootstrap — omits long bio text (full rows: GET /public/team). */
+    private static function teamRowsForBootstrap(PDO $pdo): array
+    {
+        Db::ensureTeamMembersTable();
+        if (!Db::tableExists('team_members')) {
+            return [];
+        }
+        $published = Db::columnExists('team_members', 'published');
+        $sql = $published
+            ? 'SELECT id, name, role, photo_url, linkedin_url, sort_order FROM team_members WHERE published = 1 ORDER BY sort_order ASC, id ASC'
+            : 'SELECT id, name, role, photo_url, linkedin_url, sort_order FROM team_members ORDER BY sort_order ASC, id ASC';
+
+        return $pdo->query($sql)->fetchAll();
+    }
+
     private static function canonicalBase(): string
     {
         $base = (string) (($GLOBALS['hedztech_config']['canonical_base'] ?? '') ?: '');
@@ -205,7 +220,7 @@ final class PublicApi
         $sql = Db::columnExists('team_members', 'published')
             ? 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members WHERE published = 1 ORDER BY sort_order ASC, id ASC'
             : 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members ORDER BY sort_order ASC, id ASC';
-        Util::sendJson(['items' => $pdo->query($sql)->fetchAll()]);
+        Util::sendJson(['items' => $pdo->query($sql)->fetchAll()], 200, 45);
     }
 
     public static function contactSubmit(): void
@@ -262,11 +277,7 @@ final class PublicApi
                 return $pdo->query('SELECT ' . $cols . ' FROM projects ' . $order)->fetchAll();
             })(),
             'trusted' => $pdo->query('SELECT id, name, logo_url, sort_order FROM trusted_companies ORDER BY sort_order')->fetchAll(),
-            'team' => Db::tableExists('team_members') ? $pdo->query(
-                Db::columnExists('team_members', 'published')
-                    ? 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members WHERE published = 1 ORDER BY sort_order'
-                    : 'SELECT id, name, role, bio, photo_url, linkedin_url, sort_order FROM team_members ORDER BY sort_order'
-            )->fetchAll() : [],
+            'team' => self::teamRowsForBootstrap($pdo),
             'testimonials' => $pdo->query(
                 Db::columnExists('testimonials', 'published')
                     ? 'SELECT id, name, role, video_url, rating, quote, sort_order FROM testimonials WHERE published = 1 ORDER BY sort_order'
@@ -275,7 +286,7 @@ final class PublicApi
             'blog' => $pdo->query(
                 'SELECT id, title, slug, excerpt, category, tags, created_at FROM blog_posts WHERE published = 1 ORDER BY created_at DESC LIMIT 6'
             )->fetchAll(),
-        ]);
+        ], 200, 30);
     }
 
     /**

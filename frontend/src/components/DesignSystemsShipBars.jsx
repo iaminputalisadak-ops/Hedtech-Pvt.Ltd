@@ -1,9 +1,6 @@
 import { useRef } from 'react'
 import { motion as Motion, useInView, useReducedMotion } from 'framer-motion'
 
-/** Matches seeded post slug in database */
-export const DESIGN_SYSTEMS_SHIP_SLUG = 'design-systems-that-ship'
-
 const SKILLS = [
   { name: 'React & Modern JS', level: 95 },
   { name: 'PHP & APIs', level: 90 },

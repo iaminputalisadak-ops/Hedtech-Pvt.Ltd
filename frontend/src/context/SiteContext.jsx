@@ -19,11 +19,11 @@ export function SiteProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (opts = {}) => {
     setLoading(true)
     setError(null)
     try {
-      const res = await getBootstrap()
+      const res = await getBootstrap({ force: opts.force === true })
       setData({
         settings: res.settings || {},
         services: res.services || [],

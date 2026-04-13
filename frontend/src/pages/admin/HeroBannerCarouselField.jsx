@@ -83,7 +83,7 @@ export default function HeroBannerCarouselField({
     <div className="admin-field admin-hero-carousel">
       <div className="admin-label">{label}</div>
       <p className="admin-help admin-hero-carousel__hint">
-        With <strong>Image wallpaper</strong> selected, two or more images here rotate in the hero every 2 seconds. Reorder
+        With <strong>Image wallpaper</strong> selected, two or more images here rotate in the hero every 4 seconds. Reorder
         with arrows. If empty or one image, the single wallpaper URL field above is used alone.
       </p>
       <div className="admin-hero-carousel__toolbar">

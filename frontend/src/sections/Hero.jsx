@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, PlayCircle } from 'lucide-react'
-import CanvasParticles from 'canvasparticles-js'
 import { useTheme } from '../context/ThemeContext'
 import { useSite } from '../context/SiteContext'
 
@@ -61,8 +60,8 @@ function HeroCtaLink({ href, className, children }) {
  * Library destroy() calls canvas.remove(), which breaks React-managed nodes.
  * Unobserve + stop only; leave the <canvas> in the DOM.
  */
-function disposeCanvasParticles(instance) {
-  if (!instance?.canvas) return
+function disposeCanvasParticles(CanvasParticles, instance) {
+  if (!CanvasParticles || !instance?.canvas) return
   try {
     instance.stop({ clear: false })
   } catch {
@@ -175,7 +174,7 @@ function HeroWallpaper({
   )
 }
 
-const HERO_CAROUSEL_MS = 2000
+const HERO_CAROUSEL_MS = 4000
 
 function HeroWallpaperCarousel({ urls, opacity, position, theme, reducedMotion }) {
   const n = urls.length
@@ -252,6 +251,7 @@ export default function Hero() {
   const reduce = useReducedMotion()
   const canvasRef = useRef(null)
   const particlesRef = useRef(null)
+  const particlesLibRef = useRef(null)
   const count = settings.project_count || String(projects?.length || 0)
 
   const headline = trimSetting(settings.hero_headline) || HERO_COPY_DEFAULTS.headline
@@ -282,39 +282,61 @@ export default function Hero() {
           : []
 
   useLayoutEffect(() => {
-    if (reduce) return
-    const el = canvasRef.current
-    if (!el) return
+    if (reduce || bgMode !== 'animated') {
+      disposeCanvasParticles(particlesLibRef.current, particlesRef.current)
+      particlesRef.current = null
+      particlesLibRef.current = null
+      return
+    }
+    if (!canvasRef.current) return
 
-    disposeCanvasParticles(particlesRef.current)
+    let cancelled = false
+    disposeCanvasParticles(particlesLibRef.current, particlesRef.current)
     particlesRef.current = null
+    particlesLibRef.current = null
 
     const particleColor =
       theme === 'dark' ? 'rgba(226, 232, 240, 0.38)' : 'rgba(30, 41, 59, 0.52)'
 
-    let instance
-    try {
-      instance = new CanvasParticles(el, {
-        animation: {
-          startOnEnter: false,
-          stopOnLeave: false,
-        },
-        particles: {
-          relSpeed: 3,
-          relSize: theme === 'light' ? 2.35 : 2,
-          rotationSpeed: 40,
-          color: particleColor,
-        },
-      }).start()
-    } catch {
-      return
-    }
-    particlesRef.current = instance
+    ;(async () => {
+      let CanvasParticles
+      try {
+        ;({ default: CanvasParticles } = await import('canvasparticles-js'))
+      } catch {
+        return
+      }
+      if (cancelled || !canvasRef.current) return
+      particlesLibRef.current = CanvasParticles
+      try {
+        const instance = new CanvasParticles(canvasRef.current, {
+          animation: {
+            startOnEnter: false,
+            stopOnLeave: false,
+          },
+          particles: {
+            relSpeed: 3,
+            relSize: theme === 'light' ? 2.35 : 2,
+            rotationSpeed: 40,
+            color: particleColor,
+          },
+        }).start()
+        if (!cancelled) {
+          particlesRef.current = instance
+        } else {
+          disposeCanvasParticles(CanvasParticles, instance)
+        }
+      } catch {
+        /* noop */
+      }
+    })()
+
     return () => {
-      disposeCanvasParticles(particlesRef.current)
+      cancelled = true
+      disposeCanvasParticles(particlesLibRef.current, particlesRef.current)
       particlesRef.current = null
+      particlesLibRef.current = null
     }
-  }, [reduce, theme])
+  }, [reduce, theme, bgMode])
 
   const backdropFill = bgMode === 'image' || bgMode === 'gradient'
 
@@ -342,7 +364,7 @@ export default function Hero() {
         {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} theme={theme} /> : null}
         {!reduce && bgMode === 'animated' ? <Orbs theme={theme} /> : null}
       </div>
-      {!reduce ? (
+      {!reduce && bgMode === 'animated' ? (
         <canvas ref={canvasRef} id="showcase-movement" aria-hidden className="hero-canvas" />
       ) : null}
       <div className="hero-container hero-container--full">

@@ -42,7 +42,7 @@ export default function Home() {
           Import <code>database/schema.sql</code> into MySQL and match <code>backend/config.php</code>.
         </p>
         <div className="page-state-actions">
-          <button type="button" className="btn btn-primary" onClick={() => refresh()}>
+          <button type="button" className="btn btn-primary" onClick={() => refresh({ force: true })}>
             Retry
           </button>
         </div>

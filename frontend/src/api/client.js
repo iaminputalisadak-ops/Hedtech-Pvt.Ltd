@@ -31,8 +31,22 @@ export async function apiFetch(path, options = {}) {
   return data
 }
 
-export function getBootstrap() {
-  return apiFetch('/public/bootstrap')
+const BOOTSTRAP_TTL_MS = 45_000
+let bootstrapCache = { t: 0, data: null }
+
+export async function getBootstrap(options = {}) {
+  const force = Boolean(options.force)
+  const now = Date.now()
+  if (!force && bootstrapCache.data && now - bootstrapCache.t < BOOTSTRAP_TTL_MS) {
+    return bootstrapCache.data
+  }
+  const data = await apiFetch('/public/bootstrap')
+  bootstrapCache = { t: now, data }
+  return data
+}
+
+export function getTeam() {
+  return apiFetch('/public/team')
 }
 
 export function getBlogList(params = {}) {

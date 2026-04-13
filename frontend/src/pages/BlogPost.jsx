@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
-import DesignSystemsShipBars, { DESIGN_SYSTEMS_SHIP_SLUG } from '../components/DesignSystemsShipBars'
+import { DESIGN_SYSTEMS_SHIP_SLUG } from '../constants/blogSlugs'
 import { getBlogList, getBlogPost } from '../api/client'
 import { renderMarkdown } from '../utils/markdown'
 import ArticleStructuredData from '../components/ArticleStructuredData'
+
+const DesignSystemsShipBars = lazy(() => import('../components/DesignSystemsShipBars'))
 
 export default function BlogPost() {
   const { slug } = useParams()
@@ -91,7 +93,11 @@ export default function BlogPost() {
         {item.tags ? <p className="article-tags">Tags: {item.tags}</p> : null}
         <div className="glass article-body-panel">
           <p className="article-lead">{item.excerpt}</p>
-          {slug === DESIGN_SYSTEMS_SHIP_SLUG ? <DesignSystemsShipBars /> : null}
+          {slug === DESIGN_SYSTEMS_SHIP_SLUG ? (
+            <Suspense fallback={null}>
+              <DesignSystemsShipBars />
+            </Suspense>
+          ) : null}
           <div className="article-body-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(item.body) }} />
         </div>
         {related.length ? (

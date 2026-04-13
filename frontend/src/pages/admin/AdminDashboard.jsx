@@ -125,7 +125,7 @@ const SETTINGS_GROUPS = [
         heading: 'Image wallpaper',
         cols2: true,
         help:
-          'Used when “Image wallpaper” is selected. One URL above works alone. Add two or more slides below for a rotating banner (every 2 seconds on the site).',
+          'Used when “Image wallpaper” is selected. One URL above works alone. Add two or more slides below for a rotating banner (every 4 seconds on the site).',
         fields: [
           ['hero_wallpaper_url', 'Wallpaper image URL (optional)'],
           [
