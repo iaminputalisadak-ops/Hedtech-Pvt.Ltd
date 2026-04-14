@@ -34,9 +34,20 @@ jobs:
         run: npm ci
 
       - name: Install frontend dependencies
-        run: npm ci --prefix frontend
+        run: npm ci --include=dev --prefix frontend
+
+      - name: Debug toolchain
+        run: |
+          set -eux
+          node -p "process.version"
+          npm -v
+          npm --prefix frontend -v
+          ls -la frontend/node_modules/.bin | head -n 40 || true
+          npm --prefix frontend ls vite || true
 
       - name: Build + assemble cPanel bundle
+        env:
+          NODE_ENV: development
         run: npm run pack:cpanel
 
       - name: Deploy bundle to cPanel
