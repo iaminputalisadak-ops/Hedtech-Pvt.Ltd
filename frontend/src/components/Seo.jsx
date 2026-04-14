@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { useSite } from '../context/SiteContext'
-import { absoluteUrlFromBase } from '../utils/absoluteUrl'
+import { absoluteUrlFromBase, resolvePublicAssetUrl } from '../utils/absoluteUrl'
 
 function toArticleIso8601(value) {
   if (!value) return null
@@ -35,7 +35,8 @@ export default function Seo({
   const base = (settings.canonical_base || '').replace(/\/$/, '')
   const canonical = base && path ? `${base}${path}` : base || undefined
   const rawOg = (image || settings.og_image || '').trim()
-  const og = rawOg ? absoluteUrlFromBase(rawOg, base) : undefined
+  const ogNorm = rawOg ? resolvePublicAssetUrl(rawOg) : ''
+  const og = ogNorm ? absoluteUrlFromBase(ogNorm, base) : undefined
   const ogAlt =
     (imageAlt && String(imageAlt).trim()) ||
     (ogType === 'article' ? metaTitle : `${site} — share image`)

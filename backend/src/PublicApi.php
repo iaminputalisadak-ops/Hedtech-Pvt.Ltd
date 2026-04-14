@@ -288,9 +288,20 @@ final class PublicApi
                     ? 'SELECT id, name, role, video_url, rating, quote, sort_order FROM testimonials WHERE published = 1 ORDER BY sort_order'
                     : 'SELECT id, name, role, video_url, rating, quote, sort_order FROM testimonials ORDER BY sort_order'
             )->fetchAll(),
-            'blog' => $pdo->query(
-                'SELECT id, title, slug, excerpt, category, tags, created_at, og_image, og_image_alt FROM blog_posts WHERE published = 1 ORDER BY created_at DESC LIMIT 6'
-            )->fetchAll(),
+            'blog' => (static function () use ($pdo) {
+                $cols = 'id, title, slug, excerpt, category, tags, created_at';
+                if (Db::columnExists('blog_posts', 'og_image')) {
+                    $cols .= ', og_image';
+                }
+                if (Db::columnExists('blog_posts', 'og_image_alt')) {
+                    $cols .= ', og_image_alt';
+                }
+                $where = Db::columnExists('blog_posts', 'published') ? 'WHERE published = 1' : '';
+
+                return $pdo
+                    ->query('SELECT ' . $cols . ' FROM blog_posts ' . $where . ' ORDER BY created_at DESC LIMIT 6')
+                    ->fetchAll();
+            })(),
         ], 200, 30);
     }
 

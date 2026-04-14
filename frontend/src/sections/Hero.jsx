@@ -1,14 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, PlayCircle } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useSite } from '../context/SiteContext'
+import { resolvePublicAssetUrl } from '../utils/absoluteUrl'
+import { displayedProjectCount } from '../utils/displayedProjectCount'
 
 const HERO_COPY_DEFAULTS = {
-  headline: 'Build products people trust',
-  tagline:
-    'Strategy, design, and engineering for teams that care about quality, speed, and measurable outcomes.',
+  headline: 'High‑performing digital experiences that convert',
+  tagline: 'Modern web, UI/UX, and SEO that drive real results—not vanity metrics.',
   eyebrow: 'Digital studio · Performance · SEO',
   ctaPrimaryLabel: 'Start a project',
   ctaPrimaryHref: '/contact',
@@ -82,7 +83,7 @@ function Orbs({ theme }) {
   const accentB = theme === 'light' ? '52%' : '40%'
   return (
     <div aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      <motion.div
+      <Motion.div
         style={{
           position: 'absolute',
           width: 'min(520px, 90vw)',
@@ -96,7 +97,7 @@ function Orbs({ theme }) {
         animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
         transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
+      <Motion.div
         style={{
           position: 'absolute',
           width: 'min(420px, 80vw)',
@@ -146,6 +147,8 @@ function HeroWallpaper({
 }) {
   const safeOpacity = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 0.28
   if (!url) return null
+  const src = resolvePublicAssetUrl(url)
+  if (!src) return null
   const objectFit = 'cover'
   const objectPosition = safeWallpaperPosition(position)
   const isLight = theme === 'light'
@@ -221,7 +224,7 @@ function safeGradientCss(input) {
   const okPrefix = raw.startsWith('linear-gradient(') || raw.startsWith('radial-gradient(') || raw.startsWith('conic-gradient(')
   if (!okPrefix) return ''
   // Allow common characters used in gradients.
-  if (!/^[a-z0-9\s(),.%#\-+\/]*$/i.test(raw)) return ''
+  if (!/^[a-z0-9\s(),.%#+/-]*$/i.test(raw)) return ''
   return raw
 }
 
@@ -246,13 +249,13 @@ function HeroGradient({ gradient, opacity = 0.6, theme }) {
 }
 
 export default function Hero() {
-  const { settings, projects } = useSite()
+  const { settings, projects, loading } = useSite()
   const { theme } = useTheme()
   const reduce = useReducedMotion()
   const canvasRef = useRef(null)
   const particlesRef = useRef(null)
   const particlesLibRef = useRef(null)
-  const count = settings.project_count || String(projects?.length || 0)
+  const count = loading ? null : displayedProjectCount(settings, projects)
 
   const headline = trimSetting(settings.hero_headline) || HERO_COPY_DEFAULTS.headline
   const tagline = trimSetting(settings.hero_tagline) || HERO_COPY_DEFAULTS.tagline
@@ -269,7 +272,11 @@ export default function Hero() {
   const wallpaperOpacityRaw = (settings.hero_wallpaper_opacity || '').trim()
   const wallpaperOpacity = wallpaperOpacityRaw === '' ? 0.28 : Number(wallpaperOpacityRaw)
   const wallpaperPosition = (settings.hero_wallpaper_position || '').toString().trim()
-  const bgMode = (settings.hero_bg_mode || '').toString().trim() || (wallpaperUrl ? 'image' : 'animated')
+  const explicitBgMode = (settings.hero_bg_mode || '').toString().trim()
+  // Carousel-only heroes used to stay on "animated" because wallpaper URL was empty — slides never rendered.
+  const bgMode =
+    explicitBgMode ||
+    (carouselUrls.length >= 1 || wallpaperUrl ? 'image' : 'animated')
   const gradientCss = (settings.hero_gradient_css || '').toString().trim()
 
   const heroImageUrls =
@@ -282,7 +289,7 @@ export default function Hero() {
           : []
 
   useLayoutEffect(() => {
-    if (reduce || bgMode !== 'animated') {
+    if (reduce) {
       disposeCanvasParticles(particlesLibRef.current, particlesRef.current)
       particlesRef.current = null
       particlesLibRef.current = null
@@ -295,8 +302,14 @@ export default function Hero() {
     particlesRef.current = null
     particlesLibRef.current = null
 
-    const particleColor =
-      theme === 'dark' ? 'rgba(226, 232, 240, 0.38)' : 'rgba(30, 41, 59, 0.52)'
+    const overlay = bgMode !== 'animated'
+    const particleColor = overlay
+      ? theme === 'dark'
+        ? 'rgba(226, 232, 240, 0.28)'
+        : 'rgba(30, 41, 59, 0.30)'
+      : theme === 'dark'
+        ? 'rgba(226, 232, 240, 0.38)'
+        : 'rgba(30, 41, 59, 0.52)'
 
     ;(async () => {
       let CanvasParticles
@@ -314,9 +327,9 @@ export default function Hero() {
             stopOnLeave: false,
           },
           particles: {
-            relSpeed: 3,
-            relSize: theme === 'light' ? 2.35 : 2,
-            rotationSpeed: 40,
+            relSpeed: overlay ? 2.25 : 3,
+            relSize: overlay ? (theme === 'light' ? 2.05 : 1.9) : theme === 'light' ? 2.35 : 2,
+            rotationSpeed: overlay ? 30 : 40,
             color: particleColor,
           },
         }).start()
@@ -339,6 +352,8 @@ export default function Hero() {
   }, [reduce, theme, bgMode])
 
   const backdropFill = bgMode === 'image' || bgMode === 'gradient'
+  const showGraph = !reduce && (bgMode === 'animated' || bgMode === 'image' || bgMode === 'gradient')
+  const graphVariant = bgMode === 'animated' ? 'full' : 'overlay'
 
   return (
     <section className={`section hero-section${backdropFill ? ' hero-section--backdrop-fill' : ''}`.trim()}>
@@ -364,37 +379,42 @@ export default function Hero() {
         {bgMode === 'gradient' ? <HeroGradient gradient={gradientCss} opacity={0.7} theme={theme} /> : null}
         {!reduce && bgMode === 'animated' ? <Orbs theme={theme} /> : null}
       </div>
-      {!reduce && bgMode === 'animated' ? (
-        <canvas ref={canvasRef} id="showcase-movement" aria-hidden className="hero-canvas" />
+      {showGraph ? (
+        <canvas
+          ref={canvasRef}
+          id="showcase-movement"
+          aria-hidden
+          className={`hero-canvas${graphVariant === 'overlay' ? ' hero-canvas--overlay' : ''}`}
+        />
       ) : null}
       <div className="hero-container hero-container--full">
         <div className="content-panel content-panel--hero section-panel section-panel--hero hero-panel">
           <div className="hero-panel-copy hero-panel-copy--pro">
-            <motion.p
+            <Motion.p
               className="hero-eyebrow"
               initial={reduce ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
             >
               {eyebrow}
-            </motion.p>
-            <motion.h1
+            </Motion.p>
+            <Motion.h1
               className="hero-title"
               initial={reduce ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.05 }}
             >
               {headline}
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               className="hero-lead"
               initial={reduce ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.12 }}
             >
               {tagline}
-            </motion.p>
-            <motion.div
+            </Motion.p>
+            <Motion.div
               className="hero-actions"
               initial={reduce ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -406,9 +426,9 @@ export default function Hero() {
               <HeroCtaLink href={ctaSecondaryHref} className="btn btn-ghost">
                 <PlayCircle size={18} aria-hidden /> {ctaSecondaryLabel}
               </HeroCtaLink>
-            </motion.div>
+            </Motion.div>
           </div>
-          <motion.div
+          <Motion.div
             initial={reduce ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35, duration: 0.5 }}
@@ -416,12 +436,12 @@ export default function Hero() {
           >
             <div className="hero-stats-bar-inner">
               <div className="hero-stat-primary">
-                <div className="hero-stat-value">{count}+</div>
+                <div className="hero-stat-value">{count == null ? '…' : `${count}+`}</div>
                 <div className="hero-stat-label">{statLabel}</div>
               </div>
               <p className="hero-stat-aside">{statAside}</p>
             </div>
-          </motion.div>
+          </Motion.div>
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { useSite } from '../context/SiteContext'
-import { absoluteUrlFromBase } from '../utils/absoluteUrl'
+import { absoluteUrlFromBase, resolvePublicAssetUrl } from '../utils/absoluteUrl'
 
 export default function ArticleStructuredData({ item }) {
   const { settings } = useSite()
@@ -10,10 +10,12 @@ export default function ArticleStructuredData({ item }) {
   const url = `${base}/blog/${encodeURIComponent(item.slug)}`
   const siteName = settings.site_name || 'Hedztech'
   const logoRaw = (settings.og_image || '').trim()
-  const logo = logoRaw && /^https?:\/\//i.test(logoRaw) ? logoRaw : `${base}/favicon.svg`
+  const logoNorm = logoRaw ? resolvePublicAssetUrl(logoRaw) : ''
+  const logo = logoNorm ? absoluteUrlFromBase(logoNorm, base) : `${base}/favicon.svg`
 
   const rawImg = (item.og_image || '').trim()
-  const img = rawImg ? absoluteUrlFromBase(rawImg, base) : undefined
+  const imgNorm = rawImg ? resolvePublicAssetUrl(rawImg) : ''
+  const img = imgNorm ? absoluteUrlFromBase(imgNorm, base) : undefined
   const imgName = (item.og_image_alt || item.title || '').trim() || item.title
 
   const tagList = (item.tags || '')

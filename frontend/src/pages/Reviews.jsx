@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
 import { useSite } from '../context/SiteContext'
@@ -52,7 +52,7 @@ export default function Reviews() {
 
         <div className="layout-grid-cards layout-grid-cards--wide">
           {testimonials.map((t, i) => (
-            <motion.div
+            <Motion.div
               key={t.id}
               initial={fadeIn(reduce)}
               whileInView={{ opacity: 1 }}
@@ -60,7 +60,7 @@ export default function Reviews() {
               transition={{ duration: 0.35, delay: Math.min(i * 0.03, 0.25) }}
             >
               <ReviewCard t={t} />
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 

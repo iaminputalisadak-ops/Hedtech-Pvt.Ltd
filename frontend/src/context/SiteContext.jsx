@@ -60,6 +60,7 @@ export function SiteProvider({ children }) {
   return <SiteContext.Provider value={value}>{children}</SiteContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook colocated with provider
 export function useSite() {
   const ctx = useContext(SiteContext)
   if (!ctx) throw new Error('useSite must be used within SiteProvider')

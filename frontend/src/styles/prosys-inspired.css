@@ -194,10 +194,32 @@ html[data-theme='light'] .service-card--pro .service-card-icon-wrap {
   gap: 0.25rem;
   text-decoration: none;
   width: fit-content;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 8px;
+  padding: 0.1rem 0.15rem 0.1rem 0;
+  margin-left: -0.05rem;
+  transition:
+    color 0.26s ease,
+    gap 0.32s cubic-bezier(0.34, 1.15, 0.64, 1),
+    transform 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+    filter 0.22s ease;
 }
 
 .service-card-readmore:hover {
   color: var(--accent-hover);
+}
+
+.service-card-readmore:active {
+  transform: translateX(2px) scale(0.98);
+  transition-duration: 0.1s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .service-card-readmore:hover {
+    gap: 0.45rem;
+    transform: translateX(3px);
+    filter: brightness(1.05);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -243,10 +265,33 @@ html[data-theme='light'] .service-card--pro .service-card-icon-wrap {
   color: var(--accent);
   text-decoration: none;
   width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 8px;
+  transition:
+    color 0.26s ease,
+    gap 0.32s cubic-bezier(0.34, 1.15, 0.64, 1),
+    transform 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+    filter 0.22s ease;
 }
 
 .portfolio-readmore:hover {
   color: var(--accent-hover);
+}
+
+.portfolio-readmore:active {
+  transform: translateX(2px) scale(0.98);
+  transition-duration: 0.1s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .portfolio-readmore:hover {
+    gap: 0.4rem;
+    transform: translateX(3px);
+    filter: brightness(1.05);
+  }
 }
 
 /* --- Team showcase (home strip + /team page) --- */

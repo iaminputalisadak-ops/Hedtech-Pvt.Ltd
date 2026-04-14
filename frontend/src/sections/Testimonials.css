@@ -36,16 +36,27 @@
   background: color-mix(in srgb, var(--bg-elevated) 88%, var(--accent) 6%);
   color: var(--accent);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 8%, transparent);
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+    background 0.26s ease,
+    border-color 0.26s ease,
+    transform 0.3s cubic-bezier(0.34, 1.15, 0.64, 1),
+    box-shadow 0.32s ease,
+    filter 0.22s ease;
 }
 
 .reviews-see-more-btn:hover {
   background: color-mix(in srgb, var(--bg-elevated) 78%, var(--accent) 14%);
   border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 14%, transparent);
+  filter: brightness(1.03);
+}
+
+.reviews-see-more-btn:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.1s;
 }
 
 .reviews-see-more-btn:focus-visible {
@@ -222,16 +233,26 @@
   display: grid;
   place-items: center;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 5%, transparent);
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+    background 0.26s ease,
+    border-color 0.26s ease,
+    transform 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+    box-shadow 0.3s ease,
+    color 0.22s ease;
 }
 
 .reviews-nav-btn:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
   color: var(--accent);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.reviews-nav-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+  transition-duration: 0.1s;
 }
 
 .reviews-nav-btn:disabled {

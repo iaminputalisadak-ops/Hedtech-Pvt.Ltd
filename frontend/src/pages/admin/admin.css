@@ -181,11 +181,30 @@ html[data-theme='dark'] .admin-sidebar {
   font-family: inherit;
   cursor: pointer;
   border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.24s cubic-bezier(0.34, 1.15, 0.64, 1),
+    background 0.22s ease,
+    color 0.22s ease,
+    border-left-color 0.22s ease,
+    box-shadow 0.26s ease;
 }
 
 .admin-nav-btn:hover {
   background: var(--surface);
   color: var(--text);
+  transform: translateX(2px);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.admin-nav-btn:active {
+  transform: translateX(1px) scale(0.99);
+  transition-duration: 0.1s;
+}
+
+.admin-nav-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .admin-nav-btn.is-active {
@@ -328,7 +347,7 @@ html[data-theme='dark'] .admin-form-actions-inner {
   justify-content: center;
   gap: 0.35rem;
   padding: 0.5rem 0.9rem;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   font-size: 0.875rem;
   font-family: inherit;
@@ -336,30 +355,57 @@ html[data-theme='dark'] .admin-form-actions-inner {
   background: var(--surface-strong);
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
+    border-color 0.28s ease,
+    background 0.28s ease,
+    box-shadow 0.32s ease,
+    filter 0.22s ease;
 }
 
-.admin-btn:hover {
+.admin-btn:hover:not(:disabled) {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 6%, var(--surface-strong));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-strong));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.admin-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.admin-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .admin-btn--primary {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(118deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--accent-2, var(--accent))));
+  border-color: color-mix(in srgb, var(--accent) 88%, var(--border));
   color: #0f172a;
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 html[data-theme='light'] .admin-btn--primary {
   color: #fff;
 }
 
+.admin-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--accent) 28%, transparent);
+  transform: translateY(-2px);
+}
+
 .admin-btn--ghost {
   background: transparent;
 }
 
-.admin-btn--ghost:hover {
+.admin-btn--ghost:hover:not(:disabled) {
   background: var(--surface);
+  transform: translateY(-1px);
 }
 
 .admin-btn--danger {
@@ -367,8 +413,41 @@ html[data-theme='light'] .admin-btn--primary {
   border-color: color-mix(in srgb, #ef4444 35%, var(--border));
 }
 
-.admin-btn--danger:hover {
-  background: color-mix(in srgb, #ef4444 8%, transparent);
+.admin-btn--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, #ef4444 10%, transparent);
+  border-color: color-mix(in srgb, #ef4444 55%, var(--border));
+  transform: translateY(-1px);
+}
+
+.admin-btn:disabled,
+.admin-btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-btn,
+  .admin-btn:hover:not(:disabled),
+  .admin-btn:active:not(:disabled),
+  .admin-btn--primary:hover:not(:disabled),
+  .admin-btn--ghost:hover:not(:disabled),
+  .admin-btn--danger:hover:not(:disabled) {
+    transition-duration: 0.01ms;
+    transform: none;
+    filter: none;
+  }
+
+  .admin-nav-btn,
+  .admin-nav-btn:hover,
+  .admin-nav-btn:active {
+    transition-duration: 0.01ms;
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 /* ----- CRUD: Add new accordion (professional) ----- */

@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
 
@@ -21,7 +21,7 @@ export default function Expertise() {
         {skills.map((sk, i) => {
           const pct = Math.min(100, Math.max(0, Math.round(Number(sk.level) || 0)))
           return (
-            <motion.div
+            <Motion.div
               key={sk.id}
               className="expertise-skill-block"
               initial={fadeIn(reduce)}
@@ -42,7 +42,7 @@ export default function Expertise() {
                 aria-valuemax={100}
                 aria-label={`${sk.name}, ${pct} percent`}
               />
-            </motion.div>
+            </Motion.div>
           )
         })}
       </div>

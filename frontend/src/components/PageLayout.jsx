@@ -3,7 +3,6 @@ import Footer from './Footer'
 import Header from './Header'
 import StructuredData from './StructuredData'
 import BrandingHead from './BrandingHead'
-
 export default function PageLayout() {
   const { pathname } = useLocation()
   const isHome = pathname === '/'

@@ -33,6 +33,27 @@ If FTPS fails with a TLS error, try **`HEDZTECH_FTP_SECURE=false`** (plain FTP �
 
 ---
 
+## GitHub → cPanel auto-deploy (no manual upload)
+
+If you want “push to GitHub = deploy live”, this repo includes a GitHub Actions workflow:
+
+- `.github/workflows/deploy-cpanel.yml`
+
+### Setup
+
+1. In GitHub → **Settings → Secrets and variables → Actions**, add these **Repository secrets**:
+   - `HEDZTECH_FTP_HOST` (e.g. `ftp.hedztech.com` or your server IP)
+   - `HEDZTECH_FTP_PORT` (usually `21`)
+   - `HEDZTECH_FTP_USER`
+   - `HEDZTECH_FTP_PASS`
+   - `HEDZTECH_FTP_REMOTE` (usually `/home/CPANEL_USERNAME/public_html`)
+   - `HEDZTECH_FTP_SECURE` (`true` for FTPS on port 21; `false` for plain FTP if your host requires it)
+2. Push to the `main` branch.
+
+The workflow runs `npm run pack:cpanel` and uploads `deploy/cpanel/out/` into your `public_html`.
+
+---
+
 ## SFTP: save locally → sync to cPanel (Cursor / VS Code)
 
 Use the **SFTP** extension (recommended: **Natizyskunk** — workspace may prompt to install it from `.vscode/extensions.json`).

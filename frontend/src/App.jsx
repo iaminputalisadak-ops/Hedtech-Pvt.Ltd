@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { SiteProvider } from './context/SiteContext'
 import PageLayout from './components/PageLayout'
 import ScrollToTop from './components/ScrollToTop'
+import DevBootstrapBanner from './components/DevBootstrapBanner'
 const Home = lazy(() => import('./pages/Home'))
 const Work = lazy(() => import('./pages/Work'))
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'))
@@ -31,6 +32,7 @@ export default function App() {
         <ScrollToTop />
         <ThemeProvider>
           <SiteProvider>
+            <DevBootstrapBanner />
             <Suspense
               fallback={
                 <div className="page-state page-state--center" aria-live="polite">

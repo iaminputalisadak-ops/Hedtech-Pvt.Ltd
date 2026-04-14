@@ -6,6 +6,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
+    "api": "php -S 127.0.0.1:8080 -t ../backend/public",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

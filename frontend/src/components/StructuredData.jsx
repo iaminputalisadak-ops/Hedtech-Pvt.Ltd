@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { useSite } from '../context/SiteContext'
+import { absoluteUrlFromBase, resolvePublicAssetUrl } from '../utils/absoluteUrl'
 
 /**
  * Site-wide JSON-LD for Organization + WebSite (SEO, rich results).
@@ -14,7 +15,9 @@ export default function StructuredData() {
 
   if (!base) return null
 
-  const logo = settings.og_image && /^https?:\/\//i.test(settings.og_image) ? settings.og_image : `${base}/favicon.svg`
+  const ogRaw = (settings.og_image || '').trim()
+  const ogNorm = ogRaw ? resolvePublicAssetUrl(ogRaw) : ''
+  const logo = ogNorm ? absoluteUrlFromBase(ogNorm, base) : `${base}/favicon.svg`
   const sameAs = [
     settings.social_linkedin,
     settings.social_twitter,

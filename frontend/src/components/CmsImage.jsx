@@ -1,4 +1,5 @@
 import { CMS_SIZES } from '../constants/cmsImageSizes'
+import { resolvePublicAssetUrl } from '../utils/absoluteUrl'
 
 /**
  * Images from the CMS (/api/uploads/…). Adds responsive `sizes` hints and async decode
@@ -15,9 +16,11 @@ export default function CmsImage({
   ...rest
 }) {
   if (!src) return null
+  const resolved = resolvePublicAssetUrl(src)
+  if (!resolved) return null
   return (
     <img
-      src={src}
+      src={resolved}
       alt={alt}
       className={className}
       sizes={sizes}

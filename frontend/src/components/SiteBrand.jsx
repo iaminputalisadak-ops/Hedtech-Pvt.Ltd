@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useSite } from '../context/SiteContext'
+import { resolvePublicAssetUrl } from '../utils/absoluteUrl'
 
 export default function SiteBrand({ onClick, className = '' }) {
   const { settings } = useSite()
@@ -9,6 +10,7 @@ export default function SiteBrand({ onClick, className = '' }) {
   const logoUrl = (settings.brand_logo_url || '').trim()
   const markUrl = (settings.brand_mark_url || '').trim()
   const useImg = logoUrl || markUrl
+  const imgSrc = useImg ? resolvePublicAssetUrl(markUrl || logoUrl) : ''
 
   return (
     <Link
@@ -25,10 +27,10 @@ export default function SiteBrand({ onClick, className = '' }) {
       }}
       style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}
     >
-      {useImg ? (
+      {useImg && imgSrc ? (
         <span aria-hidden className="site-brand-mark site-brand-mark--img">
           <img
-            src={markUrl || logoUrl}
+            src={imgSrc}
             alt=""
             sizes="160px"
             loading="eager"

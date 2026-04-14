@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -65,7 +65,7 @@ export default function Testimonials() {
         <p className="section-lead">Video testimonials and feedback from teams we have partnered with.</p>
       </div>
 
-      <motion.div
+      <Motion.div
         initial={reduce ? false : { opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, margin: '-40px' }}
@@ -143,7 +143,7 @@ export default function Testimonials() {
             ) : null}
           </div>
         )}
-      </motion.div>
+      </Motion.div>
     </SectionContainer>
   )
 }

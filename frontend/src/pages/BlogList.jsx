@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import CmsImage from '../components/CmsImage'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
@@ -124,7 +124,7 @@ export default function BlogList() {
         {loading ? <p className="page-state-text">Loading posts…</p> : null}
         <div className="blog-post-grid">
           {items.map((post, i) => (
-            <motion.article
+            <Motion.article
               key={post.id}
               className="glass blog-post-card"
               initial={fadeIn(reduce)}
@@ -152,7 +152,7 @@ export default function BlogList() {
               <Link to={`/blog/${encodeURIComponent(post.slug)}`} className="btn btn-ghost btn-compact">
                 Read article →
               </Link>
-            </motion.article>
+            </Motion.article>
           ))}
         </div>
         {!loading && items.length === 0 ? <p className="page-state-text">No posts match your filters.</p> : null}

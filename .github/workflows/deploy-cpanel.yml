@@ -1,0 +1,41 @@
+name: Deploy to cPanel (FTPS/FTP)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: {}
+
+concurrency:
+  group: cpanel-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build + assemble cPanel bundle
+        run: npm run pack:cpanel
+
+      - name: Deploy bundle to cPanel
+        env:
+          HEDZTECH_FTP_HOST: ${{ secrets.HEDZTECH_FTP_HOST }}
+          HEDZTECH_FTP_PORT: ${{ secrets.HEDZTECH_FTP_PORT }}
+          HEDZTECH_FTP_USER: ${{ secrets.HEDZTECH_FTP_USER }}
+          HEDZTECH_FTP_PASS: ${{ secrets.HEDZTECH_FTP_PASS }}
+          HEDZTECH_FTP_REMOTE: ${{ secrets.HEDZTECH_FTP_REMOTE }}
+          HEDZTECH_FTP_SECURE: ${{ secrets.HEDZTECH_FTP_SECURE }}
+        run: node scripts/deploy-ftp.mjs
+

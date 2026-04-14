@@ -83,8 +83,9 @@ export default function HeroBannerCarouselField({
     <div className="admin-field admin-hero-carousel">
       <div className="admin-label">{label}</div>
       <p className="admin-help admin-hero-carousel__hint">
-        With <strong>Image wallpaper</strong> selected, two or more images here rotate in the hero every 4 seconds. Reorder
-        with arrows. If empty or one image, the single wallpaper URL field above is used alone.
+        When you add one or more slides here (or a single wallpaper URL), the public hero uses <strong>image</strong> mode
+        automatically unless you explicitly choose another background mode below. Two or more slides rotate every 4 seconds.
+        Reorder with arrows. If this list is empty, only the single wallpaper URL field applies.
       </p>
       <div className="admin-hero-carousel__toolbar">
         <label className="admin-btn admin-btn--ghost admin-hero-carousel__upload">

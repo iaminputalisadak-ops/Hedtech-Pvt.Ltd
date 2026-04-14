@@ -9,6 +9,7 @@ export default function SectionContainer({
   panelClassName = '',
   containerClassName = '',
   children,
+  // eslint-disable-next-line no-unused-vars -- `Outer` is the JSX root element below; ESLint does not treat it as a reference here
   as: Outer = 'section',
   tight = false,
   ...rest

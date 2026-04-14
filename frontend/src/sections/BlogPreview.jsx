@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import CmsImage from '../components/CmsImage'
 import SectionContainer from '../components/SectionContainer'
@@ -27,7 +27,7 @@ export default function BlogPreview() {
       </div>
       <div className="blog-preview-grid">
         {posts.map((post, i) => (
-          <motion.article
+          <Motion.article
             key={post.id}
             className="glass blog-card"
             initial={fadeIn(reduce)}
@@ -54,7 +54,7 @@ export default function BlogPreview() {
             <Link to={`/blog/${encodeURIComponent(post.slug)}`} className="btn btn-ghost blog-card__link">
               Read more →
             </Link>
-          </motion.article>
+          </Motion.article>
         ))}
       </div>
     </SectionContainer>
