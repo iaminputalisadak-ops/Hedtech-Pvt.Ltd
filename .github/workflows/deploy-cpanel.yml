@@ -45,6 +45,39 @@ jobs:
           ls -la frontend/node_modules/.bin | head -n 40 || true
           npm --prefix frontend ls vite || true
 
+      - name: Debug FTP DNS + port
+        env:
+          HEDZTECH_FTP_HOST: ${{ secrets.HEDZTECH_FTP_HOST }}
+          HEDZTECH_FTP_PORT: ${{ secrets.HEDZTECH_FTP_PORT }}
+        run: |
+          set -eux
+          echo "FTP host: ${HEDZTECH_FTP_HOST}"
+          echo "FTP port: ${HEDZTECH_FTP_PORT:-21}"
+          (command -v nslookup >/dev/null 2>&1 && nslookup "${HEDZTECH_FTP_HOST}") || true
+          (command -v dig >/dev/null 2>&1 && dig +short "${HEDZTECH_FTP_HOST}") || true
+          python3 - <<'PY'
+          import os, socket
+          host=os.environ.get("HEDZTECH_FTP_HOST","")
+          port=int(os.environ.get("HEDZTECH_FTP_PORT") or "21")
+          print("Resolving…")
+          try:
+            print(socket.getaddrinfo(host, port)[0][4][0])
+          except Exception as e:
+            print("DNS_FAIL:", e)
+            raise SystemExit(2)
+          print("Connecting…")
+          s=socket.socket()
+          s.settimeout(6)
+          try:
+            s.connect((host, port))
+            print("PORT_OK")
+          except Exception as e:
+            print("PORT_FAIL:", e)
+            raise SystemExit(3)
+          finally:
+            s.close()
+          PY
+
       - name: Build + assemble cPanel bundle
         env:
           NODE_ENV: development
