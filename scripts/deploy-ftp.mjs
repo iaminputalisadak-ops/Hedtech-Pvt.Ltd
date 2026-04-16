@@ -1,6 +1,8 @@
 /**
  * Upload deploy/cpanel/out/ to cPanel via FTP/FTPS (basic-ftp).
- * Requires deploy.env in project root — copy from deploy.env.example
+ * Supports:
+ * - GitHub Actions: read HEDZTECH_FTP_* from process.env (recommended)
+ * - Local dev: read from deploy.env in project root (copy from deploy.env.example)
  */
 import { readFileSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -11,14 +13,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const localDir = join(root, 'deploy', 'cpanel', 'out')
 const envPath = join(root, 'deploy.env')
 
-function loadEnv() {
-  if (!existsSync(envPath)) {
-    console.error('Missing deploy.env in project root.')
-    console.error('Copy deploy.env.example → deploy.env and set HEDZTECH_FTP_* values.')
-    process.exit(1)
-  }
+function parseEnvFile(text) {
   const out = {}
-  const text = readFileSync(envPath, 'utf8')
   for (const line of text.split(/\r?\n/)) {
     const t = line.trim()
     if (!t || t.startsWith('#')) continue
@@ -34,18 +30,38 @@ function loadEnv() {
   return out
 }
 
-const env = loadEnv()
-const host = env.HEDZTECH_FTP_HOST || ''
-const user = env.HEDZTECH_FTP_USER || ''
-const password = env.HEDZTECH_FTP_PASS || ''
-const remote = (env.HEDZTECH_FTP_REMOTE || '').replace(/\/+$/, '') || '/'
-const port = Number(env.HEDZTECH_FTP_PORT || 21) || 21
-const secure = String(env.HEDZTECH_FTP_SECURE || 'true').toLowerCase() !== 'false'
+function loadFtpConfig() {
+  const fromProcess = {
+    HEDZTECH_FTP_HOST: process.env.HEDZTECH_FTP_HOST,
+    HEDZTECH_FTP_PORT: process.env.HEDZTECH_FTP_PORT,
+    HEDZTECH_FTP_USER: process.env.HEDZTECH_FTP_USER,
+    HEDZTECH_FTP_PASS: process.env.HEDZTECH_FTP_PASS,
+    HEDZTECH_FTP_REMOTE: process.env.HEDZTECH_FTP_REMOTE,
+    HEDZTECH_FTP_SECURE: process.env.HEDZTECH_FTP_SECURE,
+  }
 
-if (!host || !user || !password) {
-  console.error('deploy.env must set HEDZTECH_FTP_HOST, HEDZTECH_FTP_USER, and HEDZTECH_FTP_PASS.')
-  process.exit(1)
+  const hasProcess = Boolean(fromProcess.HEDZTECH_FTP_HOST || fromProcess.HEDZTECH_FTP_USER || fromProcess.HEDZTECH_FTP_PASS)
+  const fileEnv = existsSync(envPath) ? parseEnvFile(readFileSync(envPath, 'utf8')) : {}
+  const env = hasProcess ? { ...fileEnv, ...fromProcess } : fileEnv
+
+  const host = (env.HEDZTECH_FTP_HOST || '').trim()
+  const user = (env.HEDZTECH_FTP_USER || '').trim()
+  const password = env.HEDZTECH_FTP_PASS || ''
+  const remote = (env.HEDZTECH_FTP_REMOTE || '').replace(/\/+$/, '') || '/'
+  const port = Number(env.HEDZTECH_FTP_PORT || 21) || 21
+  const secure = String(env.HEDZTECH_FTP_SECURE || 'true').toLowerCase() !== 'false'
+
+  if (!host || !user || !password) {
+    console.error('Missing FTP config.')
+    console.error('Required: HEDZTECH_FTP_HOST, HEDZTECH_FTP_USER, HEDZTECH_FTP_PASS.')
+    console.error('Provide them as environment variables (GitHub Secrets) or in deploy.env (local).')
+    process.exit(1)
+  }
+
+  return { host, user, password, remote, port, secure }
 }
+
+const { host, user, password, remote, port, secure } = loadFtpConfig()
 
 if (!existsSync(localDir) || !existsSync(join(localDir, 'index.html'))) {
   console.error('Missing or empty deploy/cpanel/out — run first: npm run pack:cpanel')
