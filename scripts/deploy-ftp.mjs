@@ -1,28 +1,23 @@
-// Improved FTP directory handling and error recovery
+// Improved FTP directory creation logic
 
-import ftp from 'some-ftp-library';
+const ftp = require('basic-ftp');
 
-async function deploy() {
-    try {
-        // Establish FTP connection
-        const client = new ftp();
-        await client.connect({ host: 'your-ftp-host', user: 'your-username', password: 'your-password' });
+async function ensureDirectory(ftpClient, remoteDir) {
+    const segments = remoteDir.split('/');
+    let currentPath = '';
 
-        // Improved Directory Handling
-        const remoteDir = '/path/to/remote/dir/';
-        await client.ensureDir(remoteDir);
-
-        // Upload files
-        await client.uploadFrom('local/file/path', remoteDir + 'fileName.ext');
-
-        console.log('File uploaded successfully!');
-    } catch (error) {
-        console.error('Error during FTP deploy:', error);
-        // Error recovery logic
-        // For example, retry the connection or log error details
-    } finally {
-        client.close();
+    for (const segment of segments) {
+        currentPath += segment + '/';
+        try {
+            // Attempt to change to the directory
+            await ftpClient.cd(currentPath);
+        } catch (err) {
+            // If it does not exist, we create it
+            await ftpClient.mkd(currentPath);
+            // Change to the newly created directory
+            await ftpClient.cd(currentPath);
+        }
     }
 }
 
-deploy();
+module.exports = { ensureDirectory };
