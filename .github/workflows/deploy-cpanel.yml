@@ -83,6 +83,22 @@ jobs:
           NODE_ENV: production
         run: npm run pack:cpanel
 
+      - name: Debug checked-out deploy script (must be ESM)
+        run: |
+          set -eux
+          echo "Commit:"
+          git rev-parse HEAD
+          echo ""
+          echo "First 25 lines of scripts/deploy-ftp.mjs:"
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("scripts/deploy-ftp.mjs")
+          txt = p.read_text("utf-8", errors="replace")
+          print("\n".join(txt.splitlines()[:25]))
+          if "require('basic-ftp')" in txt or 'require("basic-ftp")' in txt:
+              raise SystemExit("ERROR: scripts/deploy-ftp.mjs still contains require('basic-ftp') on runner")
+          PY
+
       - name: Deploy bundle to cPanel
         env:
           HEDZTECH_FTP_HOST: ${{ secrets.HEDZTECH_FTP_HOST }}
