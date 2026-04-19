@@ -80,7 +80,7 @@ jobs:
 
       - name: Build + assemble cPanel bundle
         env:
-          NODE_ENV: development
+          NODE_ENV: production
         run: npm run pack:cpanel
 
       - name: Deploy bundle to cPanel
@@ -91,5 +91,7 @@ jobs:
           HEDZTECH_FTP_PASS: ${{ secrets.HEDZTECH_FTP_PASS }}
           HEDZTECH_FTP_REMOTE: ${{ secrets.HEDZTECH_FTP_REMOTE }}
           HEDZTECH_FTP_SECURE: ${{ secrets.HEDZTECH_FTP_SECURE }}
+          # Fails the job if https://hedztech.com/ still serves old HTML (wrong FTP remote or CDN cache).
+          HEDZTECH_DEPLOY_VERIFY_URL: https://hedztech.com/
         run: node scripts/deploy-ftp.mjs
 
