@@ -1,4 +1,5 @@
 import { motion as Motion, useReducedMotion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import SectionContainer from '../components/SectionContainer'
 import { useSite } from '../context/SiteContext'
 import { displayedProjectCount } from '../utils/displayedProjectCount'
@@ -30,15 +31,15 @@ export default function About() {
     <SectionContainer id="about">
       <div className="section-block-head">
         <p className="section-kicker">About us</p>
-        <Motion.h2
+        <Motion.h1
           className="section-title"
           initial={fadeIn(reduce)}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.35 }}
         >
-          About
-        </Motion.h2>
+          About {settings.site_name || 'Hedztech'}
+        </Motion.h1>
         <Motion.p
           className="section-lead"
           initial={fadeIn(reduce)}
@@ -49,6 +50,16 @@ export default function About() {
           {intro}
         </Motion.p>
       </div>
+
+      <div className="about-hero-actions">
+        <Link to="/contact" className="btn btn-primary">
+          Start a project
+        </Link>
+        <Link to="/work" className="btn btn-ghost">
+          View work
+        </Link>
+      </div>
+
       <Motion.div
         className="about-stats"
         initial={fadeIn(reduce)}
@@ -66,6 +77,14 @@ export default function About() {
           <p className="about-stat-label">Core capability tracks</p>
         </div>
       </Motion.div>
+
+      <div className="about-cred-strip" aria-label="What we’re known for">
+        <div className="about-cred-pill">Performance-first builds</div>
+        <div className="about-cred-pill">SEO-ready structure</div>
+        <div className="about-cred-pill">Clear communication</div>
+        <div className="about-cred-pill">Design systems</div>
+      </div>
+
       <div className="layout-grid-2">
         <Motion.div
           className="glass nested-card"

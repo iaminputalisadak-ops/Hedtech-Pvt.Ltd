@@ -5,7 +5,14 @@ import CmsImage from '../components/CmsImage'
 import { CMS_SIZES } from '../constants/cmsImageSizes'
 import SectionContainer from '../components/SectionContainer'
 import Seo from '../components/Seo'
+import FaqStructuredData from '../components/FaqStructuredData'
 import { getTeam } from '../api/client'
+
+const TEAM_FAQ = [
+  { q: 'Who will I work with day-to-day?', a: 'The same people you meet at kickoff stay involved through delivery. You’ll have a clear point of contact and predictable updates.' },
+  { q: 'Can I hire Hedztech for ongoing support?', a: 'Yes. We offer maintenance and support for performance, security updates, and iterative improvements.' },
+  { q: 'Do you work with international clients?', a: 'Yes. We’re async-friendly across timezones with milestone-based delivery and written weekly updates.' },
+]
 
 export default function Team() {
   const [team, setTeam] = useState([])
@@ -32,9 +39,11 @@ export default function Team() {
     <>
       <Seo
         title="Team — Hedztech"
-        description="Meet the people behind Hedztech — design, engineering, and delivery."
+        description="Meet the Hedztech team — design, engineering, and delivery. The people who build, ship, and support your product."
         path="/team"
+        keywords="hedztech team, web development team, designers, developers, nepali agency"
       />
+      <FaqStructuredData path="/team" title="Team — Hedztech" items={TEAM_FAQ} />
       <SectionContainer className="team-showcase-section team-showcase-section--page">
         <p className="section-back">
           <Link to="/" className="text-back-link">
@@ -49,7 +58,7 @@ export default function Team() {
 
         {loading ? <p className="page-state-text">Loading team…</p> : null}
 
-        <div className="team-showcase-grid team-showcase-grid--page">
+        <div className="team-showcase-grid team-showcase-grid--page team-showcase-grid--dense">
           {(team || []).map((m) => (
             <article key={m.id} className="team-showcase-card team-showcase-card--page">
               <div className="team-showcase-media">
@@ -101,6 +110,23 @@ export default function Team() {
             </p>
           </div>
         ) : null}
+
+        <div className="team-page-cta">
+          <div className="glass team-page-cta__panel">
+            <h2 style={{ marginTop: 0 }}>Want to work with us?</h2>
+            <p style={{ marginTop: '0.5rem', marginBottom: '1rem', color: 'var(--muted)', lineHeight: 1.6 }}>
+              Tell us what you’re building and your timeline. We’ll reply with clear next steps and options.
+            </p>
+            <div className="team-page-cta__actions">
+              <Link to="/contact" className="btn btn-primary">
+                Contact us
+              </Link>
+              <Link to="/work" className="btn btn-ghost">
+                View projects
+              </Link>
+            </div>
+          </div>
+        </div>
       </SectionContainer>
     </>
   )

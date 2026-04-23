@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion as Motion, useReducedMotion } from 'framer-motion'
-import { Send } from 'lucide-react'
+import { Mail, Phone, Send } from 'lucide-react'
 import SectionContainer from '../components/SectionContainer'
 import { submitContact } from '../api/client'
 import { useSite } from '../context/SiteContext'
@@ -54,6 +54,24 @@ export default function Contact() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
+          <div className="contact-tile contact-tile--cta">
+            <div className="contact-tile-label">Quick contact</div>
+            <div className="contact-quick-row">
+              {settings.business_email ? (
+                <a href={`mailto:${settings.business_email}`} className="contact-quick-link">
+                  <Mail size={18} aria-hidden />
+                  {settings.business_email}
+                </a>
+              ) : null}
+              {settings.business_phone ? (
+                <a href={`tel:${(settings.business_phone || '').replace(/\s/g, '')}`} className="contact-quick-link">
+                  <Phone size={18} aria-hidden />
+                  {settings.business_phone}
+                </a>
+              ) : null}
+            </div>
+            <p className="contact-microcopy">Include your timeline and any helpful links. We typically reply within one business day.</p>
+          </div>
           <div className="contact-tile">
             <div className="contact-tile-label">Email</div>
             {settings.business_email ? (
@@ -174,40 +192,32 @@ export default function Contact() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          <label htmlFor="contact-name" className="sr-only">
-            Name
-          </label>
-          <input
-            id="contact-name"
-            name="name"
-            className="contact-field-input"
-            required
-            placeholder="Name"
-            autoComplete="name"
-          />
-          <label htmlFor="contact-email" className="sr-only">
-            Email
-          </label>
-          <input
-            id="contact-email"
-            name="email"
-            type="email"
-            className="contact-field-input"
-            required
-            placeholder="Email"
-            autoComplete="email"
-          />
-          <label htmlFor="contact-message" className="sr-only">
-            Message
-          </label>
-          <textarea
-            id="contact-message"
-            name="message"
-            className="contact-field-input contact-field-textarea"
-            required
-            rows={5}
-            placeholder="Your message"
-          />
+          <div className="contact-form-head">
+            <h3 className="contact-form-title">Send a message</h3>
+            <p className="contact-form-lead">The more context you share, the faster we can give you a useful reply.</p>
+          </div>
+
+          <div className="contact-field">
+            <label htmlFor="contact-name" className="contact-field-label">
+              Name
+            </label>
+            <input id="contact-name" name="name" className="contact-field-input" required autoComplete="name" />
+          </div>
+
+          <div className="contact-field">
+            <label htmlFor="contact-email" className="contact-field-label">
+              Email
+            </label>
+            <input id="contact-email" name="email" type="email" className="contact-field-input" required autoComplete="email" />
+          </div>
+
+          <div className="contact-field">
+            <label htmlFor="contact-message" className="contact-field-label">
+              Message
+            </label>
+            <textarea id="contact-message" name="message" className="contact-field-input contact-field-textarea" required rows={6} />
+            <p className="contact-field-hint">Tip: include your timeline, budget range (optional), and links to your current site or references.</p>
+          </div>
           {status ? (
             <p role="status" className={`contact-status ${status.ok ? 'contact-status--ok' : 'contact-status--err'}`}>
               {status.text}

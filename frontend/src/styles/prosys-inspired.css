@@ -91,6 +91,45 @@
   justify-content: center;
 }
 
+/* About page: make header feel premium + mobile-friendly */
+#about .section-block-head {
+  max-width: 56rem;
+}
+
+.about-hero-actions {
+  margin-top: clamp(0.75rem, 1.8vw, 1.15rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.about-cred-strip {
+  margin: clamp(1rem, 2.4vw, 1.35rem) auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  max-width: 56rem;
+}
+
+.about-cred-pill {
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 650;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface-strong));
+  color: color-mix(in srgb, var(--text) 92%, var(--muted));
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+@media (min-width: 900px) {
+  .about-hero-actions {
+    gap: 0.9rem;
+  }
+}
+
 /* --- Services: top “media” band + read more (image-forward agency cards) --- */
 .service-card.service-card--pro {
   padding: 0;
@@ -362,6 +401,44 @@ html[data-theme='light'] .service-card--pro .service-card-icon-wrap {
   gap: clamp(1rem, 2.2vw, 1.5rem);
 }
 
+.team-showcase-grid--dense {
+  margin-top: clamp(1.25rem, 3vw, 2rem);
+}
+
+.team-showcase-section--page .section-block-head {
+  max-width: 56rem;
+}
+
+/* Team page: make the grid feel centered and less empty */
+@media (min-width: 980px) {
+  .team-showcase-grid--page {
+    max-width: min(72rem, 100%);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.team-page-cta {
+  margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
+  display: flex;
+  justify-content: center;
+}
+
+.team-page-cta__panel {
+  width: 100%;
+  max-width: 56rem;
+  padding: clamp(1.25rem, 3vw, 1.6rem);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.team-page-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
 .team-showcase-card {
   position: relative;
   text-align: center;
@@ -606,6 +683,81 @@ html[data-theme='light'] .team-showcase-card {
 .contact-form-panel {
   padding: clamp(1.25rem, 3vw, 1.65rem);
   border-radius: var(--radius-lg);
+}
+
+/* Contact form (more scannable + SEO-friendly visible labels) */
+.contact-form-head {
+  margin-bottom: 0.85rem;
+}
+
+.contact-form-title {
+  margin: 0 0 0.25rem;
+}
+
+.contact-form-lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.contact-field {
+  margin-top: 0.85rem;
+}
+
+.contact-field-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--muted) 72%, var(--text));
+  margin-bottom: 0.35rem;
+}
+
+.contact-field-hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.contact-tile--cta {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent) 14%, var(--surface-strong)),
+    color-mix(in srgb, var(--accent-2) 10%, var(--surface-strong))
+  );
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+}
+
+.contact-quick-row {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+.contact-quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 650;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.contact-quick-link:hover {
+  color: var(--accent);
+}
+
+.contact-microcopy {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.contact-page-cards {
+  margin-top: clamp(1rem, 2vw, 1.35rem);
 }
 
 /* --- Partner logos: framed like reference “client” tiles --- */
