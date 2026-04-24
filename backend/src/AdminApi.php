@@ -564,8 +564,16 @@ final class AdminApi
         Auth::requireAdmin();
         Db::ensureBlogOgImageAltColumn();
         $pdo = Db::pdo();
+        // Support older DBs by only touching existing columns.
+        $hasExcerpt = Db::columnExists('blog_posts', 'excerpt');
+        $hasBody = Db::columnExists('blog_posts', 'body');
+        $hasCategory = Db::columnExists('blog_posts', 'category');
+        $hasTags = Db::columnExists('blog_posts', 'tags');
+        $hasMetaTitle = Db::columnExists('blog_posts', 'meta_title');
+        $hasMetaDesc = Db::columnExists('blog_posts', 'meta_description');
         $hasOg = Db::columnExists('blog_posts', 'og_image');
         $hasOgAlt = Db::columnExists('blog_posts', 'og_image_alt');
+        $hasPublished = Db::columnExists('blog_posts', 'published');
         if ($method === 'GET' && $id === null) {
             $stmt = $pdo->query('SELECT * FROM blog_posts ORDER BY created_at DESC');
             Util::sendJson(['items' => $stmt->fetchAll()]);
@@ -591,48 +599,48 @@ final class AdminApi
             $tags = self::trimLen((string) ($b['tags'] ?? ''), 512);
             $metaTitle = self::trimLen((string) ($b['meta_title'] ?? ''), 255);
 
-            $cols = ['title', 'slug', 'excerpt', 'body', 'category', 'tags', 'meta_title', 'meta_description'];
-            if ($hasOg) {
-                $cols[] = 'og_image';
-            }
-            if ($hasOgAlt) {
-                $cols[] = 'og_image_alt';
-            }
-            $cols[] = 'published';
+            $cols = ['title', 'slug'];
+            if ($hasExcerpt) $cols[] = 'excerpt';
+            if ($hasBody) $cols[] = 'body';
+            if ($hasCategory) $cols[] = 'category';
+            if ($hasTags) $cols[] = 'tags';
+            if ($hasMetaTitle) $cols[] = 'meta_title';
+            if ($hasMetaDesc) $cols[] = 'meta_description';
+            if ($hasOg) $cols[] = 'og_image';
+            if ($hasOgAlt) $cols[] = 'og_image_alt';
+            if ($hasPublished) $cols[] = 'published';
             $placeholders = implode(',', array_fill(0, count($cols), '?'));
             $stmt = $pdo->prepare('INSERT INTO blog_posts (' . implode(',', $cols) . ') VALUES (' . $placeholders . ')');
 
             $slug = $slugBase;
             $lastErr = null;
+            $lastErrMsg = '';
             for ($i = 0; $i < 20; $i++) {
                 $slug = $i === 0 ? $slugBase : ($slugBase . '-' . ($i + 1));
                 try {
-                    $vals = [
-                        $title,
-                        $slug,
-                        (string) ($b['excerpt'] ?? ''),
-                        (string) ($b['body'] ?? ''),
-                        $category,
-                        $tags,
-                        $metaTitle,
-                        (string) ($b['meta_description'] ?? ''),
-                    ];
-                    if ($hasOg) {
-                        $vals[] = $og !== '' ? $og : null;
-                    }
-                    if ($hasOgAlt) {
-                        $vals[] = $ogAlt !== '' ? $ogAlt : null;
-                    }
-                    $vals[] = !empty($b['published']) ? 1 : 0;
+                    $vals = [$title, $slug];
+                    if ($hasExcerpt) $vals[] = (string) ($b['excerpt'] ?? '');
+                    if ($hasBody) $vals[] = (string) ($b['body'] ?? '');
+                    if ($hasCategory) $vals[] = $category;
+                    if ($hasTags) $vals[] = $tags;
+                    if ($hasMetaTitle) $vals[] = $metaTitle;
+                    if ($hasMetaDesc) $vals[] = (string) ($b['meta_description'] ?? '');
+                    if ($hasOg) $vals[] = $og !== '' ? $og : null;
+                    if ($hasOgAlt) $vals[] = $ogAlt !== '' ? $ogAlt : null;
+                    if ($hasPublished) $vals[] = !empty($b['published']) ? 1 : 0;
                     $stmt->execute($vals);
                     Util::sendJson(['id' => (int) $pdo->lastInsertId(), 'slug' => $slug]);
                     return;
                 } catch (PDOException $e) {
                     $lastErr = $e;
+                    $lastErrMsg = $e->getMessage();
                     // Duplicate entry (unique slug) → try next suffix.
                     if ($e->getCode() === '23000') {
                         continue;
                     }
+                    break;
+                } catch (\Throwable $e) {
+                    $lastErrMsg = $e->getMessage();
                     break;
                 }
             }
@@ -642,7 +650,7 @@ final class AdminApi
                 return;
             }
             Util::sendJson(
-                ['error' => 'Could not create blog post'] + ($lastErr ? ['detail' => $lastErr->getMessage()] : []),
+                ['error' => 'Could not create blog post'] + ($lastErrMsg !== '' ? ['detail' => $lastErrMsg] : []),
                 500
             );
             return;
