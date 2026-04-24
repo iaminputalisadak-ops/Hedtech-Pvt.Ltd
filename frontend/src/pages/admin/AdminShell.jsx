@@ -4,9 +4,22 @@ import { LogOut, Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
 import './admin.css'
 
+function resolveExternalUrl(raw, fallback) {
+  const v = String(raw || '').trim()
+  if (!v) return fallback
+  if (/^https?:\/\//i.test(v)) return v
+  if (v.startsWith('/')) return `${window.location.origin}${v}`
+  return `${window.location.origin}/${v}`
+}
+
 export default function AdminShell({ activeTab, onTabChange, onLogout, children, topTitle, loading }) {
   const [open, setOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
+  const frontendUrl = resolveExternalUrl(import.meta.env.VITE_FRONTEND_URL, window.location.origin)
+  const backendUrl = resolveExternalUrl(
+    import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE,
+    `${window.location.origin}/api`,
+  )
 
   const NAV_GROUPS = [
     {
@@ -96,6 +109,26 @@ export default function AdminShell({ activeTab, onTabChange, onLogout, children,
               </h1>
             </div>
             <div className="admin-topbar-actions">
+              <a
+                className="admin-btn admin-btn--ghost"
+                href={frontendUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open frontend in a new tab"
+              >
+                <span className="admin-hide-sm">Open frontend</span>
+                <span className="admin-hide-lg">Frontend</span>
+              </a>
+              <a
+                className="admin-btn admin-btn--ghost"
+                href={backendUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open backend in a new tab"
+              >
+                <span className="admin-hide-sm">Open backend</span>
+                <span className="admin-hide-lg">Backend</span>
+              </a>
               <button type="button" className="admin-btn admin-btn--ghost admin-btn--icon" onClick={toggleTheme} aria-label="Theme">
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </button>
