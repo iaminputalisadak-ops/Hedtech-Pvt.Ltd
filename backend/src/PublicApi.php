@@ -108,9 +108,47 @@ final class PublicApi
     public static function projects(): void
     {
         $pdo = Db::pdo();
+        Db::ensureProjectsWorkFields();
+        Db::ensureProjectsSeoFields();
         $hasFit = Db::columnExists('projects', 'image_fit');
         $hasSort = Db::columnExists('projects', 'sort_order');
+        $hasSvc = Db::columnExists('projects', 'service_type');
+        $hasStatus = Db::columnExists('projects', 'status');
+        $hasClient = Db::columnExists('projects', 'client_name');
+        $hasTags = Db::columnExists('projects', 'tags');
+        $hasProgress = Db::columnExists('projects', 'progress');
+        $hasMetaTitle = Db::columnExists('projects', 'meta_title');
+        $hasMetaDesc = Db::columnExists('projects', 'meta_description');
+        $hasOg = Db::columnExists('projects', 'og_image');
+        $hasOgAlt = Db::columnExists('projects', 'og_image_alt');
         $cols = 'id, title, slug, excerpt, category, image_url';
+        if ($hasSvc) {
+            $cols .= ', service_type';
+        }
+        if ($hasStatus) {
+            $cols .= ', status';
+        }
+        if ($hasClient) {
+            $cols .= ', client_name';
+        }
+        if ($hasTags) {
+            $cols .= ', tags';
+        }
+        if ($hasProgress) {
+            $cols .= ', progress';
+        }
+        if ($hasMetaTitle) {
+            $cols .= ', meta_title';
+        }
+        if ($hasMetaDesc) {
+            $cols .= ', meta_description';
+        }
+        if ($hasOg) {
+            $cols .= ', og_image';
+        }
+        if ($hasOgAlt) {
+            $cols .= ', og_image_alt';
+        }
         if ($hasFit) {
             $cols .= ', image_fit';
         }
@@ -126,11 +164,50 @@ final class PublicApi
     public static function projectBySlug(string $slug): void
     {
         $pdo = Db::pdo();
+        Db::ensureProjectsWorkFields();
+        Db::ensureProjectsSeoFields();
         $hasFit = Db::columnExists('projects', 'image_fit');
+        $hasSvc = Db::columnExists('projects', 'service_type');
+        $hasStatus = Db::columnExists('projects', 'status');
+        $hasClient = Db::columnExists('projects', 'client_name');
+        $hasTags = Db::columnExists('projects', 'tags');
+        $hasProgress = Db::columnExists('projects', 'progress');
+        $hasMetaTitle = Db::columnExists('projects', 'meta_title');
+        $hasMetaDesc = Db::columnExists('projects', 'meta_description');
+        $hasOg = Db::columnExists('projects', 'og_image');
+        $hasOgAlt = Db::columnExists('projects', 'og_image_alt');
+        $extra = '';
+        if ($hasSvc) {
+            $extra .= ', service_type';
+        }
+        if ($hasStatus) {
+            $extra .= ', status';
+        }
+        if ($hasClient) {
+            $extra .= ', client_name';
+        }
+        if ($hasTags) {
+            $extra .= ', tags';
+        }
+        if ($hasProgress) {
+            $extra .= ', progress';
+        }
+        if ($hasMetaTitle) {
+            $extra .= ', meta_title';
+        }
+        if ($hasMetaDesc) {
+            $extra .= ', meta_description';
+        }
+        if ($hasOg) {
+            $extra .= ', og_image';
+        }
+        if ($hasOgAlt) {
+            $extra .= ', og_image_alt';
+        }
         $stmt = $pdo->prepare(
             $hasFit
-                ? 'SELECT id, title, slug, excerpt, body, category, image_url, image_fit, featured, live_url, created_at FROM projects WHERE slug = ? LIMIT 1'
-                : 'SELECT id, title, slug, excerpt, body, category, image_url, featured, live_url, created_at FROM projects WHERE slug = ? LIMIT 1'
+                ? 'SELECT id, title, slug, excerpt, body, category' . $extra . ', image_url, image_fit, featured, live_url, created_at FROM projects WHERE slug = ? LIMIT 1'
+                : 'SELECT id, title, slug, excerpt, body, category' . $extra . ', image_url, featured, live_url, created_at FROM projects WHERE slug = ? LIMIT 1'
         );
         $stmt->execute([$slug]);
         $row = $stmt->fetch();
@@ -252,6 +329,9 @@ final class PublicApi
         Db::ensureServicesImageUrlColumn();
         Db::ensureBlogOgImageAltColumn();
         Db::ensureTeamMembersTable();
+        Db::ensureProjectsWorkFields();
+        Db::ensureProjectsSeoFields();
+        Db::ensureSeoPagesTable();
         $settings = [];
         foreach ($pdo->query('SELECT `key`, `value` FROM settings')->fetchAll() as $r) {
             $settings[$r['key']] = $r['value'];
@@ -269,7 +349,43 @@ final class PublicApi
             'projects' => (static function () use ($pdo) {
                 $hasFit = Db::columnExists('projects', 'image_fit');
                 $hasSort = Db::columnExists('projects', 'sort_order');
+                $hasSvc = Db::columnExists('projects', 'service_type');
+                $hasStatus = Db::columnExists('projects', 'status');
+                $hasClient = Db::columnExists('projects', 'client_name');
+                $hasTags = Db::columnExists('projects', 'tags');
+                $hasProgress = Db::columnExists('projects', 'progress');
+                $hasMetaTitle = Db::columnExists('projects', 'meta_title');
+                $hasMetaDesc = Db::columnExists('projects', 'meta_description');
+                $hasOg = Db::columnExists('projects', 'og_image');
+                $hasOgAlt = Db::columnExists('projects', 'og_image_alt');
                 $cols = 'id, title, slug, excerpt, category, image_url';
+                if ($hasSvc) {
+                    $cols .= ', service_type';
+                }
+                if ($hasStatus) {
+                    $cols .= ', status';
+                }
+                if ($hasClient) {
+                    $cols .= ', client_name';
+                }
+                if ($hasTags) {
+                    $cols .= ', tags';
+                }
+                if ($hasProgress) {
+                    $cols .= ', progress';
+                }
+                if ($hasMetaTitle) {
+                    $cols .= ', meta_title';
+                }
+                if ($hasMetaDesc) {
+                    $cols .= ', meta_description';
+                }
+                if ($hasOg) {
+                    $cols .= ', og_image';
+                }
+                if ($hasOgAlt) {
+                    $cols .= ', og_image_alt';
+                }
                 if ($hasFit) {
                     $cols .= ', image_fit';
                 }
@@ -280,6 +396,16 @@ final class PublicApi
                 $order = $hasSort ? 'ORDER BY sort_order ASC, id ASC' : 'ORDER BY featured DESC, created_at DESC';
 
                 return $pdo->query('SELECT ' . $cols . ' FROM projects ' . $order)->fetchAll();
+            })(),
+            'seo_pages' => (static function () use ($pdo) {
+                if (!Db::tableExists('seo_pages')) {
+                    return [];
+                }
+                return $pdo
+                    ->query(
+                        'SELECT id, path, meta_title, meta_description, og_image, og_image_alt, robots, created_at FROM seo_pages ORDER BY path ASC, id ASC'
+                    )
+                    ->fetchAll();
             })(),
             'trusted' => $pdo->query('SELECT id, name, logo_url, sort_order FROM trusted_companies ORDER BY sort_order')->fetchAll(),
             'team' => self::teamRowsForBootstrap($pdo),
@@ -299,10 +425,23 @@ final class PublicApi
                 $where = Db::columnExists('blog_posts', 'published') ? 'WHERE published = 1' : '';
 
                 return $pdo
-                    ->query('SELECT ' . $cols . ' FROM blog_posts ' . $where . ' ORDER BY created_at DESC LIMIT 6')
+                    ->query('SELECT ' . $cols . ' FROM blog_posts ' . $where . ' ORDER BY created_at DESC LIMIT 12')
                     ->fetchAll();
             })(),
         ], 200, 30);
+    }
+
+    public static function seoPages(): void
+    {
+        Db::ensureSeoPagesTable();
+        if (!Db::tableExists('seo_pages')) {
+            Util::sendJson(['items' => []]);
+            return;
+        }
+        $stmt = Db::pdo()->query(
+            'SELECT id, path, meta_title, meta_description, og_image, og_image_alt, robots, created_at FROM seo_pages ORDER BY path ASC, id ASC'
+        );
+        Util::sendJson(['items' => $stmt->fetchAll()], 200, 120);
     }
 
     /**

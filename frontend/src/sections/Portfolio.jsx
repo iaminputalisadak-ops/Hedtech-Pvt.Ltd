@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion as Motion, useReducedMotion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Navigation, Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import SectionContainer from '../components/SectionContainer'
@@ -41,9 +41,6 @@ function ProjectPreviewCard({ p, imagePriority = 'low' }) {
             <div className="project-preview-placeholder">Preview</div>
           )}
         </div>
-        <span className="project-preview-play" aria-hidden>
-          <Play size={22} fill="currentColor" strokeWidth={0} />
-        </span>
       </Link>
       <div className="review-card-body">
         <div className="project-preview-meta">

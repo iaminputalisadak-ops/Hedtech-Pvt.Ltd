@@ -167,6 +167,25 @@ html[data-theme='dark'] .admin-sidebar {
   gap: 4px;
 }
 
+.admin-nav-group {
+  padding: 0.25rem 0;
+}
+
+.admin-nav-group + .admin-nav-group {
+  margin-top: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+}
+
+.admin-nav-group-title {
+  padding: 0.3rem 0.7rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--muted) 80%, var(--text));
+}
+
 .admin-nav-btn {
   display: block;
   width: 100%;
@@ -419,6 +438,24 @@ html[data-theme='light'] .admin-btn--primary {
   transform: translateY(-1px);
 }
 
+.admin-btn--dangerSolid {
+  background: color-mix(in srgb, #ef4444 22%, var(--surface-strong));
+  border-color: color-mix(in srgb, #ef4444 55%, var(--border));
+  color: #fecaca;
+}
+
+.admin-btn--dangerSolid:hover:not(:disabled) {
+  background: color-mix(in srgb, #ef4444 28%, var(--surface-strong));
+  border-color: color-mix(in srgb, #ef4444 70%, var(--border));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(239, 68, 68, 0.22);
+}
+
+.admin-btn--dangerSolid:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.1s;
+}
+
 .admin-btn:disabled,
 .admin-btn[aria-disabled='true'] {
   opacity: 0.55;
@@ -669,6 +706,83 @@ html[data-theme='dark'] .admin-edit-fixed-inner {
   font-family: inherit;
   font-size: 0.9rem;
   box-sizing: border-box;
+}
+
+/* Native select dropdown menu (Windows/Chromium) — ensure option text is readable in dark mode. */
+select.admin-input option,
+select.admin-input optgroup {
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+html[data-theme='light'] select.admin-input option,
+html[data-theme='light'] select.admin-input optgroup {
+  background: #fff;
+  color: #0f172a;
+}
+
+/* ----- Dialog (confirm delete) ----- */
+.admin-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30000;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(2, 6, 23, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.admin-dialog {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, #000 8%);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+  padding: 1.15rem 1.15rem 1rem;
+}
+
+html[data-theme='light'] .admin-dialog {
+  background: #fff;
+  box-shadow: 0 26px 70px rgba(15, 23, 42, 0.24);
+}
+
+.admin-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.admin-dialog-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.admin-dialog-desc {
+  margin: 0.35rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.admin-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 460px) {
+  .admin-dialog-actions .admin-btn {
+    width: 100%;
+  }
 }
 
 .admin-input:focus,

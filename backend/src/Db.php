@@ -207,4 +207,101 @@ SQL;
         }
         self::forgetColumnExistsCache('services', 'image_url');
     }
+
+    /**
+     * Adds "Our Work" board fields to projects when missing.
+     * Mirrors database/migrations/017_projects_work_fields.sql.
+     */
+    public static function ensureProjectsWorkFields(): void
+    {
+        if (!self::tableExists('projects')) {
+            return;
+        }
+        $alters = [];
+        if (!self::columnExists('projects', 'service_type')) {
+            $alters[] = "ADD COLUMN service_type VARCHAR(16) NOT NULL DEFAULT 'web' AFTER category";
+        }
+        if (!self::columnExists('projects', 'status')) {
+            $alters[] = "ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'completed' AFTER service_type";
+        }
+        if (!self::columnExists('projects', 'client_name')) {
+            $alters[] = "ADD COLUMN client_name VARCHAR(255) DEFAULT '' AFTER status";
+        }
+        if (!self::columnExists('projects', 'tags')) {
+            $alters[] = "ADD COLUMN tags VARCHAR(512) DEFAULT '' AFTER client_name";
+        }
+        if (!self::columnExists('projects', 'progress')) {
+            $alters[] = "ADD COLUMN progress TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER tags";
+        }
+        if ($alters === []) {
+            return;
+        }
+        try {
+            self::pdo()->exec('ALTER TABLE projects ' . implode(', ', $alters));
+        } catch (PDOException) {
+            return;
+        }
+        self::forgetColumnExistsCache('projects');
+    }
+
+    /**
+     * Adds SEO fields to projects when missing.
+     * Mirrors database/migrations/018_projects_seo_fields.sql.
+     */
+    public static function ensureProjectsSeoFields(): void
+    {
+        if (!self::tableExists('projects')) {
+            return;
+        }
+        $alters = [];
+        if (!self::columnExists('projects', 'meta_title')) {
+            $alters[] = "ADD COLUMN meta_title VARCHAR(255) DEFAULT NULL";
+        }
+        if (!self::columnExists('projects', 'meta_description')) {
+            $alters[] = "ADD COLUMN meta_description TEXT DEFAULT NULL";
+        }
+        if (!self::columnExists('projects', 'og_image')) {
+            $alters[] = "ADD COLUMN og_image VARCHAR(512) DEFAULT NULL";
+        }
+        if (!self::columnExists('projects', 'og_image_alt')) {
+            $alters[] = "ADD COLUMN og_image_alt VARCHAR(255) DEFAULT NULL";
+        }
+        if ($alters === []) {
+            return;
+        }
+        try {
+            self::pdo()->exec('ALTER TABLE projects ' . implode(', ', $alters));
+        } catch (PDOException) {
+            return;
+        }
+        self::forgetColumnExistsCache('projects');
+    }
+
+    /** Create seo_pages table if missing (see database/migrations/019_seo_pages.sql). */
+    public static function ensureSeoPagesTable(): bool
+    {
+        if (self::tableExists('seo_pages')) {
+            return true;
+        }
+        $ddl = <<<'SQL'
+CREATE TABLE IF NOT EXISTS seo_pages (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  path VARCHAR(255) NOT NULL UNIQUE,
+  meta_title VARCHAR(255) DEFAULT NULL,
+  meta_description TEXT DEFAULT NULL,
+  og_image VARCHAR(512) DEFAULT NULL,
+  og_image_alt VARCHAR(255) DEFAULT NULL,
+  robots VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+SQL;
+        try {
+            self::pdo()->exec($ddl);
+        } catch (PDOException) {
+            return false;
+        }
+        self::forgetTableExistsCache('seo_pages');
+
+        return self::tableExists('seo_pages');
+    }
 }

@@ -28,17 +28,20 @@ export default function Seo({
   ogType = 'website',
   article,
 }) {
-  const { settings } = useSite()
+  const { settings, seo_pages: seoPages } = useSite()
   const site = settings.site_name || 'Hedztech'
-  const metaTitle = title || settings.meta_title || `${site} — Digital Products & Growth`
-  const metaDesc = description || settings.meta_description || ''
+  const seoRow = Array.isArray(seoPages) && path ? seoPages.find((p) => String(p.path || '').trim() === path) : null
+  const metaTitle = title || seoRow?.meta_title || settings.meta_title || `${site} — Digital Products & Growth`
+  const metaDesc = description || seoRow?.meta_description || settings.meta_description || ''
   const base = (settings.canonical_base || '').replace(/\/$/, '')
   const canonical = base && path ? `${base}${path}` : base || undefined
-  const rawOg = (image || settings.og_image || '').trim()
+  const robots = (seoRow?.robots || '').trim()
+  const rawOg = (image || seoRow?.og_image || settings.og_image || '').trim()
   const ogNorm = rawOg ? resolvePublicAssetUrl(rawOg) : ''
   const og = ogNorm ? absoluteUrlFromBase(ogNorm, base) : undefined
   const ogAlt =
     (imageAlt && String(imageAlt).trim()) ||
+    (seoRow?.og_image_alt && String(seoRow.og_image_alt).trim()) ||
     (ogType === 'article' ? metaTitle : `${site} — share image`)
 
   const kw = (keywords || '').trim()
@@ -50,8 +53,14 @@ export default function Seo({
       <title>{metaTitle}</title>
       {metaDesc ? <meta name="description" content={metaDesc} /> : null}
       {kw ? <meta name="keywords" content={kw} /> : null}
-      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-      <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+      <meta
+        name="robots"
+        content={robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+      />
+      <meta
+        name="googlebot"
+        content={robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+      />
       {canonical ? <link rel="canonical" href={canonical} /> : null}
       <meta property="og:title" content={metaTitle} />
       {metaDesc ? <meta property="og:description" content={metaDesc} /> : null}

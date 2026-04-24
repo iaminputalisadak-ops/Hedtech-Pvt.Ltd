@@ -4,9 +4,23 @@ declare(strict_types=1);
 namespace Hedztech;
 
 use PDO;
+use PDOException;
 
 final class AdminApi
 {
+    private static function trimLen(string $s, int $max): string
+    {
+        $s = trim($s);
+        if ($max <= 0) {
+            return '';
+        }
+        if (function_exists('mb_substr')) {
+            return mb_substr($s, 0, $max);
+        }
+
+        return substr($s, 0, $max);
+    }
+
     private static function uploadsDir(): string
     {
         // backend/src -> backend/public/uploads
@@ -116,7 +130,18 @@ final class AdminApi
         $f = $_FILES['file'];
         $err = (int) ($f['error'] ?? UPLOAD_ERR_NO_FILE);
         if ($err !== UPLOAD_ERR_OK) {
-            Util::sendJson(['error' => 'Upload failed'], 400);
+            $msg = match ($err) {
+                UPLOAD_ERR_INI_SIZE => 'Upload failed: file exceeds PHP upload_max_filesize',
+                UPLOAD_ERR_FORM_SIZE => 'Upload failed: file exceeds form limit',
+                UPLOAD_ERR_PARTIAL => 'Upload failed: file only partially uploaded',
+                UPLOAD_ERR_NO_FILE => 'Upload failed: no file received',
+                UPLOAD_ERR_NO_TMP_DIR => 'Upload failed: missing temporary folder on server',
+                UPLOAD_ERR_CANT_WRITE => 'Upload failed: server could not write file to disk',
+                UPLOAD_ERR_EXTENSION => 'Upload failed: blocked by a PHP extension',
+                default => 'Upload failed',
+            };
+            $code = in_array($err, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true) ? 413 : 400;
+            Util::sendJson(['error' => $msg, 'upload_error_code' => $err], $code);
             return;
         }
 
@@ -326,8 +351,19 @@ final class AdminApi
     {
         Auth::requireAdmin();
         $pdo = Db::pdo();
+        Db::ensureProjectsWorkFields();
+        Db::ensureProjectsSeoFields();
         $hasFit = Db::columnExists('projects', 'image_fit');
         $hasSort = Db::columnExists('projects', 'sort_order');
+        $hasSvc = Db::columnExists('projects', 'service_type');
+        $hasStatus = Db::columnExists('projects', 'status');
+        $hasClient = Db::columnExists('projects', 'client_name');
+        $hasTags = Db::columnExists('projects', 'tags');
+        $hasProgress = Db::columnExists('projects', 'progress');
+        $hasMetaTitle = Db::columnExists('projects', 'meta_title');
+        $hasMetaDesc = Db::columnExists('projects', 'meta_description');
+        $hasOg = Db::columnExists('projects', 'og_image');
+        $hasOgAlt = Db::columnExists('projects', 'og_image_alt');
         if ($method === 'GET' && $id === null) {
             $order = $hasSort ? 'ORDER BY sort_order ASC, id ASC' : 'ORDER BY created_at DESC';
             $stmt = $pdo->query('SELECT * FROM projects ' . $order);
@@ -349,70 +385,82 @@ final class AdminApi
             $fit = strtolower(trim((string) ($b['image_fit'] ?? 'contain')));
             $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
+            $svc = strtolower(trim((string) ($b['service_type'] ?? ($b['category'] ?? 'web'))));
+            $svc = in_array($svc, ['web', 'seo', 'marketing', 'design'], true) ? $svc : 'web';
+            $status = strtolower(trim((string) ($b['status'] ?? 'completed')));
+            $status = in_array($status, ['completed', 'ongoing'], true) ? $status : 'completed';
+            $client = isset($b['client_name']) ? trim((string) $b['client_name']) : '';
+            $tags = isset($b['tags']) ? trim((string) $b['tags']) : '';
+            $progress = (int) ($b['progress'] ?? 0);
+            $progress = max(0, min(100, $progress));
+            $metaTitle = isset($b['meta_title']) ? trim((string) $b['meta_title']) : '';
+            $metaDesc = isset($b['meta_description']) ? trim((string) $b['meta_description']) : '';
+            $og = isset($b['og_image']) ? trim((string) $b['og_image']) : '';
+            $ogAlt = isset($b['og_image_alt']) ? trim((string) $b['og_image_alt']) : '';
             $nextSort = $hasSort
                 ? (int) $pdo->query('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM projects')->fetchColumn()
                 : 0;
-            if ($hasFit && $hasSort) {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, image_fit, featured, sort_order, live_url) VALUES (?,?,?,?,?,?,?,?,?,?)'
-                );
-                $stmt->execute([
-                    $title,
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    $fit,
-                    !empty($b['featured']) ? 1 : 0,
-                    $nextSort,
-                    $live !== '' ? $live : null,
-                ]);
-            } elseif ($hasFit) {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, image_fit, featured, live_url) VALUES (?,?,?,?,?,?,?,?,?)'
-                );
-                $stmt->execute([
-                    $title,
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    $fit,
-                    !empty($b['featured']) ? 1 : 0,
-                    $live !== '' ? $live : null,
-                ]);
-            } elseif ($hasSort) {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, featured, sort_order, live_url) VALUES (?,?,?,?,?,?,?,?,?)'
-                );
-                $stmt->execute([
-                    $title,
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    !empty($b['featured']) ? 1 : 0,
-                    $nextSort,
-                    $live !== '' ? $live : null,
-                ]);
-            } else {
-                $stmt = $pdo->prepare(
-                    'INSERT INTO projects (title, slug, excerpt, body, category, image_url, featured, live_url) VALUES (?,?,?,?,?,?,?,?)'
-                );
-                $stmt->execute([
-                    $title,
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    !empty($b['featured']) ? 1 : 0,
-                    $live !== '' ? $live : null,
-                ]);
+            $cols = ['title', 'slug', 'excerpt', 'body', 'category'];
+            $vals = [
+                $title,
+                $slug,
+                (string) ($b['excerpt'] ?? ''),
+                (string) ($b['body'] ?? ''),
+                (string) ($b['category'] ?? 'web'),
+            ];
+            if ($hasSvc) {
+                $cols[] = 'service_type';
+                $vals[] = $svc;
             }
+            if ($hasStatus) {
+                $cols[] = 'status';
+                $vals[] = $status;
+            }
+            if ($hasClient) {
+                $cols[] = 'client_name';
+                $vals[] = $client;
+            }
+            if ($hasTags) {
+                $cols[] = 'tags';
+                $vals[] = $tags;
+            }
+            if ($hasProgress) {
+                $cols[] = 'progress';
+                $vals[] = $progress;
+            }
+            if ($hasMetaTitle) {
+                $cols[] = 'meta_title';
+                $vals[] = $metaTitle !== '' ? $metaTitle : null;
+            }
+            if ($hasMetaDesc) {
+                $cols[] = 'meta_description';
+                $vals[] = $metaDesc !== '' ? $metaDesc : null;
+            }
+            if ($hasOg) {
+                $cols[] = 'og_image';
+                $vals[] = $og !== '' ? $og : null;
+            }
+            if ($hasOgAlt) {
+                $cols[] = 'og_image_alt';
+                $vals[] = $ogAlt !== '' ? $ogAlt : null;
+            }
+            $cols[] = 'image_url';
+            $vals[] = $img !== '' ? $img : null;
+            if ($hasFit) {
+                $cols[] = 'image_fit';
+                $vals[] = $fit;
+            }
+            $cols[] = 'featured';
+            $vals[] = !empty($b['featured']) ? 1 : 0;
+            if ($hasSort) {
+                $cols[] = 'sort_order';
+                $vals[] = $nextSort;
+            }
+            $cols[] = 'live_url';
+            $vals[] = $live !== '' ? $live : null;
+            $placeholders = implode(',', array_fill(0, count($cols), '?'));
+            $stmt = $pdo->prepare('INSERT INTO projects (' . implode(',', $cols) . ') VALUES (' . $placeholders . ')');
+            $stmt->execute($vals);
             Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
             return;
         }
@@ -427,67 +475,79 @@ final class AdminApi
             $fit = $fit === 'cover' ? 'cover' : 'contain';
             $live = isset($b['live_url']) ? trim((string) $b['live_url']) : '';
             $sortOrder = (int) ($b['sort_order'] ?? 0);
-            if ($hasFit && $hasSort) {
-                $pdo->prepare(
-                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, image_fit=?, featured=?, sort_order=?, live_url=? WHERE id=?'
-                )->execute([
-                    (string) ($b['title'] ?? ''),
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    $fit,
-                    !empty($b['featured']) ? 1 : 0,
-                    $sortOrder,
-                    $live !== '' ? $live : null,
-                    (int) $id,
-                ]);
-            } elseif ($hasFit) {
-                $pdo->prepare(
-                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, image_fit=?, featured=?, live_url=? WHERE id=?'
-                )->execute([
-                    (string) ($b['title'] ?? ''),
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    $fit,
-                    !empty($b['featured']) ? 1 : 0,
-                    $live !== '' ? $live : null,
-                    (int) $id,
-                ]);
-            } elseif ($hasSort) {
-                $pdo->prepare(
-                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, featured=?, sort_order=?, live_url=? WHERE id=?'
-                )->execute([
-                    (string) ($b['title'] ?? ''),
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    !empty($b['featured']) ? 1 : 0,
-                    $sortOrder,
-                    $live !== '' ? $live : null,
-                    (int) $id,
-                ]);
-            } else {
-                $pdo->prepare(
-                    'UPDATE projects SET title=?, slug=?, excerpt=?, body=?, category=?, image_url=?, featured=?, live_url=? WHERE id=?'
-                )->execute([
-                    (string) ($b['title'] ?? ''),
-                    $slug,
-                    (string) ($b['excerpt'] ?? ''),
-                    (string) ($b['body'] ?? ''),
-                    (string) ($b['category'] ?? 'web'),
-                    $img !== '' ? $img : null,
-                    !empty($b['featured']) ? 1 : 0,
-                    $live !== '' ? $live : null,
-                    (int) $id,
-                ]);
+            $svc = strtolower(trim((string) ($b['service_type'] ?? ($b['category'] ?? 'web'))));
+            $svc = in_array($svc, ['web', 'seo', 'marketing', 'design'], true) ? $svc : 'web';
+            $status = strtolower(trim((string) ($b['status'] ?? 'completed')));
+            $status = in_array($status, ['completed', 'ongoing'], true) ? $status : 'completed';
+            $client = isset($b['client_name']) ? trim((string) $b['client_name']) : '';
+            $tags = isset($b['tags']) ? trim((string) $b['tags']) : '';
+            $progress = (int) ($b['progress'] ?? 0);
+            $progress = max(0, min(100, $progress));
+            $metaTitle = isset($b['meta_title']) ? trim((string) $b['meta_title']) : '';
+            $metaDesc = isset($b['meta_description']) ? trim((string) $b['meta_description']) : '';
+            $og = isset($b['og_image']) ? trim((string) $b['og_image']) : '';
+            $ogAlt = isset($b['og_image_alt']) ? trim((string) $b['og_image_alt']) : '';
+
+            $sets = ['title=?', 'slug=?', 'excerpt=?', 'body=?', 'category=?'];
+            $vals = [
+                (string) ($b['title'] ?? ''),
+                $slug,
+                (string) ($b['excerpt'] ?? ''),
+                (string) ($b['body'] ?? ''),
+                (string) ($b['category'] ?? 'web'),
+            ];
+            if ($hasSvc) {
+                $sets[] = 'service_type=?';
+                $vals[] = $svc;
             }
+            if ($hasStatus) {
+                $sets[] = 'status=?';
+                $vals[] = $status;
+            }
+            if ($hasClient) {
+                $sets[] = 'client_name=?';
+                $vals[] = $client;
+            }
+            if ($hasTags) {
+                $sets[] = 'tags=?';
+                $vals[] = $tags;
+            }
+            if ($hasProgress) {
+                $sets[] = 'progress=?';
+                $vals[] = $progress;
+            }
+            if ($hasMetaTitle) {
+                $sets[] = 'meta_title=?';
+                $vals[] = $metaTitle !== '' ? $metaTitle : null;
+            }
+            if ($hasMetaDesc) {
+                $sets[] = 'meta_description=?';
+                $vals[] = $metaDesc !== '' ? $metaDesc : null;
+            }
+            if ($hasOg) {
+                $sets[] = 'og_image=?';
+                $vals[] = $og !== '' ? $og : null;
+            }
+            if ($hasOgAlt) {
+                $sets[] = 'og_image_alt=?';
+                $vals[] = $ogAlt !== '' ? $ogAlt : null;
+            }
+            $sets[] = 'image_url=?';
+            $vals[] = $img !== '' ? $img : null;
+            if ($hasFit) {
+                $sets[] = 'image_fit=?';
+                $vals[] = $fit;
+            }
+            $sets[] = 'featured=?';
+            $vals[] = !empty($b['featured']) ? 1 : 0;
+            if ($hasSort) {
+                $sets[] = 'sort_order=?';
+                $vals[] = $sortOrder;
+            }
+            $sets[] = 'live_url=?';
+            $vals[] = $live !== '' ? $live : null;
+            $vals[] = (int) $id;
+            $pdo->prepare('UPDATE projects SET ' . implode(', ', $sets) . ' WHERE id=?')->execute($vals);
             Util::sendJson(['ok' => true]);
             return;
         }
@@ -504,6 +564,8 @@ final class AdminApi
         Auth::requireAdmin();
         Db::ensureBlogOgImageAltColumn();
         $pdo = Db::pdo();
+        $hasOg = Db::columnExists('blog_posts', 'og_image');
+        $hasOgAlt = Db::columnExists('blog_posts', 'og_image_alt');
         if ($method === 'GET' && $id === null) {
             $stmt = $pdo->query('SELECT * FROM blog_posts ORDER BY created_at DESC');
             Util::sendJson(['items' => $stmt->fetchAll()]);
@@ -511,64 +573,129 @@ final class AdminApi
         }
         if ($method === 'POST' && $id === null) {
             $b = Util::jsonInput();
-            $title = trim((string) ($b['title'] ?? ''));
+            $title = self::trimLen((string) ($b['title'] ?? ''), 255);
             if ($title === '') {
                 Util::sendJson(['error' => 'title required'], 400);
                 return;
             }
-            $slug = trim((string) ($b['slug'] ?? ''));
-            if ($slug === '') {
-                $slug = Util::slugify($title);
+            $slugIn = trim((string) ($b['slug'] ?? ''));
+            $slugBase = $slugIn !== '' ? Util::slugify($slugIn) : Util::slugify($title);
+            if ($slugBase === '') {
+                $slugBase = 'post';
             }
-            $og = trim((string) ($b['og_image'] ?? ''));
-            $ogAlt = trim((string) ($b['og_image_alt'] ?? ''));
-            $stmt = $pdo->prepare(
-                'INSERT INTO blog_posts (title, slug, excerpt, body, category, tags, meta_title, meta_description, og_image, og_image_alt, published)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+            // Keep room for suffixes: "-20" etc.
+            $slugBase = self::trimLen($slugBase, 240);
+            $og = self::trimLen((string) ($b['og_image'] ?? ''), 512);
+            $ogAlt = self::trimLen((string) ($b['og_image_alt'] ?? ''), 255);
+            $category = self::trimLen((string) ($b['category'] ?? 'news'), 64) ?: 'news';
+            $tags = self::trimLen((string) ($b['tags'] ?? ''), 512);
+            $metaTitle = self::trimLen((string) ($b['meta_title'] ?? ''), 255);
+
+            $cols = ['title', 'slug', 'excerpt', 'body', 'category', 'tags', 'meta_title', 'meta_description'];
+            if ($hasOg) {
+                $cols[] = 'og_image';
+            }
+            if ($hasOgAlt) {
+                $cols[] = 'og_image_alt';
+            }
+            $cols[] = 'published';
+            $placeholders = implode(',', array_fill(0, count($cols), '?'));
+            $stmt = $pdo->prepare('INSERT INTO blog_posts (' . implode(',', $cols) . ') VALUES (' . $placeholders . ')');
+
+            $slug = $slugBase;
+            $lastErr = null;
+            for ($i = 0; $i < 20; $i++) {
+                $slug = $i === 0 ? $slugBase : ($slugBase . '-' . ($i + 1));
+                try {
+                    $vals = [
+                        $title,
+                        $slug,
+                        (string) ($b['excerpt'] ?? ''),
+                        (string) ($b['body'] ?? ''),
+                        $category,
+                        $tags,
+                        $metaTitle,
+                        (string) ($b['meta_description'] ?? ''),
+                    ];
+                    if ($hasOg) {
+                        $vals[] = $og !== '' ? $og : null;
+                    }
+                    if ($hasOgAlt) {
+                        $vals[] = $ogAlt !== '' ? $ogAlt : null;
+                    }
+                    $vals[] = !empty($b['published']) ? 1 : 0;
+                    $stmt->execute($vals);
+                    Util::sendJson(['id' => (int) $pdo->lastInsertId(), 'slug' => $slug]);
+                    return;
+                } catch (PDOException $e) {
+                    $lastErr = $e;
+                    // Duplicate entry (unique slug) → try next suffix.
+                    if ($e->getCode() === '23000') {
+                        continue;
+                    }
+                    break;
+                }
+            }
+
+            if ($lastErr && $lastErr->getCode() === '23000') {
+                Util::sendJson(['error' => 'Slug already exists. Try a different slug.'], 409);
+                return;
+            }
+            Util::sendJson(
+                ['error' => 'Could not create blog post'] + ($lastErr ? ['detail' => $lastErr->getMessage()] : []),
+                500
             );
-            $stmt->execute([
-                $title,
-                $slug,
-                (string) ($b['excerpt'] ?? ''),
-                (string) ($b['body'] ?? ''),
-                (string) ($b['category'] ?? 'news'),
-                (string) ($b['tags'] ?? ''),
-                (string) ($b['meta_title'] ?? ''),
-                (string) ($b['meta_description'] ?? ''),
-                $og !== '' ? $og : null,
-                $ogAlt !== '' ? $ogAlt : null,
-                !empty($b['published']) ? 1 : 0,
-            ]);
-            Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
             return;
         }
         if ($method === 'PUT' && $id !== null) {
             $b = Util::jsonInput();
-            $slug = trim((string) ($b['slug'] ?? ''));
+            $slugIn = trim((string) ($b['slug'] ?? ''));
+            $slug = $slugIn !== '' ? Util::slugify($slugIn) : Util::slugify((string) ($b['title'] ?? 'post'));
             if ($slug === '') {
-                $slug = Util::slugify((string) ($b['title'] ?? 'post'));
+                $slug = 'post';
             }
-            $og = trim((string) ($b['og_image'] ?? ''));
-            $ogAlt = trim((string) ($b['og_image_alt'] ?? ''));
-            $pdo->prepare(
-                'UPDATE blog_posts
-                 SET title=?, slug=?, excerpt=?, body=?, category=?, tags=?, meta_title=?, meta_description=?, og_image=?, og_image_alt=?, published=?
-                 WHERE id=?'
-            )->execute([
-                (string) ($b['title'] ?? ''),
-                $slug,
-                (string) ($b['excerpt'] ?? ''),
-                (string) ($b['body'] ?? ''),
-                (string) ($b['category'] ?? 'news'),
-                (string) ($b['tags'] ?? ''),
-                (string) ($b['meta_title'] ?? ''),
-                (string) ($b['meta_description'] ?? ''),
-                $og !== '' ? $og : null,
-                $ogAlt !== '' ? $ogAlt : null,
-                !empty($b['published']) ? 1 : 0,
-                (int) $id,
-            ]);
-            Util::sendJson(['ok' => true]);
+            $slug = self::trimLen($slug, 255);
+            $og = self::trimLen((string) ($b['og_image'] ?? ''), 512);
+            $ogAlt = self::trimLen((string) ($b['og_image_alt'] ?? ''), 255);
+            $title = self::trimLen((string) ($b['title'] ?? ''), 255);
+            $category = self::trimLen((string) ($b['category'] ?? 'news'), 64) ?: 'news';
+            $tags = self::trimLen((string) ($b['tags'] ?? ''), 512);
+            $metaTitle = self::trimLen((string) ($b['meta_title'] ?? ''), 255);
+            try {
+                $sets = ['title=?', 'slug=?', 'excerpt=?', 'body=?', 'category=?', 'tags=?', 'meta_title=?', 'meta_description=?'];
+                $vals = [
+                    $title,
+                    $slug,
+                    (string) ($b['excerpt'] ?? ''),
+                    (string) ($b['body'] ?? ''),
+                    $category,
+                    $tags,
+                    $metaTitle,
+                    (string) ($b['meta_description'] ?? ''),
+                ];
+                if ($hasOg) {
+                    $sets[] = 'og_image=?';
+                    $vals[] = $og !== '' ? $og : null;
+                }
+                if ($hasOgAlt) {
+                    $sets[] = 'og_image_alt=?';
+                    $vals[] = $ogAlt !== '' ? $ogAlt : null;
+                }
+                $sets[] = 'published=?';
+                $vals[] = !empty($b['published']) ? 1 : 0;
+                $vals[] = (int) $id;
+                $pdo->prepare('UPDATE blog_posts SET ' . implode(', ', $sets) . ' WHERE id=?')->execute($vals);
+                Util::sendJson(['ok' => true]);
+            } catch (PDOException $e) {
+                if ($e->getCode() === '23000') {
+                    Util::sendJson(['error' => 'Slug already exists. Choose a unique slug.'], 409);
+                    return;
+                }
+                Util::sendJson(
+                    ['error' => 'Could not update blog post', 'detail' => $e->getMessage()],
+                    500
+                );
+            }
             return;
         }
         if ($method === 'DELETE' && $id !== null) {
@@ -774,6 +901,72 @@ final class AdminApi
         }
         if ($method === 'DELETE' && $id !== null) {
             $pdo->prepare('DELETE FROM team_members WHERE id=?')->execute([(int) $id]);
+            Util::sendJson(['ok' => true]);
+            return;
+        }
+        Util::sendJson(['error' => 'Method not allowed'], 405);
+    }
+
+    public static function crudSeoPages(string $method, ?string $id): void
+    {
+        Auth::requireAdmin();
+        if (!Db::ensureSeoPagesTable()) {
+            Util::sendJson(
+                ['error' => 'Could not create seo_pages table. Import database/migrations/019_seo_pages.sql using a MySQL user with CREATE privileges.'],
+                503,
+            );
+            return;
+        }
+        $pdo = Db::pdo();
+        if ($method === 'GET' && $id === null) {
+            $stmt = $pdo->query('SELECT * FROM seo_pages ORDER BY path ASC, id ASC');
+            Util::sendJson(['items' => $stmt->fetchAll()]);
+            return;
+        }
+        if ($method === 'POST' && $id === null) {
+            $b = Util::jsonInput();
+            $path = trim((string) ($b['path'] ?? ''));
+            if ($path === '' || $path[0] !== '/') {
+                Util::sendJson(['error' => 'path required (must start with /)'], 400);
+                return;
+            }
+            $stmt = $pdo->prepare(
+                'INSERT INTO seo_pages (path, meta_title, meta_description, og_image, og_image_alt, robots) VALUES (?,?,?,?,?,?)'
+            );
+            $stmt->execute([
+                $path,
+                trim((string) ($b['meta_title'] ?? '')) !== '' ? trim((string) $b['meta_title']) : null,
+                trim((string) ($b['meta_description'] ?? '')) !== '' ? trim((string) $b['meta_description']) : null,
+                trim((string) ($b['og_image'] ?? '')) !== '' ? trim((string) $b['og_image']) : null,
+                trim((string) ($b['og_image_alt'] ?? '')) !== '' ? trim((string) $b['og_image_alt']) : null,
+                trim((string) ($b['robots'] ?? '')) !== '' ? trim((string) $b['robots']) : null,
+            ]);
+            Util::sendJson(['id' => (int) $pdo->lastInsertId()]);
+            return;
+        }
+        if ($method === 'PUT' && $id !== null) {
+            $b = Util::jsonInput();
+            $path = trim((string) ($b['path'] ?? ''));
+            if ($path === '' || $path[0] !== '/') {
+                Util::sendJson(['error' => 'path required (must start with /)'], 400);
+                return;
+            }
+            $pdo->prepare(
+                'UPDATE seo_pages SET path=?, meta_title=?, meta_description=?, og_image=?, og_image_alt=?, robots=? WHERE id=?'
+            )->execute([
+                $path,
+                trim((string) ($b['meta_title'] ?? '')) !== '' ? trim((string) $b['meta_title']) : null,
+                trim((string) ($b['meta_description'] ?? '')) !== '' ? trim((string) $b['meta_description']) : null,
+                trim((string) ($b['og_image'] ?? '')) !== '' ? trim((string) $b['og_image']) : null,
+                trim((string) ($b['og_image_alt'] ?? '')) !== '' ? trim((string) $b['og_image_alt']) : null,
+                trim((string) ($b['robots'] ?? '')) !== '' ? trim((string) $b['robots']) : null,
+                (int) $id,
+            ]);
+            Util::sendJson(['ok' => true]);
+            return;
+        }
+        if ($method === 'DELETE' && $id !== null) {
+            $pdo->prepare('DELETE FROM seo_pages WHERE id=?')->execute([(int) $id]);
             Util::sendJson(['ok' => true]);
             return;
         }

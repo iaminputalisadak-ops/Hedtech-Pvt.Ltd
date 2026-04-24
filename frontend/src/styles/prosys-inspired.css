@@ -333,6 +333,383 @@ html[data-theme='light'] .service-card--pro .service-card-icon-wrap {
   }
 }
 
+/* --- Work (Our Work) board: stats + tabs + service chips + cards --- */
+.workboard {
+  margin-top: var(--space-6);
+}
+
+.workboard-hero {
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.workboard-eyebrow {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 60%, var(--muted));
+}
+
+.workboard-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 850;
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+  color: var(--text);
+}
+
+.workboard-title em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.workboard-lead {
+  margin: 0;
+  max-width: 44rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.workboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.85rem;
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.workboard-stat {
+  border-radius: var(--radius-lg);
+  padding: 1.15rem 1rem;
+  text-align: center;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 55%, transparent);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.workboard-stat-value {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 2.05rem;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.workboard-stat-value--ok {
+  color: #22c55e;
+}
+
+.workboard-stat-value--violet {
+  color: #c084fc;
+}
+
+.workboard-stat-label {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--muted);
+  letter-spacing: -0.01em;
+}
+
+.workboard-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.workboard-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 55%, transparent);
+}
+
+.workboard-tab {
+  border: none;
+  cursor: pointer;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.workboard-tab.is-active {
+  color: color-mix(in srgb, var(--bg) 92%, #000);
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 65%, #0ea5e9));
+}
+
+.workboard-tab:active {
+  transform: scale(0.98);
+}
+
+.workboard-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.workboard-chip {
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 50%, transparent);
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+
+.workboard-chip:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  color: var(--accent);
+}
+
+.workboard-chip.is-active {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.workboard-section-label {
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--muted) 65%, var(--text));
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.workboard-section-label::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.workboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr));
+  gap: 1rem;
+}
+
+.workboard-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--radius-lg) - 2px);
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 55%, transparent);
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--text) 5%, transparent);
+  padding: 1.25rem 1.25rem 1.15rem;
+  transition: transform 0.24s var(--ease-out), border-color 0.24s var(--ease-out);
+}
+
+.workboard-card--link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.workboard-card--link:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, white);
+  outline-offset: 3px;
+}
+
+.workboard-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.workboard-card[data-type='web']::before {
+  background: linear-gradient(90deg, #00c5d7, #0ea5e9);
+}
+.workboard-card[data-type='seo']::before {
+  background: linear-gradient(90deg, #a3e635, #22c55e);
+}
+.workboard-card[data-type='marketing']::before {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+.workboard-card[data-type='design']::before {
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .workboard-card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  }
+}
+
+.workboard-card-top {
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.workboard-badge {
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.workboard-badge--web {
+  color: #00c5d7;
+  background: rgba(0, 197, 215, 0.12);
+  border-color: rgba(0, 197, 215, 0.18);
+}
+.workboard-badge--seo {
+  color: #a3e635;
+  background: rgba(163, 230, 53, 0.12);
+  border-color: rgba(163, 230, 53, 0.18);
+}
+.workboard-badge--marketing {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+.workboard-badge--design {
+  color: #c084fc;
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.22);
+}
+
+.workboard-statusdot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.workboard-statusdot--done {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.workboard-statusdot--ongoing {
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: workboardBlink 2s ease-in-out infinite;
+}
+
+@keyframes workboardBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.workboard-card-title {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.workboard-card-desc {
+  margin: 0 0 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.workboard-progress-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--muted) 70%, var(--text));
+  text-align: right;
+}
+
+.workboard-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 70%, transparent);
+  overflow: hidden;
+  margin-bottom: 0.85rem;
+}
+
+.workboard-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  transition: width 0.55s var(--ease-out);
+}
+
+.workboard-card-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.workboard-client {
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--muted) 65%, var(--text));
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workboard-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.workboard-tag {
+  font-size: 0.74rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  background: color-mix(in srgb, var(--surface-strong) 45%, transparent);
+  color: var(--muted);
+  max-width: 10.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* --- Team showcase (home strip + /team page) --- */
 .team-showcase-section {
   position: relative;

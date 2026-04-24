@@ -159,6 +159,12 @@ const SETTINGS_GROUPS = [
     ],
   },
   {
+    title: 'Footer',
+    cols2: false,
+    description: 'Footer brand description (shown under the logo).',
+    fields: [['footer_blurb', 'Footer description text']],
+  },
+  {
     title: 'Contact & map',
     description:
       'Edit copy for the homepage contact area, the standalone /contact page, the map section, and your business details. SEO fields only affect /contact in search results.',
@@ -231,6 +237,19 @@ const SETTINGS_GROUPS = [
       ['reviews_autoscroll', 'Auto-scroll the client reviews carousel (when off, visitors can still swipe or use arrows)', 'checkbox'],
     ],
   },
+  {
+    title: 'Homepage — blog (Insights)',
+    cols2: true,
+    description: 'Controls the Insights/blog section on the homepage. Posts come from Admin → Blog (Published only).',
+    fields: [
+      ['home_blog_enabled', 'Show Insights section on homepage', 'checkbox'],
+      ['home_blog_count', 'How many posts to show (1–6)', 'text'],
+      ['home_blog_kicker', 'Kicker (small label above title)'],
+      ['home_blog_title', 'Section title'],
+      ['home_blog_lead', 'Section subtitle (one line)'],
+      ['home_blog_pinned_slugs', 'Pinned post slugs (comma-separated; optional)'],
+    ],
+  },
 ]
 
 const svcFields = [
@@ -260,6 +279,40 @@ const projectFields = [
   { key: 'excerpt', label: 'Short summary', multiline: true },
   { key: 'body', label: 'Full text', multiline: true },
   { key: 'category', label: 'Category' },
+  {
+    key: 'service_type',
+    label: 'Service type (Work page filter)',
+    kind: 'select',
+    options: [
+      { value: 'web', label: 'Web Dev' },
+      { value: 'seo', label: 'SEO' },
+      { value: 'marketing', label: 'Marketing' },
+      { value: 'design', label: 'Design' },
+    ],
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    kind: 'select',
+    options: [
+      { value: 'completed', label: 'Completed' },
+      { value: 'ongoing', label: 'Ongoing / In progress' },
+    ],
+  },
+  { key: 'client_name', label: 'Client name' },
+  { key: 'tags', label: 'Tags (comma-separated — shown as chips on Work)' },
+  { key: 'progress', label: 'Progress (0–100, ongoing only)', number: true, min: 0, max: 100 },
+  { key: 'meta_title', label: 'SEO title (optional — overrides browser title when set)' },
+  { key: 'meta_description', label: 'SEO meta description (optional — aim for ~150 chars)', multiline: true },
+  { key: 'og_image', label: 'Social share image URL (Open Graph/Twitter)' },
+  {
+    key: 'og_image_upload',
+    label: 'Upload social share image',
+    uploadFor: 'og_image',
+    uploadKind: 'project-og',
+    accept: 'image/*,.svg',
+  },
+  { key: 'og_image_alt', label: 'Share image alt text (recommended)', multiline: true },
   { key: 'image_url', label: 'Image URL' },
   { key: 'image_upload', label: 'Upload image', uploadFor: 'image_url', uploadKind: 'project-image', accept: 'image/*,.svg' },
   { key: 'image_fit', label: 'Image fit', kind: 'select', options: [{ value: 'contain', label: 'Full fit (no crop)' }, { value: 'cover', label: 'Cover (crop)' }] },
@@ -288,7 +341,7 @@ const blogFields = [
     key: 'og_image_alt',
     label: 'Featured image alt text (required for accessibility; helps image SEO)',
   },
-  { key: 'published', label: 'Published', boolean: true },
+  { key: 'published', label: 'Published (shows on /blog)', boolean: true, default: true },
 ]
 
 const trustedFields = [
@@ -326,10 +379,39 @@ const TAB_FIELDS = {
   trusted: trustedFields,
   testimonials: testimonialFields,
   team: teamFields,
+  'seo-pages': [
+    {
+      key: 'path',
+      label: 'Path (choose or type)',
+      datalist: [
+        '/',
+        '/about',
+        '/services',
+        '/expertise',
+        '/work',
+        '/blog',
+        '/services/web-development',
+        '/services/seo',
+        '/services/ui-ux',
+        '/reviews',
+        '/team',
+        '/contact',
+        '/privacy',
+        '/terms',
+      ],
+    },
+    { key: 'meta_title', label: 'SEO title (optional)' },
+    { key: 'meta_description', label: 'SEO meta description (optional)', multiline: true },
+    { key: 'og_image', label: 'OG image URL (optional)' },
+    { key: 'og_image_upload', label: 'Upload OG image', uploadFor: 'og_image', uploadKind: 'seo-og', accept: 'image/*,.svg' },
+    { key: 'og_image_alt', label: 'OG image alt (recommended)', multiline: true },
+    { key: 'robots', label: 'Robots meta (optional — e.g. noindex, nofollow)', multiline: false },
+  ],
 }
 
 const TAB_TITLES = {
   settings: 'Settings',
+  'seo-pages': 'SEO',
   services: 'Services',
   skills: 'Skills',
   projects: 'Projects',
@@ -759,6 +841,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
   const [createOpen, setCreateOpen] = useState(false)
   const [draggingProjectId, setDraggingProjectId] = useState(null)
   const [dropTargetProjectId, setDropTargetProjectId] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null) // { id, title }
   const hasSortOrder = fields.some((f) => f.key === 'sort_order')
   const projectDragReorder = resource === 'projects' && hasSortOrder
 
@@ -827,7 +910,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
         onSiteRefresh?.()
       }
     } catch (err) {
-      setLocalError(err.message || 'Could not add')
+      setLocalError(formatApiError(err) || 'Could not add')
     } finally {
       setSaving(false)
     }
@@ -874,7 +957,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
         onSiteRefresh?.()
       }
     } catch (err) {
-      setLocalError(err.message || 'Could not save')
+      setLocalError(formatApiError(err) || 'Could not save')
     } finally {
       setSaving(false)
     }
@@ -988,7 +1071,15 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
           <form onSubmit={createRow} className="admin-add-form">
             <div className="admin-add-form-fields">
               {fields.map((f) => (
-                <FieldInput key={f.key} f={f} prefix="" draft={draft} setDraft={setDraft} />
+                <FieldInput
+                  key={f.key}
+                  f={f}
+                  prefix=""
+                  draft={draft}
+                  setDraft={setDraft}
+                  onUploadError={(msg) => setLocalError(msg)}
+                  onUploadBusy={(v) => setSaving(Boolean(v))}
+                />
               ))}
             </div>
             <div className="admin-add-form-footer">
@@ -1080,26 +1171,7 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
                   className="admin-btn admin-btn--danger"
                   disabled={saving}
                   onClick={async () => {
-                    if (!confirm('Delete?')) return
-                    setSaving(true)
-                    try {
-                      await adminDelete(resource, row.id)
-                      setEditing(null)
-                      await onRefresh()
-                      if (
-                        resource === 'projects' ||
-                        resource === 'team' ||
-                        resource === 'testimonials' ||
-                        resource === 'services' ||
-                        resource === 'blog'
-                      ) {
-                        onSiteRefresh?.()
-                      }
-                    } catch (err) {
-                      setLocalError(err.message || 'Delete failed')
-                    } finally {
-                      setSaving(false)
-                    }
+                    setConfirmDelete({ id: row.id, title: row.title || row.name || `#${row.id}` })
                   }}
                 >
                   Delete
@@ -1110,7 +1182,15 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
               <div className="admin-edit-panel">
                 <div className="admin-edit-fields">
                   {fields.map((f) => (
-                    <FieldInput key={f.key} f={f} prefix={String(row.id)} draft={draft} setDraft={setDraft} />
+                    <FieldInput
+                      key={f.key}
+                      f={f}
+                      prefix={String(row.id)}
+                      draft={draft}
+                      setDraft={setDraft}
+                      onUploadError={(msg) => setLocalError(msg)}
+                      onUploadBusy={(v) => setSaving(Boolean(v))}
+                    />
                   ))}
                 </div>
                 <div className="admin-edit-inline-actions">
@@ -1151,14 +1231,116 @@ function CrudPanel({ resource, fields, items, loading, error, onRefresh, onSiteR
             document.body,
           )
         : null}
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Delete item?"
+        description={
+          confirmDelete
+            ? `This will permanently delete “${confirmDelete.title}”. This action can’t be undone.`
+            : 'This will permanently delete the selected item.'
+        }
+        confirmLabel="Delete"
+        tone="danger"
+        busy={saving}
+        onClose={() => {
+          if (saving) return
+          setConfirmDelete(null)
+        }}
+        onConfirm={async () => {
+          if (!confirmDelete) return
+          setSaving(true)
+          setLocalError(null)
+          try {
+            await adminDelete(resource, confirmDelete.id)
+            setEditing(null)
+            setConfirmDelete(null)
+            await onRefresh()
+            if (
+              resource === 'projects' ||
+              resource === 'team' ||
+              resource === 'testimonials' ||
+              resource === 'services' ||
+              resource === 'blog'
+            ) {
+              onSiteRefresh?.()
+            }
+          } catch (err) {
+            setLocalError(formatApiError(err) || 'Delete failed')
+          } finally {
+            setSaving(false)
+          }
+        }}
+      />
     </div>
   )
 }
 
-function FieldInput({ f, prefix, draft, setDraft }) {
+function formatApiError(err) {
+  if (!err) return ''
+  const msg = String(err.message || '').trim()
+  const status = err.status ? Number(err.status) : null
+  const data = err.data
+  const detail =
+    (data && typeof data === 'object' && (data.error || data.hint || data.detail)) ||
+    (data && typeof data === 'string' ? data : '') ||
+    ''
+
+  const parts = []
+  if (status) parts.push(`HTTP ${status}`)
+  if (msg) parts.push(msg)
+  if (detail && String(detail).trim() && String(detail).trim() !== msg) parts.push(String(detail).trim())
+  return parts.filter(Boolean).join(' — ')
+}
+
+function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel = 'Confirm',
+  tone = 'default',
+  busy = false,
+  onClose,
+  onConfirm,
+}) {
+  if (!open) return null
+  return createPortal(
+    <div
+      className="admin-dialog-backdrop"
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose?.()
+      }}
+    >
+      <div className="admin-dialog" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="admin-dialog-head">
+          <h3 className="admin-dialog-title">{title}</h3>
+        </div>
+        <p className="admin-dialog-desc">{description}</p>
+        <div className="admin-dialog-actions">
+          <button type="button" className="admin-btn admin-btn--ghost" disabled={busy} onClick={() => onClose?.()}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={`admin-btn ${tone === 'danger' ? 'admin-btn--dangerSolid' : 'admin-btn--primary'}`}
+            disabled={busy}
+            onClick={() => onConfirm?.()}
+          >
+            {busy ? 'Deleting…' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+function FieldInput({ f, prefix, draft, setDraft, onUploadError, onUploadBusy }) {
   const dk = prefix ? `${prefix}__${f.key}` : f.key
   const val = draft[dk]
   const editorId = useMemo(() => `ck-${prefix || 'n'}-${f.key}`, [prefix, f.key])
+  const datalistId = useMemo(() => `dl-${prefix || 'n'}-${f.key}`, [prefix, f.key])
 
   if (f.kind === 'select' && Array.isArray(f.options)) {
     const options = f.options
@@ -1197,13 +1379,19 @@ function FieldInput({ f, prefix, draft, setDraft }) {
           onChange={async (e) => {
             const file = e.target.files?.[0]
             if (!file) return
+            onUploadBusy?.(true)
             try {
               const r = await adminUpload(file, { kind: f.uploadKind || 'asset' })
               const url = r?.url ? String(r.url) : ''
               if (url) {
                 setDraft((d) => ({ ...d, [targetKey]: url }))
+              } else {
+                onUploadError?.('Upload succeeded but no URL returned.')
               }
+            } catch (err) {
+              onUploadError?.(formatApiError(err) || 'Upload failed')
             } finally {
+              onUploadBusy?.(false)
               e.target.value = ''
             }
           }}
@@ -1318,29 +1506,47 @@ function FieldInput({ f, prefix, draft, setDraft }) {
           onChange={(e) => setDraft((d) => ({ ...d, [dk]: e.target.value }))}
         />
       ) : (
-        <input
-          id={`f-${prefix || 'n'}-${f.key}`}
-          className="admin-input"
-          type={f.number ? 'number' : 'text'}
-          min={f.min}
-          max={f.max}
-          value={val ?? ''}
-          onChange={(e) => setDraft((d) => ({ ...d, [dk]: e.target.value }))}
-        />
+        <>
+          <input
+            id={`f-${prefix || 'n'}-${f.key}`}
+            className="admin-input"
+            type={f.number ? 'number' : 'text'}
+            min={f.min}
+            max={f.max}
+            list={Array.isArray(f.datalist) && f.datalist.length ? datalistId : undefined}
+            value={val ?? ''}
+            onChange={(e) => setDraft((d) => ({ ...d, [dk]: e.target.value }))}
+          />
+          {Array.isArray(f.datalist) && f.datalist.length ? (
+            <datalist id={datalistId}>
+              {f.datalist.map((opt) => (
+                <option key={opt} value={opt} />
+              ))}
+            </datalist>
+          ) : null}
+        </>
       )}
     </div>
   )
 }
 
 function RecordPreview({ resource, row }) {
-  const title = row.title || row.name || `#${row.id}`
-  const line = row.excerpt || row.description || row.quote || row.slug || row.role || ''
+  const title =
+    resource === 'seo-pages'
+      ? String(row.path || '').trim() || `#${row.id}`
+      : row.title || row.name || `#${row.id}`
+
+  const line =
+    resource === 'seo-pages'
+      ? row.meta_title || row.meta_description || row.robots || ''
+      : row.excerpt || row.description || row.quote || row.slug || row.role || ''
 
   return (
     <div style={{ minWidth: 0 }}>
       <h3 className="admin-row-title">{title}</h3>
       <p className="admin-row-sub">
         {row.category ? <span className="admin-tag">{row.category}</span> : null}
+        {resource === 'seo-pages' && row.robots ? <span className="admin-tag">{String(row.robots)}</span> : null}
         {row.featured == 1 ? <span className="admin-tag admin-tag--ok">Featured</span> : null}
         {resource === 'blog' && row.published == 1 ? <span className="admin-tag admin-tag--ok">Live</span> : null}
         {resource === 'blog' && row.published != 1 ? <span className="admin-tag">Draft</span> : null}
@@ -1357,7 +1563,7 @@ function RecordPreview({ resource, row }) {
           <span className="admin-tag">Off site</span>
         ) : null}
         {row.level != null ? `${row.level}% · ` : null}
-        {line ? String(line).slice(0, 120) + (String(line).length > 120 ? '…' : '') : null}
+        {line ? String(line).replace(/\s+/g, ' ').trim().slice(0, 140) + (String(line).length > 140 ? '…' : '') : null}
       </p>
     </div>
   )

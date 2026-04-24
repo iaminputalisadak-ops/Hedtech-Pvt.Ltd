@@ -5,12 +5,17 @@ import SiteBrand from './SiteBrand'
 import { primaryNav } from './siteNav'
 
 const FOOTER_NAV_END_EXACT = new Set(['/about', '/expertise', '/reviews', '/team', '/contact'])
+const FOOTER_NAV_HIDE = new Set(['/reviews', '/work', '/blog', '/team', '/expertise'])
 
 export default function Footer() {
   const { settings } = useSite()
   const year = new Date().getFullYear()
   const brand = settings.site_name || 'Hedztech'
-  const blurb = settings.mission || settings.hero_tagline || 'Engineering trust at the speed of product.'
+  const blurb =
+    settings.footer_blurb ||
+    settings.mission ||
+    settings.hero_tagline ||
+    'Deliver reliable, beautiful technology that moves your business forward.'
   const address = settings.address || ''
   const phone = settings.business_phone || ''
   const email = settings.business_email || ''
@@ -30,13 +35,15 @@ export default function Footer() {
               <li>
                 <Link to="/">Home</Link>
               </li>
-              {primaryNav.map((item) => (
-                <li key={item.to}>
-                  <NavLink to={item.to} end={FOOTER_NAV_END_EXACT.has(item.to)}>
-                    {item.label}
-                  </NavLink>
-                </li>
-              ))}
+              {primaryNav
+                .filter((item) => !FOOTER_NAV_HIDE.has(item.to))
+                .map((item) => (
+                  <li key={item.to}>
+                    <NavLink to={item.to} end={FOOTER_NAV_END_EXACT.has(item.to)}>
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
             </ul>
           </div>
 

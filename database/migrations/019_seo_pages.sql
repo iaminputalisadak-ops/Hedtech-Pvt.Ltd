@@ -1,0 +1,12 @@
+-- Per-page SEO overrides (managed in admin)
+CREATE TABLE IF NOT EXISTS seo_pages (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  path VARCHAR(255) NOT NULL UNIQUE,
+  meta_title VARCHAR(255) DEFAULT NULL,
+  meta_description TEXT DEFAULT NULL,
+  og_image VARCHAR(512) DEFAULT NULL,
+  og_image_alt VARCHAR(255) DEFAULT NULL,
+  robots VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+

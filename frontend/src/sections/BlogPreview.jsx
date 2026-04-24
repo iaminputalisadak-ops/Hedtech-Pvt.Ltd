@@ -8,18 +8,44 @@ import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
 
+function splitCsv(v) {
+  if (!v) return []
+  return String(v)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
 export default function BlogPreview() {
-  const { blog } = useSite()
+  const { blog, settings } = useSite()
   const reduce = useReducedMotion()
-  const posts = blog.slice(0, 3)
+  const enabled = (settings?.home_blog_enabled ?? '1') === '1'
+  const desiredCount = Math.max(1, Math.min(6, Number(settings?.home_blog_count ?? 3) || 3))
+  const pinned = splitCsv(settings?.home_blog_pinned_slugs)
+
+  const pickPosts = () => {
+    const list = Array.isArray(blog) ? blog : []
+    if (!pinned.length) return list.slice(0, desiredCount)
+    const bySlug = new Map(list.map((p) => [String(p.slug || ''), p]))
+    const pinnedPosts = pinned.map((s) => bySlug.get(s)).filter(Boolean)
+    const rest = list.filter((p) => !pinned.includes(String(p.slug || '')))
+    return [...pinnedPosts, ...rest].slice(0, desiredCount)
+  }
+
+  const posts = pickPosts()
+
+  if (!enabled) return null
+  if (!posts.length) return null
 
   return (
     <SectionContainer id="blog">
       <div className="section-header-row">
         <div>
-          <p className="section-kicker section-kicker--left">News & blog</p>
-          <h2 className="section-title">Insights</h2>
-          <p className="section-lead">SEO-friendly articles on performance, UX, and growth — managed from your admin panel.</p>
+          <p className="section-kicker section-kicker--left">{settings?.home_blog_kicker || 'News & blog'}</p>
+          <h2 className="section-title">{settings?.home_blog_title || 'Insights'}</h2>
+          <p className="section-lead">
+            {settings?.home_blog_lead || 'SEO-friendly articles on performance, UX, and growth — managed from your admin panel.'}
+          </p>
         </div>
         <Link to="/blog" className="btn btn-ghost">
           All articles <ArrowUpRight size={18} />

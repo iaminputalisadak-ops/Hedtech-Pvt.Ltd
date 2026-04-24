@@ -91,6 +91,10 @@ final class Router
             PublicApi::team();
             return;
         }
+        if ($method === 'GET' && $path === '/public/seo-pages') {
+            PublicApi::seoPages();
+            return;
+        }
         if ($method === 'GET' && $path === '/public/sitemap.xml') {
             PublicApi::sitemapXml();
             return;
@@ -147,6 +151,10 @@ final class Router
         }
         if (preg_match('#^/admin/team(?:/(\d+))?$#', $path, $mm)) {
             AdminApi::crudTeam($method, $mm[1] ?? null);
+            return;
+        }
+        if (preg_match('#^/admin/seo-pages(?:/(\d+))?$#', $path, $mm)) {
+            AdminApi::crudSeoPages($method, $mm[1] ?? null);
             return;
         }
         if ($method === 'GET' && $path === '/admin/contact-messages') {

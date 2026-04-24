@@ -70,6 +70,7 @@ export default function BlogList() {
 
   const hasFilters = Boolean(q || category)
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE) || 1)
+  const isEmpty = !loading && items.length === 0
 
   return (
     <>
@@ -122,40 +123,64 @@ export default function BlogList() {
           ) : null}
         </form>
         {loading ? <p className="page-state-text">Loading posts…</p> : null}
-        <div className="blog-post-grid">
-          {items.map((post, i) => (
-            <Motion.article
-              key={post.id}
-              className="glass blog-post-card"
-              initial={fadeIn(reduce)}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.04 }}
-            >
-              {(post.og_image || '').trim() ? (
-                <div className="blog-post-card__thumb">
-                  <CmsImage
-                    className="blog-post-card__thumb-img"
-                    src={String(post.og_image).trim()}
-                    alt={(post.og_image_alt || '').trim() || post.title}
-                    sizes={CMS_SIZES.blogCardThumb}
-                    loading="lazy"
-                    decoding="async"
-                    fetchPriority="low"
-                  />
-                </div>
-              ) : null}
-              <span className="blog-card__category">{post.category}</span>
-              <h2>{post.title}</h2>
-              <p className="blog-card__excerpt">{post.excerpt}</p>
-              {post.tags ? <div className="blog-post-card__tags">Tags: {post.tags}</div> : null}
-              <Link to={`/blog/${encodeURIComponent(post.slug)}`} className="btn btn-ghost btn-compact">
-                Read article →
+        {isEmpty ? (
+          <div className="glass blog-empty">
+            <h2 className="blog-empty__title">{hasFilters ? 'No posts match your filters' : 'No published posts yet'}</h2>
+            <p className="blog-empty__lead">
+              {hasFilters
+                ? 'Try a different keyword, clear filters, or pick another category.'
+                : 'Your blog posts will appear here once they are marked as Published in the admin panel.'}
+            </p>
+            <div className="section-actions" style={{ marginTop: 12 }}>
+              {hasFilters ? (
+                <button type="button" className="btn btn-primary" onClick={() => setSearchParams(new URLSearchParams())}>
+                  Clear filters
+                </button>
+              ) : (
+                <Link to="/admin" className="btn btn-primary">
+                  Open admin
+                </Link>
+              )}
+              <Link to="/contact" className="btn btn-ghost">
+                Work with us
               </Link>
-            </Motion.article>
-          ))}
-        </div>
-        {!loading && items.length === 0 ? <p className="page-state-text">No posts match your filters.</p> : null}
+            </div>
+          </div>
+        ) : (
+          <div className="blog-post-grid">
+            {items.map((post, i) => (
+              <Motion.article
+                key={post.id}
+                className="glass blog-post-card"
+                initial={fadeIn(reduce)}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.04 }}
+              >
+                {(post.og_image || '').trim() ? (
+                  <div className="blog-post-card__thumb">
+                    <CmsImage
+                      className="blog-post-card__thumb-img"
+                      src={String(post.og_image).trim()}
+                      alt={(post.og_image_alt || '').trim() || post.title}
+                      sizes={CMS_SIZES.blogCardThumb}
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
+                    />
+                  </div>
+                ) : null}
+                <span className="blog-card__category">{post.category}</span>
+                <h2>{post.title}</h2>
+                <p className="blog-card__excerpt">{post.excerpt}</p>
+                {post.tags ? <div className="blog-post-card__tags">Tags: {post.tags}</div> : null}
+                <Link to={`/blog/${encodeURIComponent(post.slug)}`} className="btn btn-ghost btn-compact">
+                  Read article →
+                </Link>
+              </Motion.article>
+            ))}
+          </div>
+        )}
         {!loading && totalPages > 1 ? (
           <div className="section-actions" style={{ justifyContent: 'space-between' }}>
             <button

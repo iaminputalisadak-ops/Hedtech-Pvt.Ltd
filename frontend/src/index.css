@@ -22,10 +22,11 @@ html[data-theme='dark'] {
   --bg-elevated: #1a1a22;
   --surface: rgba(255, 255, 255, 0.045);
   --surface-strong: rgba(255, 255, 255, 0.092);
-  --border: rgba(255, 255, 255, 0.11);
-  --text: #f4f4f5;
-  --muted: #b4b4c0;
-  --muted-soft: #7c7c8c;
+  --border: rgba(255, 255, 255, 0.14);
+  /* Brighter text for night mode clarity */
+  --text: #ffffff;
+  --muted: #d2d2de;
+  --muted-soft: #9a9aad;
   --accent: #3ec8ff;
   --accent-hover: #93dfff;
   --accent-2: #22b8f0;
@@ -39,14 +40,15 @@ html[data-theme='dark'] {
 /* Light — warm paper + Azure */
 html[data-theme='light'] {
   color-scheme: light;
-  --bg: #fafaf9;
-  --bg-elevated: #f0f0ed;
-  --surface: rgba(24, 24, 27, 0.035);
-  --surface-strong: rgba(24, 24, 27, 0.075);
-  --border: rgba(24, 24, 27, 0.1);
-  --text: #18181b;
-  --muted: #57534e;
-  --muted-soft: #78716c;
+  /* Cleaner, higher-contrast light palette (less muddy) */
+  --bg: #f7f8fb;
+  --bg-elevated: #ffffff;
+  --surface: rgba(15, 23, 42, 0.032);
+  --surface-strong: rgba(15, 23, 42, 0.06);
+  --border: rgba(15, 23, 42, 0.12);
+  --text: #0f172a;
+  --muted: #475569;
+  --muted-soft: #64748b;
   --accent: #0284c7;
   --accent-hover: #0369a1;
   --accent-2: #0ea5e9;
@@ -65,6 +67,8 @@ html[data-theme='light'] {
 
 html {
   scroll-behavior: smooth;
+  /* Prevent horizontal layout shift when some pages need a scrollbar and others don't */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -73,6 +77,7 @@ body {
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
+  overflow-x: hidden;
   font-size: 1.045rem;
   line-height: 1.68;
   -webkit-font-smoothing: antialiased;
@@ -431,6 +436,10 @@ html[data-theme='light'] .site-brand-mark--img {
   animation: mesh-drift 28s ease-in-out infinite;
 }
 
+html[data-theme='light'] .gradient-mesh {
+  opacity: 0.58;
+}
+
 .grid-noise {
   position: fixed;
   inset: 0;
@@ -438,6 +447,10 @@ html[data-theme='light'] .site-brand-mark--img {
   pointer-events: none;
   opacity: 0.028;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+}
+
+html[data-theme='light'] .grid-noise {
+  opacity: 0.016;
 }
 
 .container {
@@ -549,10 +562,20 @@ html[data-theme='light'] .site-brand-mark--img {
   color: transparent;
 }
 
+html[data-theme='dark'] .hero-title {
+  /* Force true white headline on dark backdrops */
+  background: none;
+  color: var(--text);
+  -webkit-background-clip: unset;
+  background-clip: unset;
+}
+
 html[data-theme='light'] .hero-title {
-  background: linear-gradient(110deg, var(--text) 0%, var(--text) 35%, color-mix(in srgb, var(--text) 75%, var(--accent)) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  /* In light mode the hero sits over a bright/complex backdrop; solid text reads cleaner. */
+  background: none;
+  color: var(--text);
+  -webkit-background-clip: unset;
+  background-clip: unset;
 }
 
 @supports not (background-clip: text) {
@@ -580,6 +603,18 @@ html[data-theme='light'] .hero-title {
     transform 0.35s var(--ease-out),
     box-shadow 0.35s var(--ease-out),
     border-color 0.35s var(--ease-out);
+}
+
+html[data-theme='light'] .glass {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, #ffffff 86%, var(--surface-strong)),
+    color-mix(in srgb, #ffffff 72%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--border) 92%, transparent);
+  backdrop-filter: blur(16px) saturate(1.05);
+  -webkit-backdrop-filter: blur(16px) saturate(1.05);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
 }
 
 .glass::before {

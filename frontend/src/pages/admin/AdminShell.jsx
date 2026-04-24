@@ -4,21 +4,40 @@ import { LogOut, Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
 import './admin.css'
 
-const NAV = [
-  { id: 'settings', label: 'Settings' },
-  { id: 'services', label: 'Services' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'blog', label: 'Blog' },
-  { id: 'trusted', label: 'Partner logos' },
-  { id: 'testimonials', label: 'Client reviews' },
-  { id: 'team', label: 'Team' },
-  { id: 'messages', label: 'Messages' },
-]
-
 export default function AdminShell({ activeTab, onTabChange, onLogout, children, topTitle, loading }) {
   const [open, setOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
+
+  const NAV_GROUPS = [
+    {
+      title: 'Website',
+      items: [
+        { id: 'settings', label: 'Settings' },
+        { id: 'seo-pages', label: 'SEO' },
+      ],
+    },
+    {
+      title: 'Content',
+      items: [
+        { id: 'projects', label: 'Projects' },
+        { id: 'blog', label: 'Blog' },
+        { id: 'services', label: 'Services' },
+        { id: 'team', label: 'Team' },
+        { id: 'skills', label: 'Skills' },
+      ],
+    },
+    {
+      title: 'Social proof',
+      items: [
+        { id: 'testimonials', label: 'Client reviews' },
+        { id: 'trusted', label: 'Partner logos' },
+      ],
+    },
+    {
+      title: 'Inbox',
+      items: [{ id: 'messages', label: 'Messages' }],
+    },
+  ]
 
   return (
     <div className="admin-app">
@@ -33,18 +52,23 @@ export default function AdminShell({ activeTab, onTabChange, onLogout, children,
           </div>
 
           <nav className="admin-sidebar-nav">
-            {NAV.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                className={`admin-nav-btn ${activeTab === id ? 'is-active' : ''}`}
-                onClick={() => {
-                  onTabChange(id)
-                  setOpen(false)
-                }}
-              >
-                {label}
-              </button>
+            {NAV_GROUPS.map((g) => (
+              <div key={g.title} className="admin-nav-group">
+                <div className="admin-nav-group-title">{g.title}</div>
+                {g.items.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`admin-nav-btn ${activeTab === id ? 'is-active' : ''}`}
+                    onClick={() => {
+                      onTabChange(id)
+                      setOpen(false)
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             ))}
           </nav>
 

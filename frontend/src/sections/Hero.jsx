@@ -154,8 +154,9 @@ function HeroWallpaper({
   const isLight = theme === 'light'
   /* screen() lifts dark art on dark bg; on light bg it blows out. normal + slightly higher opacity keeps line art visible. */
   const mixBlendMode = isLight ? 'normal' : 'screen'
-  const opacityOut = isLight ? Math.min(1, safeOpacity * 1.2 + 0.06) : safeOpacity
-  const contrast = isLight ? 'saturate(1.02) contrast(1.08)' : 'saturate(1.05) contrast(1.02)'
+  // Light mode: keep wallpaper subtle so copy + graph read cleanly.
+  const opacityOut = isLight ? Math.min(1, safeOpacity * 0.78 + 0.03) : safeOpacity
+  const contrast = isLight ? 'saturate(0.95) contrast(1.02) brightness(1.02)' : 'saturate(1.05) contrast(1.02)'
   return (
     <img
       src={url}
@@ -305,11 +306,11 @@ export default function Hero() {
     const overlay = bgMode !== 'animated'
     const particleColor = overlay
       ? theme === 'dark'
-        ? 'rgba(226, 232, 240, 0.28)'
-        : 'rgba(30, 41, 59, 0.30)'
+        ? 'rgba(255, 255, 255, 0.62)'
+        : 'rgba(0, 0, 0, 0.64)'
       : theme === 'dark'
-        ? 'rgba(226, 232, 240, 0.38)'
-        : 'rgba(30, 41, 59, 0.52)'
+        ? 'rgba(255, 255, 255, 0.7)'
+        : 'rgba(0, 0, 0, 0.78)'
 
     ;(async () => {
       let CanvasParticles
@@ -323,13 +324,15 @@ export default function Hero() {
       try {
         const instance = new CanvasParticles(canvasRef.current, {
           animation: {
-            startOnEnter: false,
-            stopOnLeave: false,
+            // Big performance win: don't animate when offscreen.
+            startOnEnter: true,
+            stopOnLeave: true,
           },
           particles: {
-            relSpeed: overlay ? 2.25 : 3,
-            relSize: overlay ? (theme === 'light' ? 2.05 : 1.9) : theme === 'light' ? 2.35 : 2,
-            rotationSpeed: overlay ? 30 : 40,
+            // Keep the visual, reduce CPU/GPU work.
+            relSpeed: overlay ? 2.0 : 2.6,
+            relSize: overlay ? (theme === 'light' ? 1.7 : 1.55) : theme === 'light' ? 1.9 : 1.7,
+            rotationSpeed: overlay ? 24 : 30,
             color: particleColor,
           },
         }).start()
