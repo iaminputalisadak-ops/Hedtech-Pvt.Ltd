@@ -194,6 +194,54 @@ SQL;
         self::forgetColumnExistsCache('blog_posts', 'og_image_alt');
     }
 
+    /**
+     * Ensure blog_posts has the columns used by public + admin APIs.
+     * Older databases may only have a subset; add missing columns when possible.
+     */
+    public static function ensureBlogPostsFields(): void
+    {
+        if (!self::tableExists('blog_posts')) {
+            return;
+        }
+        $alters = [];
+        if (!self::columnExists('blog_posts', 'excerpt')) {
+            $alters[] = 'ADD COLUMN excerpt TEXT';
+        }
+        if (!self::columnExists('blog_posts', 'body')) {
+            $alters[] = 'ADD COLUMN body MEDIUMTEXT';
+        }
+        if (!self::columnExists('blog_posts', 'category')) {
+            $alters[] = "ADD COLUMN category VARCHAR(64) NOT NULL DEFAULT 'news'";
+        }
+        if (!self::columnExists('blog_posts', 'tags')) {
+            $alters[] = "ADD COLUMN tags VARCHAR(512) DEFAULT ''";
+        }
+        if (!self::columnExists('blog_posts', 'meta_title')) {
+            $alters[] = 'ADD COLUMN meta_title VARCHAR(255) DEFAULT NULL';
+        }
+        if (!self::columnExists('blog_posts', 'meta_description')) {
+            $alters[] = 'ADD COLUMN meta_description TEXT DEFAULT NULL';
+        }
+        if (!self::columnExists('blog_posts', 'og_image')) {
+            $alters[] = 'ADD COLUMN og_image VARCHAR(512) DEFAULT NULL';
+        }
+        if (!self::columnExists('blog_posts', 'og_image_alt')) {
+            $alters[] = 'ADD COLUMN og_image_alt VARCHAR(255) DEFAULT NULL';
+        }
+        if (!self::columnExists('blog_posts', 'published')) {
+            $alters[] = 'ADD COLUMN published TINYINT(1) NOT NULL DEFAULT 0';
+        }
+        if ($alters === []) {
+            return;
+        }
+        try {
+            self::pdo()->exec('ALTER TABLE blog_posts ' . implode(', ', $alters));
+        } catch (PDOException) {
+            return;
+        }
+        self::forgetColumnExistsCache('blog_posts');
+    }
+
     /** Adds services.image_url when missing (see database/migrations/015_services_image_url.sql). */
     public static function ensureServicesImageUrlColumn(): void
     {

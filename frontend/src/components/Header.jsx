@@ -7,7 +7,7 @@ import ThemeToggle from './ThemeToggle'
 import { primaryNav } from './siteNav'
 
 /** NavLink `end`: false so /work/*, /blog/*, and /services/* stay highlighted on child routes. */
-const NAV_LINK_END_EXACT = new Set(['/about', '/expertise', '/reviews', '/team', '/contact'])
+const NAV_LINK_END_EXACT = new Set(['/about', '/reviews', '/team', '/contact'])
 
 /** Same breakpoint as `.desktop-nav` / `.mobile-toggle` in this file — scroll-hide only applies here. */
 const DESKTOP_HEADER_MQ = '(min-width: 961px)'

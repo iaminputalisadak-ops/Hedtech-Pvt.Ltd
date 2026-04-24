@@ -1340,11 +1340,33 @@ a.service-card--link:hover {
   margin: 0;
 }
 
-.article-tags {
+.article-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+
+.article-tags-row {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  color: color-mix(in srgb, var(--text) 86%, var(--muted));
   font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
 .article-body-panel {
@@ -1355,6 +1377,82 @@ a.service-card--link:hover {
 .article-body-panel .article-lead {
   margin-top: 0;
   font-size: 1.05rem;
+}
+
+.article-share-panel {
+  padding: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+.article-share-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.article-share-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.article-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.article-share-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.share-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-strong) 55%, transparent);
+  color: color-mix(in srgb, var(--text) 88%, var(--muted));
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.share-chip:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+
+.share-chip:active {
+  transform: translateY(0);
+}
+
+.share-chip:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+button.share-chip {
+  cursor: pointer;
 }
 
 .article-body-text {

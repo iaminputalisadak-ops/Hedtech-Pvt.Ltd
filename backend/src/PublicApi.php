@@ -223,6 +223,7 @@ final class PublicApi
 
     public static function blogList(): void
     {
+        Db::ensureBlogPostsFields();
         $cat = $_GET['category'] ?? '';
         $q = trim((string) ($_GET['q'] ?? ''));
         $limit = (int) ($_GET['limit'] ?? 12);
@@ -258,7 +259,6 @@ final class PublicApi
             if ($hasTags) $params[] = $like;
         }
         $pdo = Db::pdo();
-        Db::ensureBlogOgImageAltColumn();
 
         $stmtCount = $pdo->prepare('SELECT COUNT(*)' . $sqlBase);
         $stmtCount->execute($params);
@@ -285,7 +285,7 @@ final class PublicApi
 
     public static function blogBySlug(string $slug): void
     {
-        Db::ensureBlogOgImageAltColumn();
+        Db::ensureBlogPostsFields();
         $pdo = Db::pdo();
         $hasPublished = Db::columnExists('blog_posts', 'published');
         $hasExcerpt = Db::columnExists('blog_posts', 'excerpt');
@@ -372,7 +372,7 @@ final class PublicApi
     {
         $pdo = Db::pdo();
         Db::ensureServicesImageUrlColumn();
-        Db::ensureBlogOgImageAltColumn();
+        Db::ensureBlogPostsFields();
         Db::ensureTeamMembersTable();
         Db::ensureProjectsWorkFields();
         Db::ensureProjectsSeoFields();

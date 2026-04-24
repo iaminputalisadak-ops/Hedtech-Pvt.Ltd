@@ -125,26 +125,17 @@ export default function BlogList() {
         {loading ? <p className="page-state-text">Loading posts…</p> : null}
         {isEmpty ? (
           <div className="glass blog-empty">
-            <h2 className="blog-empty__title">{hasFilters ? 'No posts match your filters' : 'No published posts yet'}</h2>
+            <h2 className="blog-empty__title">{hasFilters ? 'No posts found' : 'Blog posts coming soon'}</h2>
             <p className="blog-empty__lead">
-              {hasFilters
-                ? 'Try a different keyword, clear filters, or pick another category.'
-                : 'Your blog posts will appear here once they are marked as Published in the admin panel.'}
+              {hasFilters ? 'Try a different keyword, clear filters, or pick another category.' : 'We’re publishing new articles soon.'}
             </p>
-            <div className="section-actions" style={{ marginTop: 12 }}>
-              {hasFilters ? (
+            {hasFilters ? (
+              <div className="section-actions" style={{ marginTop: 12 }}>
                 <button type="button" className="btn btn-primary" onClick={() => setSearchParams(new URLSearchParams())}>
                   Clear filters
                 </button>
-              ) : (
-                <Link to="/admin" className="btn btn-primary">
-                  Open admin
-                </Link>
-              )}
-              <Link to="/contact" className="btn btn-ghost">
-                Work with us
-              </Link>
-            </div>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="blog-post-grid">
@@ -212,11 +203,13 @@ export default function BlogList() {
             </button>
           </div>
         ) : null}
-        <div className="section-actions">
-          <Link to="/contact" className="btn btn-primary">
-            Work with us
-          </Link>
-        </div>
+        {!isEmpty ? (
+          <div className="section-actions">
+            <Link to="/contact" className="btn btn-primary">
+              Work with us
+            </Link>
+          </div>
+        ) : null}
       </SectionContainer>
     </>
   )

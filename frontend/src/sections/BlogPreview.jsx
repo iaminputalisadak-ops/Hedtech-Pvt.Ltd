@@ -44,7 +44,7 @@ export default function BlogPreview() {
           <p className="section-kicker section-kicker--left">{settings?.home_blog_kicker || 'News & blog'}</p>
           <h2 className="section-title">{settings?.home_blog_title || 'Insights'}</h2>
           <p className="section-lead">
-            {settings?.home_blog_lead || 'SEO-friendly articles on performance, UX, and growth — managed from your admin panel.'}
+            {settings?.home_blog_lead || ''}
           </p>
         </div>
         <Link to="/blog" className="btn btn-ghost">

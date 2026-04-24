@@ -2,7 +2,6 @@
 export const primaryNav = [
   { to: '/about', label: 'About' },
   { to: '/services', label: 'Services' },
-  { to: '/expertise', label: 'Expertise' },
   { to: '/reviews', label: 'Reviews' },
   { to: '/work', label: 'Work' },
   { to: '/blog', label: 'Blog' },

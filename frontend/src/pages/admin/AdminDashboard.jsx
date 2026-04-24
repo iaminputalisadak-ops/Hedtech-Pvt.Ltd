@@ -425,7 +425,14 @@ const TAB_TITLES = {
 export default function AdminDashboard() {
   const { refresh: refreshSite } = useSite()
   const [authed, setAuthed] = useState(null)
-  const [tab, setTab] = useState('settings')
+  const [tab, setTab] = useState(() => {
+    try {
+      const saved = String(window.localStorage.getItem('hedztech_admin_tab') || '').trim()
+      return saved || 'settings'
+    } catch {
+      return 'settings'
+    }
+  })
   const [items, setItems] = useState([])
   const [settingsForm, setSettingsForm] = useState({})
   const [settingsLoading, setSettingsLoading] = useState(false)
@@ -433,6 +440,13 @@ export default function AdminDashboard() {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState(null)
   const [listError, setListError] = useState(null)
+
+  useEffect(() => {
+    // Guard against invalid/old values after code changes.
+    if (!Object.prototype.hasOwnProperty.call(TAB_TITLES, tab)) {
+      setTab('settings')
+    }
+  }, [tab])
 
   const refreshAuth = useCallback(async () => {
     try {
@@ -563,6 +577,10 @@ export default function AdminDashboard() {
             type="file"
             accept={accept}
             className="admin-input"
+            onClick={(e) => {
+              // Allow choosing the same file again.
+              e.currentTarget.value = ''
+            }}
             onChange={async (e) => {
               const file = e.target.files?.[0]
               if (!file) return
@@ -586,7 +604,6 @@ export default function AdminDashboard() {
                 setNote({ ok: false, text: ex.message || 'Upload failed' })
               } finally {
                 setBusy(false)
-                e.target.value = ''
               }
             }}
           />
@@ -711,6 +728,11 @@ export default function AdminDashboard() {
       activeTab={tab}
       onTabChange={(id) => {
         setTab(id)
+        try {
+          window.localStorage.setItem('hedztech_admin_tab', String(id))
+        } catch {
+          // ignore
+        }
         setNote(null)
         setListError(null)
       }}
@@ -1341,6 +1363,7 @@ function FieldInput({ f, prefix, draft, setDraft, onUploadError, onUploadBusy })
   const val = draft[dk]
   const editorId = useMemo(() => `ck-${prefix || 'n'}-${f.key}`, [prefix, f.key])
   const datalistId = useMemo(() => `dl-${prefix || 'n'}-${f.key}`, [prefix, f.key])
+  const [uploading, setUploading] = useState(false)
 
   if (f.kind === 'select' && Array.isArray(f.options)) {
     const options = f.options
@@ -1376,9 +1399,15 @@ function FieldInput({ f, prefix, draft, setDraft, onUploadError, onUploadBusy })
           type="file"
           accept={f.accept || 'image/*'}
           className="admin-input"
+          disabled={uploading}
+          onClick={(e) => {
+            // Allow selecting the same file again (browsers don't fire change if value doesn't change).
+            e.currentTarget.value = ''
+          }}
           onChange={async (e) => {
             const file = e.target.files?.[0]
             if (!file) return
+            setUploading(true)
             onUploadBusy?.(true)
             try {
               const r = await adminUpload(file, { kind: f.uploadKind || 'asset' })
@@ -1392,10 +1421,15 @@ function FieldInput({ f, prefix, draft, setDraft, onUploadError, onUploadBusy })
               onUploadError?.(formatApiError(err) || 'Upload failed')
             } finally {
               onUploadBusy?.(false)
-              e.target.value = ''
+              setUploading(false)
             }
           }}
         />
+        {uploading ? (
+          <div className="admin-help" style={{ marginTop: '0.4rem' }}>
+            Uploading…
+          </div>
+        ) : null}
         {currentUrl ? (
           <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <img

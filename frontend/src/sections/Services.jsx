@@ -9,7 +9,7 @@ import { useSite } from '../context/SiteContext'
 
 const fadeIn = (reduce) => (reduce ? false : { opacity: 0 })
 
-export default function Services({ showHeader = true, previewCount = 5 }) {
+export default function Services({ showHeader = true, previewCount = 4 }) {
   const { services } = useSite()
   const reduce = useReducedMotion()
 

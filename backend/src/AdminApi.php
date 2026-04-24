@@ -562,7 +562,7 @@ final class AdminApi
     public static function crudBlog(string $method, ?string $id): void
     {
         Auth::requireAdmin();
-        Db::ensureBlogOgImageAltColumn();
+        Db::ensureBlogPostsFields();
         $pdo = Db::pdo();
         // Support older DBs by only touching existing columns.
         $hasExcerpt = Db::columnExists('blog_posts', 'excerpt');

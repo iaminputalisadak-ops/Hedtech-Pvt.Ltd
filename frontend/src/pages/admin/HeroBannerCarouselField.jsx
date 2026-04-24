@@ -96,9 +96,12 @@ export default function HeroBannerCarouselField({
             accept="image/*,.svg"
             className="sr-only"
             disabled={busy}
+            onClick={(e) => {
+              // Allow choosing the same file again.
+              e.currentTarget.value = ''
+            }}
             onChange={async (e) => {
               const file = e.target.files?.[0]
-              e.target.value = ''
               if (!file) return
               setBusy(true)
               setNote(null)

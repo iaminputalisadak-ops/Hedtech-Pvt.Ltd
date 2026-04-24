@@ -275,6 +275,11 @@ a.admin-nav-btn {
   flex-shrink: 0;
 }
 
+/* Used to position CKEditor sticky toolbar below the topbar. */
+.admin-main {
+  --admin-topbar-offset: 64px;
+}
+
 .admin-topbar-left {
   display: flex;
   align-items: center;
@@ -516,11 +521,9 @@ html[data-theme='light'] .admin-btn--primary {
   overflow: hidden;
   max-height: 0;
   opacity: 0;
-  transform: translateY(-4px);
   transition:
     max-height 0.28s ease,
-    opacity 0.22s ease,
-    transform 0.22s ease;
+    opacity 0.22s ease;
 }
 
 /* Tall forms (e.g. CKEditor) exceeded 1200px and hid the Add button — cap to viewport + scroll */
@@ -528,7 +531,6 @@ html[data-theme='light'] .admin-btn--primary {
   max-height: min(88vh, 7200px);
   overflow: hidden;
   opacity: 1;
-  transform: translateY(0);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -817,6 +819,19 @@ html[data-theme='dark'] .admin-ckeditor .ck.ck-content {
 
 html[data-theme='dark'] .admin-ckeditor .ck.ck-toolbar {
   background: var(--surface-strong);
+}
+
+/* CKEditor toolbar becomes sticky; keep it below the admin header (no overlap). */
+.admin-ckeditor .ck.ck-sticky-panel__content.ck-sticky-panel__content_sticky {
+  top: var(--admin-topbar-offset) !important;
+  z-index: 35 !important;
+}
+
+/* Mobile: topbar is slightly taller with safe-area; nudge toolbar down. */
+@media (max-width: 900px) {
+  .admin-main {
+    --admin-topbar-offset: 72px;
+  }
 }
 
 html[data-theme='dark'] .admin-ckeditor {
