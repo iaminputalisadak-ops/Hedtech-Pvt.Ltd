@@ -230,18 +230,32 @@ final class PublicApi
         $limit = max(1, min(50, $limit));
         $offset = max(0, $offset);
 
-        $sqlBase = ' FROM blog_posts WHERE published = 1';
+        $hasPublished = Db::columnExists('blog_posts', 'published');
+        $hasExcerpt = Db::columnExists('blog_posts', 'excerpt');
+        $hasCategory = Db::columnExists('blog_posts', 'category');
+        $hasTags = Db::columnExists('blog_posts', 'tags');
+        $hasMetaTitle = Db::columnExists('blog_posts', 'meta_title');
+        $hasMetaDesc = Db::columnExists('blog_posts', 'meta_description');
+        $hasOg = Db::columnExists('blog_posts', 'og_image');
+        $hasOgAlt = Db::columnExists('blog_posts', 'og_image_alt');
+
+        $sqlBase = ' FROM blog_posts' . ($hasPublished ? ' WHERE published = 1' : ' WHERE 1=1');
         $params = [];
         if ($cat !== '') {
-            $sqlBase .= ' AND category = ?';
-            $params[] = $cat;
+            if ($hasCategory) {
+                $sqlBase .= ' AND category = ?';
+                $params[] = $cat;
+            }
         }
         if ($q !== '') {
-            $sqlBase .= ' AND (title LIKE ? OR excerpt LIKE ? OR tags LIKE ?)';
+            $parts = ['title LIKE ?'];
+            if ($hasExcerpt) $parts[] = 'excerpt LIKE ?';
+            if ($hasTags) $parts[] = 'tags LIKE ?';
+            $sqlBase .= ' AND (' . implode(' OR ', $parts) . ')';
             $like = '%' . $q . '%';
             $params[] = $like;
-            $params[] = $like;
-            $params[] = $like;
+            if ($hasExcerpt) $params[] = $like;
+            if ($hasTags) $params[] = $like;
         }
         $pdo = Db::pdo();
         Db::ensureBlogOgImageAltColumn();
@@ -250,21 +264,52 @@ final class PublicApi
         $stmtCount->execute($params);
         $total = (int) $stmtCount->fetchColumn();
 
-        $sql = 'SELECT id, title, slug, excerpt, category, tags, created_at, meta_title, meta_description, og_image, og_image_alt'
+        $cols = ['id', 'title', 'slug'];
+        if ($hasExcerpt) $cols[] = 'excerpt';
+        if ($hasCategory) $cols[] = 'category';
+        if ($hasTags) $cols[] = 'tags';
+        $cols[] = 'created_at';
+        if ($hasMetaTitle) $cols[] = 'meta_title';
+        if ($hasMetaDesc) $cols[] = 'meta_description';
+        if ($hasOg) $cols[] = 'og_image';
+        if ($hasOgAlt) $cols[] = 'og_image_alt';
+
+        // MariaDB/MySQL can treat LIMIT/OFFSET placeholders as strings; interpolate safe ints instead.
+        $sql = 'SELECT ' . implode(', ', $cols)
             . $sqlBase
-            . ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+            . ' ORDER BY created_at DESC LIMIT ' . $limit . ' OFFSET ' . $offset;
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([...$params, $limit, $offset]);
+        $stmt->execute($params);
         Util::sendJson(['items' => $stmt->fetchAll(), 'total' => $total, 'limit' => $limit, 'offset' => $offset]);
     }
 
     public static function blogBySlug(string $slug): void
     {
         Db::ensureBlogOgImageAltColumn();
-        $stmt = Db::pdo()->prepare(
-            'SELECT id, title, slug, excerpt, body, category, tags, created_at, meta_title, meta_description, og_image, og_image_alt
-             FROM blog_posts WHERE slug = ? AND published = 1 LIMIT 1'
-        );
+        $pdo = Db::pdo();
+        $hasPublished = Db::columnExists('blog_posts', 'published');
+        $hasExcerpt = Db::columnExists('blog_posts', 'excerpt');
+        $hasBody = Db::columnExists('blog_posts', 'body');
+        $hasCategory = Db::columnExists('blog_posts', 'category');
+        $hasTags = Db::columnExists('blog_posts', 'tags');
+        $hasMetaTitle = Db::columnExists('blog_posts', 'meta_title');
+        $hasMetaDesc = Db::columnExists('blog_posts', 'meta_description');
+        $hasOg = Db::columnExists('blog_posts', 'og_image');
+        $hasOgAlt = Db::columnExists('blog_posts', 'og_image_alt');
+
+        $cols = ['id', 'title', 'slug'];
+        if ($hasExcerpt) $cols[] = 'excerpt';
+        if ($hasBody) $cols[] = 'body';
+        if ($hasCategory) $cols[] = 'category';
+        if ($hasTags) $cols[] = 'tags';
+        $cols[] = 'created_at';
+        if ($hasMetaTitle) $cols[] = 'meta_title';
+        if ($hasMetaDesc) $cols[] = 'meta_description';
+        if ($hasOg) $cols[] = 'og_image';
+        if ($hasOgAlt) $cols[] = 'og_image_alt';
+
+        $where = 'WHERE slug = ?' . ($hasPublished ? ' AND published = 1' : '');
+        $stmt = $pdo->prepare('SELECT ' . implode(', ', $cols) . ' FROM blog_posts ' . $where . ' LIMIT 1');
         $stmt->execute([$slug]);
         $row = $stmt->fetch();
         if (!$row) {
