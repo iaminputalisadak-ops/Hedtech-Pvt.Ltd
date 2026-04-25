@@ -215,13 +215,9 @@ const SETTINGS_GROUPS = [
     cols2: true,
     fields: [
       ['social_linkedin', 'LinkedIn'],
-      ['social_twitter', 'X / Twitter'],
-      ['social_github', 'GitHub'],
       ['social_facebook', 'Facebook'],
       ['social_instagram', 'Instagram'],
-      ['social_youtube', 'YouTube'],
       ['social_tiktok', 'TikTok'],
-      ['social_whatsapp', 'WhatsApp'],
     ],
   },
   {

@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useSite } from '../context/SiteContext'
 import { resolvePublicAssetUrl } from '../utils/absoluteUrl'
 import { displayedProjectCount } from '../utils/displayedProjectCount'
+import CmsImage from '../components/CmsImage'
 
 const HERO_COPY_DEFAULTS = {
   headline: 'High‑performing digital experiences that convert',
@@ -158,8 +159,8 @@ function HeroWallpaper({
   const opacityOut = isLight ? Math.min(1, safeOpacity * 0.78 + 0.03) : safeOpacity
   const contrast = isLight ? 'saturate(0.95) contrast(1.02) brightness(1.02)' : 'saturate(1.05) contrast(1.02)'
   return (
-    <img
-      src={url}
+    <CmsImage
+      src={src}
       alt=""
       sizes="100vw"
       decoding="async"
@@ -167,6 +168,7 @@ function HeroWallpaper({
       fetchPriority={fetchPriority}
       aria-hidden
       className="hero-wallpaper-img"
+      srcSetWidths={[480, 768, 1024, 1280, 1536, 1920]}
       style={{
         opacity: opacityOut,
         objectFit,
@@ -330,9 +332,9 @@ export default function Hero() {
           },
           particles: {
             // Keep the visual, reduce CPU/GPU work.
-            relSpeed: overlay ? 2.0 : 2.6,
+            relSpeed: overlay ? 2.9 : 3.8,
             relSize: overlay ? (theme === 'light' ? 1.7 : 1.55) : theme === 'light' ? 1.9 : 1.7,
-            rotationSpeed: overlay ? 24 : 30,
+            rotationSpeed: overlay ? 32 : 42,
             color: particleColor,
           },
         }).start()

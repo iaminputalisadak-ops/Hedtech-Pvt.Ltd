@@ -40,8 +40,6 @@ final class Router
             $path = '/';
         }
 
-        Auth::startSession();
-
         // --- Public ---
         if ($method === 'GET' && $path === '/public/db-health') {
             PublicApi::dbHealth();
@@ -97,6 +95,10 @@ final class Router
         }
         if ($method === 'GET' && $path === '/public/sitemap.xml') {
             PublicApi::sitemapXml();
+            return;
+        }
+        if ($method === 'GET' && $path === '/public/image') {
+            PublicApi::image();
             return;
         }
         if ($method === 'POST' && $path === '/public/contact') {

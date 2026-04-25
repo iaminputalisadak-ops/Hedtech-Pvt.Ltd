@@ -7,6 +7,12 @@ use PDO;
 
 final class PublicApi
 {
+    private static function uploadsDir(): string
+    {
+        // backend/src -> backend/public/uploads
+        return dirname(__DIR__) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'uploads';
+    }
+
     private static function xmlEscape(string $s): string
     {
         return htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
@@ -79,6 +85,158 @@ final class PublicApi
             echo '  <url><loc>' . self::xmlEscape($loc) . "</loc></url>\n";
         }
         echo "</urlset>\n";
+    }
+
+    /**
+     * Responsive image helper for CMS uploads.
+     *
+     * GET /api/public/image?f=<filename>&w=<width>
+     * - Only serves files from backend/public/uploads/
+     * - Resizes/caches variants on disk for fast repeat requests
+     * - Uses WebP when supported by the client (falls back to JPEG/PNG)
+     */
+    public static function image(): void
+    {
+        $f = isset($_GET['f']) ? (string) $_GET['f'] : '';
+        $f = trim($f);
+        if ($f === '' || str_contains($f, '/') || str_contains($f, '\\') || str_contains($f, '..')) {
+            http_response_code(400);
+            echo 'bad request';
+            return;
+        }
+
+        $w = isset($_GET['w']) ? (int) $_GET['w'] : 0;
+        $w = max(0, min(2400, $w));
+
+        $uploads = self::uploadsDir();
+        $srcPath = $uploads . DIRECTORY_SEPARATOR . $f;
+        if (!is_file($srcPath)) {
+            http_response_code(404);
+            echo 'not found';
+            return;
+        }
+
+        $ext = strtolower(pathinfo($srcPath, PATHINFO_EXTENSION) ?: '');
+        $raster = in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true);
+        if (!$raster || !function_exists('imagecreatefromstring') || !function_exists('imagecreatetruecolor')) {
+            // Serve original (or unsupported types).
+            self::sendFile($srcPath, self::mimeFromExt($ext), 86400);
+            return;
+        }
+
+        // If no resizing requested, serve original with long-ish cache.
+        if ($w <= 0) {
+            self::sendFile($srcPath, self::mimeFromExt($ext), 604800);
+            return;
+        }
+
+        $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
+        $wantWebp = str_contains($accept, 'image/webp') && function_exists('imagewebp');
+
+        $mtime = (int) (filemtime($srcPath) ?: 0);
+        $cacheDir = $uploads . DIRECTORY_SEPARATOR . '.cache';
+        if (!is_dir($cacheDir)) {
+            @mkdir($cacheDir, 0775, true);
+        }
+
+        $outExt = $wantWebp ? 'webp' : ($ext === 'png' ? 'png' : 'jpg');
+        $cacheName = 'w' . $w . '-m' . $mtime . '-' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $f) . '.' . $outExt;
+        $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $cacheName;
+
+        if (!is_file($cachePath)) {
+            $data = @file_get_contents($srcPath);
+            if ($data === false || $data === '') {
+                http_response_code(500);
+                echo 'read failed';
+                return;
+            }
+            $img = @imagecreatefromstring($data);
+            if ($img === false) {
+                self::sendFile($srcPath, self::mimeFromExt($ext), 86400);
+                return;
+            }
+
+            $sw = imagesx($img);
+            $sh = imagesy($img);
+            if ($sw < 1 || $sh < 1) {
+                imagedestroy($img);
+                self::sendFile($srcPath, self::mimeFromExt($ext), 86400);
+                return;
+            }
+
+            if ($w >= $sw) {
+                imagedestroy($img);
+                self::sendFile($srcPath, self::mimeFromExt($ext), 604800);
+                return;
+            }
+
+            $nh = max(1, (int) round($sh * ($w / $sw)));
+            $dst = imagecreatetruecolor($w, $nh);
+            if ($dst === false) {
+                imagedestroy($img);
+                self::sendFile($srcPath, self::mimeFromExt($ext), 86400);
+                return;
+            }
+
+            if ($outExt === 'png') {
+                imagealphablending($dst, false);
+                imagesavealpha($dst, true);
+                $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+                imagefilledrectangle($dst, 0, 0, $w, $nh, $transparent);
+            }
+
+            imagecopyresampled($dst, $img, 0, 0, 0, 0, $w, $nh, $sw, $sh);
+            imagedestroy($img);
+
+            $ok = false;
+            if ($outExt === 'webp') {
+                $ok = imagewebp($dst, $cachePath, 76);
+            } elseif ($outExt === 'png') {
+                $ok = imagepng($dst, $cachePath, 6);
+            } else {
+                $ok = imagejpeg($dst, $cachePath, 74);
+            }
+            imagedestroy($dst);
+
+            if ($ok !== true) {
+                @unlink($cachePath);
+                self::sendFile($srcPath, self::mimeFromExt($ext), 86400);
+                return;
+            }
+        }
+
+        self::sendFile($cachePath, self::mimeFromExt($outExt), 31536000);
+    }
+
+    private static function mimeFromExt(string $ext): string
+    {
+        $ext = strtolower($ext);
+        return match ($ext) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'ico' => 'image/x-icon',
+            'avif' => 'image/avif',
+            default => 'application/octet-stream',
+        };
+    }
+
+    private static function sendFile(string $path, string $mime, int $maxAge): void
+    {
+        $maxAge = max(60, min(31536000, $maxAge));
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=' . $maxAge . ', stale-while-revalidate=86400');
+        $size = filesize($path);
+        if ($size !== false) {
+            header('Content-Length: ' . $size);
+        }
+        $mtime = filemtime($path);
+        if ($mtime !== false) {
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s', (int) $mtime) . ' GMT');
+        }
+        readfile($path);
     }
 
     public static function settings(): void
